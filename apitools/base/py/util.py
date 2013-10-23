@@ -9,6 +9,15 @@ import urllib2
 
 from apitools.base.py import exceptions
 
+RETRYABLE_STATUS_CODES = (
+    httplib.MOVED_PERMANENTLY,
+    httplib.FOUND,
+    httplib.SEE_OTHER,
+    httplib.TEMPORARY_REDIRECT,
+    # 308 doesn't have a name in httplib.
+    308,
+    )
+
 
 def DetectGae():
   """Determine whether or not we're running on GAE.

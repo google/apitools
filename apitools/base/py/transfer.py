@@ -9,7 +9,10 @@ import mimetypes
 import os
 import threading
 
+import httplib2
+
 from apitools.base.py import exceptions
+from apitools.base.py import util
 
 __all__ = [
     'Download',
@@ -34,7 +37,8 @@ class _HttpResponse(collections.namedtuple(
 
 
 class _TransferSerializationData(collections.namedtuple(
-    '_TransferSerializationData', ['progress', 'total_size', 'url'])):
+    '_TransferSerializationData',
+    ['auto_transfer', 'progress', 'total_size', 'url'])):
   __slots__ = ()
 
   def ToJson(self):
@@ -44,7 +48,7 @@ class _TransferSerializationData(collections.namedtuple(
   def FromJson(cls, json_data):
     data = json.loads(json_data)
     data_keys = set(('progress', 'url'))
-    if data_keys > set(cls._fields):
+    if not data_keys.issubset(set(cls._fields)):
       raise exceptions.InvalidDataError(
           'Invalid keys for Transfer: %s' % data_keys)
     return cls._make(data[field] for field in cls._fields)
@@ -53,7 +57,8 @@ class _TransferSerializationData(collections.namedtuple(
 class _Transfer(object):
   """Generic bits common to Uploads and Downloads."""
 
-  def __init__(self, stream, close_stream=False, chunksize=None):
+  def __init__(self, stream, close_stream=False, chunksize=None,
+               auto_transfer=True):
     self.__close_stream = close_stream
     self.__http = None
     self.__stream = stream
@@ -62,6 +67,7 @@ class _Transfer(object):
 
     self._progress = 0
 
+    self.auto_transfer = auto_transfer
     self.chunksize = chunksize or 1048576L
 
   def __repr__(self):
@@ -113,6 +119,11 @@ class _Transfer(object):
       raise exceptions.TransferInvalidError(
           'Cannot use uninitialized %s', self._type_name)
 
+  def EnsureUninitialized(self):
+    if self.initialized:
+      raise exceptions.TransferInvalidError(
+          'Cannot re-initialize %s', self._type_name)
+
   @property
   def close_stream(self):
     return self.__close_stream
@@ -125,6 +136,7 @@ class _Transfer(object):
   def serialization_data(self):
     self.EnsureInitialized()
     return {
+        'auto_transfer': self.auto_transfer,
         'progress': self._progress,
         'total_size': self.total_size,
         'url': self.url,
@@ -146,18 +158,18 @@ class Download(_Transfer):
     return 'Download for url %s' % self.url
 
   @classmethod
-  def FromFile(cls, filename, overwrite=False):
+  def FromFile(cls, filename, overwrite=False, auto_transfer=True):
     """Create a new download object from a filename."""
     path = os.path.expanduser(filename)
     if os.path.exists(path) and not overwrite:
       raise exceptions.InvalidUserInputError(
           'File %s exists and overwrite not specified' % path)
-    return cls(open(path, 'wb'), close_stream=True)
+    return cls(open(path, 'wb'), close_stream=True, auto_transfer=auto_transfer)
 
   @classmethod
-  def FromStream(cls, stream):
+  def FromStream(cls, stream, auto_transfer=True):
     """Create a new Download object from a stream."""
-    return cls(stream)
+    return cls(stream, auto_transfer=auto_transfer)
 
   @classmethod
   def FromData(cls, stream, json_data, http=None):
@@ -170,13 +182,45 @@ class Download(_Transfer):
     download.url = info.url
     return download
 
+  def InitializeDownload(self, url, http,
+                         method='GET', headers=None, body=''):
+    """Initialize this download by making a request.
+
+    Args:
+      url: The URL to use for our initial request.
+      http: The httplib2.Http instance for this request.
+      method: The HTTP method used for the call.
+      headers: Additional headers to pass in the request.
+      body: The message body.
+    """
+    self.EnsureUninitialized()
+    headers = headers or {}
+    try:
+      response, content = http.request(
+          uri=url, method=method, headers=headers, body=body, redirections=0)
+      if response['status'] not in util.RETRYABLE_STATUS_CODES:
+        raise exceptions.HttpError(response, content, uri=url)
+      else:
+        raise exceptions.InvalidDataFromServerError(
+            'No redirect received for media download from url <%s>: %s' % (
+                url, response))
+    except httplib2.RedirectLimit as e:
+      self.url = e.response['location']
+      self.http = http
+
+    # Unless the user has requested otherwise, we want to just
+    # go ahead and pump the bytes now.
+    if self.auto_transfer:
+      self.StreamInChunks()
+
   def __SetTotal(self, info):
     if self.total_size is None and 'content-range' in info:
       _, _, total = info['content-range'].rpartition('/')
       if total != '*':
         self.total_size = int(total)
 
-  def __GetChunk(self, start, end=None, chunksize=None):
+  def __GetChunk(self, start, end=None, chunksize=None,
+                 additional_headers=None):
     """Retrieve a chunk, and return the full response."""
     self.EnsureInitialized()
     start = max(start, 0)
@@ -192,6 +236,8 @@ class Download(_Transfer):
         raise exceptions.TransferInvalidError(
             'Range requested with end[%s] < start[%s]' % (end, start))
     headers = {'Range': 'bytes=%s-%d' % (start, end)}
+    if additional_headers is not None:
+      headers.update(additional_headers)
     # TODO(craigcitro): Add support for retries.
     response = _HttpResponse(*self.http.request(self.url, headers=headers))
     self.__SetTotal(response.info)
@@ -202,12 +248,14 @@ class Download(_Transfer):
       self.stream.write(response.content)
     return response
 
-  def GetRange(self, start, end, chunksize=None, exact_range=True):
+  def GetRange(self, start, end, chunksize=None, exact_range=True,
+               additional_headers=None):
     """Retrieve a given byte range from this download."""
     progress = start
     chunksize = chunksize or self.chunksize
     while progress < end:
-      response = self.__GetChunk(progress, end=end)
+      response = self.__GetChunk(progress, end=end,
+                                 additional_headers=additional_headers)
       if (response.status_code == httplib.REQUESTED_RANGE_NOT_SATISFIABLE and
           exact_range):
         raise exceptions.TransferInvalidError(
@@ -220,7 +268,7 @@ class Download(_Transfer):
       threading.Thread(target=callback, args=(response, self)).start()
 
   def StreamInChunks(self, callback=None, finish_callback=None, chunksize=None,
-                     end=None):
+                     end=None, additional_headers=None):
     """Stream the entire download."""
 
     def ArgPrinter(response, unused_download):
@@ -234,7 +282,8 @@ class Download(_Transfer):
 
     self.EnsureInitialized()
     while True:
-      response = self.__GetChunk(self._progress, chunksize=chunksize, end=end)
+      response = self.__GetChunk(self._progress, chunksize=chunksize, end=end,
+                                 additional_headers=additional_headers)
       # TODO(craigcitro): Consider whether this update and writing
       # the response to self.stream need to happen as a transaction.
       self._progress += len(response)

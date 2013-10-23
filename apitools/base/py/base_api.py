@@ -4,7 +4,6 @@
 import contextlib
 import email.mime.multipart as mime_multipart
 import email.mime.nonmultipart as mime_nonmultipart
-import httplib
 import logging
 import types
 import urllib
@@ -24,6 +23,7 @@ import gflags as flags
 from apitools.base.py import credentials_lib
 from apitools.base.py import encoding
 from apitools.base.py import exceptions
+from apitools.base.py import util
 
 FLAGS = flags.FLAGS
 
@@ -436,9 +436,7 @@ class BaseApiService(object):
   def __IsRetryable(self, exc):
     status = int(exc.resp.get('status'))
     # 308 doesn't have a name in httplib.
-    retryable_status = status in (
-        httplib.MOVED_PERMANENTLY, httplib.FOUND, httplib.SEE_OTHER,
-        httplib.TEMPORARY_REDIRECT, 308)
+    retryable_status = status in util.RETRYABLE_STATUS_CODES
     return retryable_status and 'location' in exc.resp
 
   def __ExecuteRequest(self, request, url):
@@ -527,19 +525,9 @@ class BaseApiService(object):
         methodId=method_config.method_id,
         resumable=resumable)
 
-    # If we're downloading media, we want to just get the new URL and
-    # hand it back to the download object.
     if download:
-      try:
-        request.http.request(
-            uri=str(request.uri), method='GET', headers=request.headers,
-            body='', redirections=0)
-        # TODO(craigcitro): Confirm that this is invalid.
-        raise exceptions.InvalidDataFromServerError(
-            'No redirect received for media download')
-      except httplib2.RedirectLimit as e:
-        download.url = e.response['location']
-        download.http = request.http
+      download.InitializeDownload(
+          str(request.uri), request.http, headers=request.headers)
       return
 
     response = self.__ExecuteRequest(request, url)

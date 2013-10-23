@@ -513,10 +513,6 @@ class CommandRegistry(object):
           printer('result = client.%s(', command_info.client_method_path)
           with printer.Indent(indent='    '):
             printer('%s)', ', '.join(call_args))
-          if command_info.has_download:
-            printer('if FLAGS.download_filename:')
-            with printer.Indent():
-              printer('download.StreamInChunks()')
           printer('print result')
       printer()
       printer()

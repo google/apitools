@@ -160,11 +160,7 @@ class ServiceRegistry(object):
       printer()
       client_info_items = client_info._asdict().iteritems()  # pylint:disable=protected-access
       for attr, val in client_info_items:
-        if attr == 'api_key':
-          printer('# MOE:begin_strip')
         printer('_%s = %r' % (attr.upper(), val))
-        if attr == 'api_key':
-          printer('# MOE:end_strip')
       printer()
       printer("def __init__(self, url='', credentials=None,")
       printer('             get_credentials=True, http=None, model=None,')

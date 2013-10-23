@@ -35,14 +35,16 @@ REQUIRED_PACKAGES = [
     'pytz==2013.7',
     'wsgiref==0.1.2',
     ]
-CONSOLE_SCRIPTS = []
+CONSOLE_SCRIPTS = [
+    'gen_client = apitools.gen.gen_client:run_main',
+    ]
 
 py_version = platform.python_version()
 
 if py_version < '2.7':
   REQUIRED_PACKAGES.append('argparse==1.2.1')
 
-_APITOOLS_VERSION = '0.1'
+_APITOOLS_VERSION = '0.1.1'
 
 setuptools.setup(
     name='apitools',
