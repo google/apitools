@@ -20,15 +20,18 @@ import platform
 
 from ez_setup import use_setuptools
 use_setuptools()
-# pylint:disable-msg=C6204
+# pylint:disable=C6204
 import setuptools
 
 # Configure the required packages and scripts to install, depending on
 # Python version and OS.
 REQUIRED_PACKAGES = [
     'ez-setup==0.9',
-    'google-api-python-client==1.2',
     'google-apputils==0.4.0',
+    'httplib2==0.8',
+    'mimeparse==0.1.3',
+    'mock==1.0.1',
+    'oauth2client==1.2',
     'protorpc==0.9.1',
     'python-dateutil==1.5',
     'python-gflags==2.0',
@@ -44,7 +47,8 @@ py_version = platform.python_version()
 if py_version < '2.7':
   REQUIRED_PACKAGES.append('argparse==1.2.1')
 
-_APITOOLS_VERSION = '0.1.1'
+_NAMESPACE = 'apitools'
+_APITOOLS_VERSION = '0.2'
 
 setuptools.setup(
     name='apitools',
@@ -59,6 +63,7 @@ setuptools.setup(
         'console_scripts': CONSOLE_SCRIPTS,
         },
     install_requires=REQUIRED_PACKAGES,
+    namespace_packages=[_NAMESPACE],
     provides=[
         'apitools (%s)' % (_APITOOLS_VERSION,),
         ],

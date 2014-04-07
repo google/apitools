@@ -20,8 +20,6 @@ from protorpc import descriptor
 from protorpc import message_types
 from protorpc import messages
 
-from apitools.gen import util
-
 
 class ExtendedEnumValueDescriptor(messages.Message):
   """Enum value descriptor with additional fields.
@@ -80,6 +78,7 @@ class ExtendedMessageDescriptor(messages.Message):
     decorators: Decorators to include in the definition when printing.
         Printed in the given order from top to bottom (so the last entry
         is the innermost decorator).
+    alias_for: This type is just an alias for the named type.
   """
   name = messages.StringField(1)
   fields = messages.MessageField(ExtendedFieldDescriptor, 2, repeated=True)
@@ -90,6 +89,7 @@ class ExtendedMessageDescriptor(messages.Message):
   description = messages.StringField(100)
   full_name = messages.StringField(101)
   decorators = messages.StringField(102, repeated=True)
+  alias_for = messages.StringField(103)
 
 
 class ExtendedFileDescriptor(messages.Message):
@@ -120,16 +120,16 @@ def _WriteFile(file_descriptor, package, version, proto_printer):
   _PrintMessages(proto_printer, file_descriptor.message_types)
 
 
-def WriteMessagesFile(file_descriptor, package, version, out):
+def WriteMessagesFile(file_descriptor, package, version, printer):
   """Write the given extended file descriptor to out as a message file."""
   _WriteFile(file_descriptor, package, version,
-             _Proto2Printer(util.SimplePrettyPrinter(out)))
+             _Proto2Printer(printer))
 
 
-def WritePythonFile(file_descriptor, package, version, out):
+def WritePythonFile(file_descriptor, package, version, printer):
   """Write the given extended file descriptor to out."""
   _WriteFile(file_descriptor, package, version,
-             _ProtoRpcPrinter(util.SimplePrettyPrinter(out)))
+             _ProtoRpcPrinter(printer))
 
 
 def PrintIndentedDescriptions(printer, ls, name, prefix=''):
@@ -348,6 +348,10 @@ class _ProtoRpcPrinter(ProtoPrinter):
     self.__printer()
 
   def PrintMessage(self, message_type):
+    if message_type.alias_for:
+      self.__printer('%s = %s', message_type.name, message_type.alias_for)
+      self.__PrintClassSeparator()
+      return
     for decorator in message_type.decorators:
       self.__printer('@%s', decorator)
     self.__printer('class %s(messages.Message):', message_type.name)

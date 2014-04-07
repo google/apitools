@@ -32,6 +32,8 @@ class MessageRegistry(object):
                           variant=messages.BooleanField.DEFAULT_VARIANT),
       'number': TypeInfo(type_name='number',
                          variant=messages.FloatField.DEFAULT_VARIANT),
+      'any': TypeInfo(type_name='extra_types.JsonValue',
+                      variant=messages.Variant.MESSAGE),
       }
 
   PRIMITIVE_FORMAT_MAP = {
@@ -87,17 +89,19 @@ class MessageRegistry(object):
     self.Validate()
     return self.__file_descriptor
 
-  def WriteProtoFile(self, out):
+  def WriteProtoFile(self, printer):
     """Write the messages file to out as proto."""
     self.Validate()
     extended_descriptor.WriteMessagesFile(
-        self.__file_descriptor, self.__package, self.__client_info.version, out)
+        self.__file_descriptor, self.__package, self.__client_info.version,
+        printer)
 
-  def WriteFile(self, out):
+  def WriteFile(self, printer):
     """Write the messages file to out."""
     self.Validate()
     extended_descriptor.WritePythonFile(
-        self.__file_descriptor, self.__package, self.__client_info.version, out)
+        self.__file_descriptor, self.__package, self.__client_info.version,
+        printer)
 
   def Validate(self):
     mysteries = self.__nascent_types or self.__unknown_types
@@ -115,6 +119,7 @@ class MessageRegistry(object):
     self.__nascent_types.add(self.__ComputeFullName(name))
 
   def __RegisterDescriptor(self, new_descriptor):
+    """Register the given descriptor in this registry."""
     if not isinstance(new_descriptor, (
         extended_descriptor.ExtendedMessageDescriptor,
         extended_descriptor.ExtendedEnumDescriptor)):
@@ -181,12 +186,47 @@ class MessageRegistry(object):
       message.values.append(enum_value)
     self.__RegisterDescriptor(message)
 
+  def __DeclareMessageAlias(self, schema, alias_for):
+    """Declare schema as an alias for alias_for."""
+    # TODO(craigcitro): This is a hack. Remove it.
+    message = extended_descriptor.ExtendedMessageDescriptor()
+    message.name = self.__names.ClassName(schema['id'])
+    message.alias_for = alias_for
+    self.__DeclareDescriptor(message.name)
+    self.__AddImport('from %s import extra_types' % self.__base_files_package)
+    self.__RegisterDescriptor(message)
+
+  def __AddAdditionalProperties(self, message, schema, properties):
+    """Add an additionalProperties field to message."""
+    additional_properties_info = schema['additionalProperties']
+    entries_type_name = self.__AddAdditionalPropertyType(
+        message.name, additional_properties_info)
+    description = additional_properties_info.get('description')
+    if description is None:
+      description = 'Additional properties of type %s' % message.name
+    attrs = {
+        'items': {
+            '$ref': entries_type_name,
+            },
+        'description': description,
+        'type': 'array',
+        }
+    field_name = 'additionalProperties'
+    message.fields.append(self.__FieldDescriptorFromProperties(
+        field_name, len(properties) + 1, attrs))
+    self.__AddImport('from %s import encoding' % self.__base_files_package)
+    message.decorators.append(
+        'encoding.MapUnrecognizedFields(%r)' % field_name)
+
   def AddDescriptorFromSchema(self, schema_name, schema):
     """Add a new MessageDescriptor named schema_name based on schema."""
     # TODO(craigcitro): Is schema_name redundant?
     if self.__GetDescriptor(schema_name):
       return
-    if schema.get('type') not in ('object', 'any'):
+    if schema.get('type') == 'any':
+      self.__DeclareMessageAlias(schema, 'extra_types.JsonValue')
+      return
+    if schema.get('type') != 'object':
       raise ValueError(
           'Cannot create message descriptors for type %s', schema.get('type'))
     message = extended_descriptor.ExtendedMessageDescriptor()
@@ -200,29 +240,11 @@ class MessageRegistry(object):
         field = self.__FieldDescriptorFromProperties(name, index + 1, attrs)
         message.fields.append(field)
       if 'additionalProperties' in schema:
-        additional_properties_info = schema['additionalProperties']
-        entries_type_name = self.__AddAdditionalPropertyType(
-            message.name, additional_properties_info)
-        description = additional_properties_info.get('description')
-        if description is None:
-          description = 'Additional properties of type %s' % message.name
-        attrs = {
-            'items': {
-                '$ref': entries_type_name,
-                },
-            'description': description,
-            'type': 'array',
-            }
-        field_name = 'additionalProperties'
-        message.fields.append(self.__FieldDescriptorFromProperties(
-            field_name, len(properties) + 1, attrs))
-        self.__AddImport(
-            'from %s import encoding' % self.__base_files_package)
-        message.decorators.append(
-            'encoding.MapUnrecognizedFields(%r)' % field_name)
+        self.__AddAdditionalProperties(message, schema, properties)
     self.__RegisterDescriptor(message)
 
   def __AddAdditionalPropertyType(self, name, property_schema):
+    """Add a new nested AdditionalProperty message."""
     new_type_name = 'AdditionalProperty'
     property_schema = dict(property_schema)
     # We drop the description here on purpose, so the resulting
@@ -244,7 +266,26 @@ class MessageRegistry(object):
     self.AddDescriptorFromSchema(new_type_name, schema)
     return new_type_name
 
+  def __AddEntryType(self, entry_type_name, entry_schema, parent_name):
+    """Add a type for a list entry."""
+    entry_schema.pop('description', None)
+    description = 'Single entry in a %s.' % parent_name
+    schema = {
+        'id': entry_type_name,
+        'type': 'object',
+        'description': description,
+        'properties': {
+            'entry': {
+                'type': 'array',
+                'items': entry_schema,
+                },
+            },
+        }
+    self.AddDescriptorFromSchema(entry_type_name, schema)
+    return entry_type_name
+
   def __FieldDescriptorFromProperties(self, name, index, attrs):
+    """Create a field descriptor for these attrs."""
     field = descriptor.FieldDescriptor()
     field.name = self.__names.CleanName(name)
     field.number = index
@@ -322,11 +363,20 @@ class MessageRegistry(object):
       items = attrs.get('items')
       if not items:
         raise ValueError('Array type with no item type: %s' % attrs)
-      item_name_hint = items.get('title') or '%sListEntry' % name_hint
-      item_name_hint = self.__names.ClassName(item_name_hint)
-      return self.__GetTypeInfo(items, item_name_hint)
+      entry_name_hint = self.__names.ClassName(
+          items.get('title') or '%sListEntry' % name_hint)
+      entry_label = self.__ComputeLabel(items)
+      if entry_label == descriptor.FieldDescriptor.Label.REPEATED:
+        parent_name = self.__names.ClassName(items.get('title') or name_hint)
+        entry_type_name = self.__AddEntryType(
+            entry_name_hint, items.get('items'), parent_name)
+        return TypeInfo(
+            type_name=entry_type_name, variant=messages.Variant.MESSAGE)
+      else:
+        return self.__GetTypeInfo(items, entry_name_hint)
     elif type_name == 'any':
-      return self.PRIMITIVE_TYPE_INFO_MAP['string']
+      self.__AddImport('from %s import extra_types' % self.__base_files_package)
+      return self.PRIMITIVE_TYPE_INFO_MAP['any']
     elif type_name == 'object':
       # TODO(craigcitro): Think of a better way to come up with names.
       if not name_hint:

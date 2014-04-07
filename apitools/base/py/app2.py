@@ -13,6 +13,10 @@ from google.apputils import app
 from google.apputils import appcommands
 import gflags as flags
 
+__all__ = [
+    'NewCmd',
+    'Repl',
+    ]
 
 flags.DEFINE_boolean(
     'debug_mode', False,
@@ -20,13 +24,18 @@ flags.DEFINE_boolean(
 flags.DEFINE_boolean(
     'headless', False,
     'Assume no user is at the controlling console.')
-
-
 FLAGS = flags.FLAGS
 
 
-# TODO(craigcitro): This code uses more than the average amount of
-# Python magic. Explain what the heck is going on throughout.
+def _SafeMakeAscii(s):
+  if isinstance(s, unicode):
+    return s.encode('ascii')
+  elif isinstance(s, str):
+    return s.decode('ascii')
+  else:
+    return unicode(s).encode('ascii', 'backslashreplace')
+
+
 class NewCmd(appcommands.Cmd):
   """Featureful extension of appcommands.Cmd."""
 
@@ -118,7 +127,7 @@ class NewCmd(appcommands.Cmd):
 
   def _FormatError(self, e):
     """Hook for subclasses to modify how error messages are printed."""
-    return str(e)
+    return _SafeMakeAscii(e)
 
   def _HandleError(self, e):
     message = self._FormatError(e)

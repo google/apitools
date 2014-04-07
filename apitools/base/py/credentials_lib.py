@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 """Common credentials classes and constructors."""
 
-import getpass
 import httplib
 import json
 import os
@@ -14,21 +13,30 @@ import oauth2client.client
 import oauth2client.gce
 import oauth2client.multistore_file
 import oauth2client.tools
-from protorpc import messages
 
 import gflags as flags
+import logging
 
 from apitools.base.py import exceptions
 from apitools.base.py import util
 
-FLAGS = flags.FLAGS
+__all__ = [
+    'CredentialsFromFile',
+    'GaeAssertionCredentials',
+    'GceAssertionCredentials',
+    'GetCredentials',
+    'ServiceAccountCredentials',
+    'ServiceAccountCredentialsFromFile',
+    ]
+
 
 
 # TODO(craigcitro): Expose the extra args here somewhere higher up,
 # possibly as flags in the generated CLI.
 def GetCredentials(package_name, scopes, client_id, client_secret, user_agent,
-                   credentials_filename=None, service_account_info=None,
-                   robot_email=None, api_key=None, client=None):
+                   credentials_filename=None,
+                   service_account_name=None, service_account_keyfile=None,
+                   api_key=None, client=None):
   """Attempt to get credentials, using an oauth dance as the last resort."""
   scopes = util.NormalizeScopes(scopes)
   # TODO(craigcitro): Error checking.
@@ -38,8 +46,9 @@ def GetCredentials(package_name, scopes, client_id, client_secret, user_agent,
       'scope': ' '.join(sorted(util.NormalizeScopes(scopes))),
       'user_agent': user_agent or '%s-generated/0.1' % package_name,
       }
-  if service_account_info is not None:
-    credentials = ServiceAccountCredentials(service_account_info, scopes)
+  if service_account_name is not None:
+    credentials = ServiceAccountCredentialsFromFile(
+        service_account_name, service_account_keyfile, scopes)
     if credentials is not None:
       return credentials
   credentials = GaeAssertionCredentials.Get(scopes)
@@ -56,25 +65,17 @@ def GetCredentials(package_name, scopes, client_id, client_secret, user_agent,
   raise exceptions.CredentialsError('Could not create valid credentials')
 
 
-class ServiceAccountCredentialInfo(messages.Message):
-  """Information needed to create a signed service account credential."""
-  service_account_name = messages.StringField(1)
-  private_key = messages.StringField(2)
+def ServiceAccountCredentialsFromFile(
+    service_account_name, private_key_filename, scopes):
+  with open(private_key_filename) as key_file:
+    return ServiceAccountCredentials(
+        service_account_name, key_file.read(), scopes)
 
 
-def ServiceAccountInfoFromFile(service_account_name, key_filename):
-  with open(key_filename) as key_file:
-    return ServiceAccountCredentialInfo(
-        service_account_name=service_account_name,
-        private_key=key_file.read())
-
-
-def ServiceAccountCredentials(service_account_info, scopes):
+def ServiceAccountCredentials(service_account_name, private_key, scopes):
   scopes = util.NormalizeScopes(scopes)
   return oauth2client.client.SignedJwtAssertionCredentials(
-      service_account_info.service_account_name,
-      service_account_info.private_key,
-      scopes)
+      service_account_name, private_key, scopes)
 
 
 # TODO(craigcitro): We override to add some utility code, and to
@@ -83,17 +84,20 @@ def ServiceAccountCredentials(service_account_info, scopes):
 class GceAssertionCredentials(oauth2client.gce.AppAssertionCredentials):
   """Assertion credentials for GCE instances."""
 
-  def __init__(self, scopes, service_account_name='default', **kwds):
+  def __init__(self, scopes=None, service_account_name='default', **kwds):
     if not util.DetectGce():
       raise exceptions.ResourceUnavailableError(
           'GCE credentials requested outside a GCE instance')
     self.__service_account_name = service_account_name
-    scope_ls = util.NormalizeScopes(scopes)
-    instance_scopes = self._GetInstanceScopes()
-    if scope_ls > instance_scopes:
-      raise exceptions.CredentialsError(
-          'Instance did not have access to scopes %s' % (
-              sorted(list(scope_ls - instance_scopes)),))
+    if scopes:
+      scope_ls = util.NormalizeScopes(scopes)
+      instance_scopes = self.GetInstanceScopes()
+      if scope_ls > instance_scopes:
+        raise exceptions.CredentialsError(
+            'Instance did not have access to scopes %s' % (
+                sorted(list(scope_ls - instance_scopes)),))
+    else:
+      scopes = self.GetInstanceScopes()
     super(GceAssertionCredentials, self).__init__(scopes, **kwds)
 
   @classmethod
@@ -103,12 +107,16 @@ class GceAssertionCredentials(oauth2client.gce.AppAssertionCredentials):
     except exceptions.Error:
       return None
 
-  def _GetInstanceScopes(self):
+  def GetInstanceScopes(self):
+    # Extra header requirement can be found here:
+    # https://developers.google.com/compute/docs/metadata
     scopes_uri = (
-        'http://metadata.google.internal/computeMetadata/v1beta1/instance/'
+        'http://metadata.google.internal/computeMetadata/v1/instance/'
         'service-accounts/%s/scopes') % self.__service_account_name
+    additional_headers = {'X-Google-Metadata-Request': 'True'}
+    request = urllib2.Request(scopes_uri, headers=additional_headers)
     try:
-      response = urllib2.urlopen(scopes_uri)
+      response = urllib2.urlopen(request)
     except urllib2.URLError as e:
       raise exceptions.CommunicationError(
           'Could not reach metadata service: %s' % e.reason)
@@ -123,7 +131,8 @@ class GceAssertionCredentials(oauth2client.gce.AppAssertionCredentials):
     token_uri = (
         'http://metadata.google.internal/computeMetadata/v1beta1/instance/'
         'service-accounts/%s/token') % self.__service_account_name
-    response, content = do_request(token_uri)
+    extra_headers = {'X-Google-Metadata-Request': 'True'}
+    response, content = do_request(token_uri, headers=extra_headers)
     if response.status != httplib.OK:
       raise exceptions.CredentialsError(
           'Error refreshing credentials: %s' % content)
@@ -183,8 +192,8 @@ def CredentialsFromFile(path, client_info):
       client_info['client_id'],
       client_info['user_agent'],
       client_info['scope'])
-  if hasattr(FLAGS, 'auth_local_webserver'):
-    FLAGS.auth_local_webserver = False
+  if hasattr(flags.FLAGS, 'auth_local_webserver'):
+    flags.FLAGS.auth_local_webserver = False
   credentials = credential_store.get()
   if credentials is None or credentials.invalid:
     print 'Generating new OAuth credentials ...'
@@ -203,6 +212,6 @@ def CredentialsFromFile(path, client_info):
         print 'Invalid authorization: %s' % (e,)
       except httplib2.HttpLib2Error as e:
         print 'Communication error: %s' % (e,)
-        raise util.CredentialsError(
+        raise exceptions.CredentialsError(
             'Communication error creating credentials: %s' % e)
   return credentials

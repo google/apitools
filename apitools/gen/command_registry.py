@@ -8,7 +8,6 @@ from protorpc import descriptor
 from protorpc import messages
 
 from apitools.gen import extended_descriptor
-from apitools.gen import util
 
 
 _VARIANT_TO_FLAG_TYPE_MAP = {
@@ -74,7 +73,7 @@ class CommandInfo(messages.Message):
 
   Fields:
     name: name of this command.
-    class_name: name of the app2.NewCmd class for this command.
+    class_name: name of the apitools_base.NewCmd class for this command.
     description: description of this command.
     flags: list of FlagInfo messages for the command-specific flags.
     args: list of ArgInfo messages for the positional args.
@@ -219,9 +218,11 @@ class CommandRegistry(object):
     if field.variant in (messages.Variant.INT64, messages.Variant.UINT64):
       template = 'int(%s)'
     elif field.variant == messages.Variant.MESSAGE:
-      template = 'base_api.JsonToMessage(%s, %%s)' % type_name
+      template = 'apitools_base.JsonToMessage(%s, %%s)' % type_name
     elif field.variant == messages.Variant.ENUM:
       template = '%s(%%s)' % type_name
+    elif field.variant == messages.Variant.STRING:
+      template = "%s.decode('utf8')"
 
     if self.__FieldIsRepeated(extended_field.field_descriptor):
       if template:
@@ -263,9 +264,35 @@ class CommandRegistry(object):
         extended_field, extended_message)
     return flag_info
 
-  def __PrintGlobalFlags(self, printer):
-    for flag_info in self.__global_flags:
-      self.__PrintFlag(printer, flag_info)
+  def __PrintFlagDeclarations(self, printer):
+    package = self.__client_info.package
+    function_name = '_Declare%sFlags' % (package[0].upper() + package[1:])
+    printer()
+    printer()
+    printer('def %s():', function_name)
+    with printer.Indent():
+      printer('"""Declare global flags in an idempotent way."""')
+      printer("if 'api_endpoint' in flags.FLAGS:")
+      with printer.Indent():
+        printer('return')
+      printer('flags.DEFINE_string(')
+      with printer.Indent('    '):
+        printer("'api_endpoint',")
+        printer('%r,', self.__base_url)
+        printer("'URL of the API endpoint to use.',")
+        printer("short_name='%s_url')", self.__package)
+      printer('flags.DEFINE_string(')
+      with printer.Indent('    '):
+        printer("'history_file',")
+        printer('%r,', '~/.%s.%s.history' % (self.__package, self.__version))
+        printer("'File with interactive shell history.')")
+      for flag_info in self.__global_flags:
+        self.__PrintFlag(printer, flag_info)
+    printer()
+    printer()
+    printer('FLAGS = flags.FLAGS')
+    printer('apitools_base.DeclareBaseFlags()')
+    printer('%s()', function_name)
 
   def __PrintGetGlobalParams(self, printer):
     printer('def GetGlobalParamsFromFlags():')
@@ -290,7 +317,7 @@ class CommandRegistry(object):
       printer('"""Return a client object, configured from flags."""')
       printer('log_request = FLAGS.log_request or FLAGS.log_request_response')
       printer('log_response = FLAGS.log_response or FLAGS.log_request_response')
-      printer('api_endpoint = base_api.NormalizeApiEndpoint('
+      printer('api_endpoint = apitools_base.NormalizeApiEndpoint('
               'FLAGS.api_endpoint)')
       printer('try:')
       with printer.Indent():
@@ -298,7 +325,7 @@ class CommandRegistry(object):
         with printer.Indent(indent='    '):
           printer('api_endpoint, log_request=log_request,')
           printer('log_response=log_response)')
-      printer('except exceptions.CredentialsError as e:')
+      printer('except apitools_base.CredentialsError as e:')
       with printer.Indent():
         printer("print 'Error creating credentials: %%s' %% e")
         printer('sys.exit(1)')
@@ -354,17 +381,19 @@ class CommandRegistry(object):
         printer('       == %s interactive console ==' % (
             self.__client_info.package))
         printer('             client: a %s client' % self.__client_info.package)
+        printer('      apitools_base: base apitools module')
         printer('     messages: the generated messages module')
         printer('"""')
         printer('local_vars = {')
         with printer.Indent(indent='    '):
+          printer("'apitools_base': apitools_base,")
           printer("'client': client,")
           printer("'client_lib': client_lib,")
           printer("'messages': messages,")
         printer('}')
         printer("if platform.system() == 'Linux':")
         with printer.Indent():
-          printer('console = base_cli.ConsoleWithReadline(')
+          printer('console = apitools_base.ConsoleWithReadline(')
           with printer.Indent(indent='    '):
             printer('local_vars, histfile=FLAGS.history_file)')
         printer('else:')
@@ -379,9 +408,8 @@ class CommandRegistry(object):
     printer()
     printer()
 
-  def WriteFile(self, out):
+  def WriteFile(self, printer):
     """Write a simple CLI (currently just a stub)."""
-    printer = util.SimplePrettyPrinter(out)
     printer('"""CLI for %s, version %s."""', self.__package, self.__version)
     # TODO(craigcitro): Add a build stamp, along with some other
     # information.
@@ -394,38 +422,18 @@ class CommandRegistry(object):
     printer('from protorpc import message_types')
     printer('from protorpc import messages')
     printer()
-    printer(
-        'from '
-        'google.apputils'
-        ' import appcommands')
-    printer(
-        'import gflags as '
-        'flags')
+    appcommands_import = 'from google.apputils import appcommands'
+    printer(appcommands_import)
+
+    flags_import = 'import gflags as flags'
+    printer(flags_import)
     printer()
-    printer('from %s import app2', self.__base_files_package)
-    printer('from %s import base_api', self.__base_files_package)
-    printer('from %s import base_cli', self.__base_files_package)
-    printer('from %s import exceptions', self.__base_files_package)
-    printer('from %s import transfer', self.__base_files_package)
+    printer('import %s as apitools_base', self.__base_files_package)
     printer('from %s import %s as client_lib',
             self.__root_package, self.__client_info.client_rule_name)
     printer('from %s import %s as messages',
             self.__root_package, self.__client_info.messages_rule_name)
-    printer()
-    printer('flags.DEFINE_string(')
-    with printer.Indent('    '):
-      printer("'api_endpoint',")
-      printer('%r,', self.__base_url)
-      printer("'URL of the API endpoint to use.',")
-      printer("short_name='%s_url')", self.__package)
-    printer('flags.DEFINE_string(')
-    with printer.Indent('    '):
-      printer("'history_file',")
-      printer('%r,', '~/.%s.%s.history' % (self.__package, self.__version))
-      printer("'File with interactive shell history.')")
-    printer()
-    self.__PrintGlobalFlags(printer)
-    printer('FLAGS = flags.FLAGS')
+    self.__PrintFlagDeclarations(printer)
     printer()
     printer()
     self.__PrintGetGlobalParams(printer)
@@ -439,7 +447,7 @@ class CommandRegistry(object):
         printer("appcommands.AddCmd('%s', %s)",
                 command_info.name, command_info.class_name)
       printer()
-      printer('base_cli.SetupLogger()')
+      printer('apitools_base.SetupLogger()')
       # TODO(craigcitro): Just call SetDefaultCommand as soon as
       # another appcommands release happens and this exists
       # externally.
@@ -448,7 +456,7 @@ class CommandRegistry(object):
         printer("appcommands.SetDefaultCommand('pyshell')")
     printer()
     printer()
-    printer('run_main = base_cli.run_main')
+    printer('run_main = apitools_base.run_main')
     printer()
     printer("if __name__ == '__main__':")
     with printer.Indent():
@@ -458,7 +466,7 @@ class CommandRegistry(object):
     """Print all commands in this registry using printer."""
     for command_info in self.__command_list:
       arg_list = [arg_info.name for arg_info in command_info.args]
-      printer('class %s(app2.NewCmd):', command_info.class_name)
+      printer('class %s(apitools_base.NewCmd):', command_info.class_name)
       with printer.Indent():
         printer('"""Command wrapping %s."""', command_info.client_method_path)
         printer()
@@ -501,18 +509,18 @@ class CommandRegistry(object):
             printer('upload = None')
             printer('if FLAGS.upload_filename:')
             with printer.Indent():
-              printer('upload = transfer.Upload.FromFile(')
+              printer('upload = apitools_base.Upload.FromFile(')
               printer('    FLAGS.upload_filename, FLAGS.upload_mime_type)')
           if command_info.has_download:
             call_args.append('download=download')
             printer('download = None')
             printer('if FLAGS.download_filename:')
             with printer.Indent():
-              printer('download = transfer.Download.FromFile('
+              printer('download = apitools_base.Download.FromFile('
                       'FLAGS.download_filename, overwrite=FLAGS.overwrite)')
           printer('result = client.%s(', command_info.client_method_path)
           with printer.Indent(indent='    '):
             printer('%s)', ', '.join(call_args))
-          printer('print result')
+          printer('print apitools_base.FormatOutput(result)')
       printer()
       printer()

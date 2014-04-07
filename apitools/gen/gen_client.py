@@ -24,6 +24,12 @@ flags.DEFINE_string(
     'URL of the discovery document to use. Mutually exclusive with --infile.')
 
 flags.DEFINE_string(
+    'base_package',
+    'apitools.base.py',
+    'Base package path of apitools (defaults to '
+    'apitools.base.py)'
+    )
+flags.DEFINE_string(
     'outdir', '',
     'Directory name for output files. (Defaults to the API name.)')
 flags.DEFINE_boolean(
@@ -34,6 +40,7 @@ flags.DEFINE_string(
     'Ultimate destination for generated code (used for generating '
     'correct import lines). Defaults to the value of FLAGS.outdir.'
     )
+
 
 flags.DEFINE_multistring(
     'strip_prefix', [],
@@ -55,6 +62,8 @@ flags.DEFINE_multistring(
 flags.DEFINE_string(
     'user_agent', '',
     'User agent for the generated client. Defaults to <api>-generated/0.1.')
+flags.DEFINE_boolean(
+    'generate_cli', True, 'If True, a CLI is also generated.')
 
 flags.DEFINE_boolean(
     'experimental_capitalize_enums', False,
@@ -113,9 +122,13 @@ def _GetCodegenFromFlags():
   if not FLAGS.root_package_dir:
     FLAGS.root_package_dir = outdir
   FLAGS.root_package_dir = os.path.abspath(FLAGS.root_package_dir)
-  root_package = util.GetPackage(FLAGS.root_package_dir)
+  root_package = (
+      util.GetPackage(FLAGS.root_package_dir))
+  base_package = FLAGS.base_package
   return gen_client_lib.DescriptorGenerator(
       discovery_doc, client_info, names, root_package, outdir,
+      base_package=base_package,
+      generate_cli=FLAGS.generate_cli,
       use_proto2=FLAGS.experimental_proto2_output)
 
 
@@ -145,8 +158,9 @@ def _WriteGeneratedFiles(codegen):
       codegen.WriteMessagesFile(out)
     with open(codegen.client_info.client_file_name, 'w') as out:
       codegen.WriteClientLibrary(out)
-    with open(codegen.client_info.cli_file_name, 'w') as out:
-      codegen.WriteCli(out)
+    if FLAGS.generate_cli:
+      with open(codegen.client_info.cli_file_name, 'w') as out:
+        codegen.WriteCli(out)
 
 
 def _WriteInit(codegen):

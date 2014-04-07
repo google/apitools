@@ -218,6 +218,7 @@ class SimplePrettyPrinter(object):
   def __init__(self, out):
     self.__out = out
     self.__indent = ''
+    self.__skip = False
 
   @property
   def indent(self):
@@ -233,12 +234,14 @@ class SimplePrettyPrinter(object):
     yield
     self.__indent = previous_indent
 
+
   def __call__(self, *args):
     if args and args[0]:
       line = (args[0] % args[1:]).rstrip()
+      line = line.encode('ascii', 'backslashreplace')
       print >>self.__out, '%s%s' % (self.__indent, line)
     else:
-      print >>self.__out, ''
+      print >>self.__out, line
 
 
 def NormalizeDiscoveryUrl(discovery_url):

@@ -17,6 +17,7 @@ from apitools.gen import util
 
 
 def _StandardQueryParametersSchema(discovery_doc):
+  """Sets up dict of standard query parameters."""
   standard_query_schema = {
       'id': 'StandardQueryParameters',
       'type': 'object',
@@ -48,7 +49,7 @@ class DescriptorGenerator(object):
   """Code generator for a given discovery document."""
 
   def __init__(self, discovery_doc, client_info, names, root_package, outdir,
-               use_proto2=False):
+               base_package, generate_cli=False, use_proto2=False):
     self.__discovery_doc = discovery_doc
     self.__client_info = client_info
     self.__outdir = outdir
@@ -56,9 +57,9 @@ class DescriptorGenerator(object):
     self.__description = self.__discovery_doc.get('description', '')
     self.__package = self.__client_info.package
     self.__version = self.__client_info.version
+    self.__generate_cli = generate_cli
     self.__root_package = root_package
-    # TODO(craigcitro): Centralize this information ... somewhere.
-    self.__base_files_package = 'apitools.base.py'
+    self.__base_files_package = base_package
     self.__base_files_target = (
         '//cloud/bigscience/apitools/base/py:apitools_base')
     self.__names = names
@@ -127,32 +128,40 @@ class DescriptorGenerator(object):
   def use_proto2(self):
     return self.__use_proto2
 
+  def _GetPrinter(self, out):
+    printer = util.SimplePrettyPrinter(out)
+    return printer
+
   def WriteInit(self, out):
     """Write a simple __init__.py for the generated client."""
-    printer = util.SimplePrettyPrinter(out)
+    printer = self._GetPrinter(out)
     printer('"""Common imports for generated %s client library."""',
             self.__client_info.package)
     printer()
-    printer('from %s import credentials_lib', self.__base_files_package)
-    printer('from %s.base_api import *', self.__base_files_package)
-    printer('from %s.exceptions import *', self.__base_files_package)
-    printer('from %s.transfer import *', self.__base_files_package)
+    printer('import pkgutil')
+    printer()
+    printer('from %s import *', self.__base_files_package)
+    if self.__generate_cli:
+      printer('from %s.%s import *',
+              self.__root_package, self.__client_info.cli_rule_name)
     printer('from %s.%s import *',
             self.__root_package, self.__client_info.client_rule_name)
     printer('from %s.%s import *',
             self.__root_package, self.__client_info.messages_rule_name)
+    printer()
+    printer('__path__ = pkgutil.extend_path(__path__, __name__)')
 
   def WriteMessagesFile(self, out):
-    self.__message_registry.WriteFile(out)
+    self.__message_registry.WriteFile(self._GetPrinter(out))
 
   def WriteMessagesProtoFile(self, out):
-    self.__message_registry.WriteProtoFile(out)
+    self.__message_registry.WriteProtoFile(self._GetPrinter(out))
 
   def WriteServicesProtoFile(self, out):
-    self.__services_registry.WriteProtoFile(out)
+    self.__services_registry.WriteProtoFile(self._GetPrinter(out))
 
   def WriteClientLibrary(self, out):
-    self.__services_registry.WriteFile(out)
+    self.__services_registry.WriteFile(self._GetPrinter(out))
 
   def WriteCli(self, out):
-    self.__command_registry.WriteFile(out)
+    self.__command_registry.WriteFile(self._GetPrinter(out))

@@ -2,34 +2,36 @@
 """Base class for api services."""
 
 import contextlib
-import email.mime.multipart as mime_multipart
-import email.mime.nonmultipart as mime_nonmultipart
+import httplib
 import logging
+import pprint
 import types
 import urllib
 import urlparse
 
 
-from apiclient import errors as apiclient_errors
-from apiclient import http as apiclient_http
-from apiclient import mimeparse
-import apiclient.model
-import httplib2
 from protorpc import message_types
 from protorpc import messages
-
-import gflags as flags
 
 from apitools.base.py import credentials_lib
 from apitools.base.py import encoding
 from apitools.base.py import exceptions
+from apitools.base.py import http_wrapper
 from apitools.base.py import util
 
-FLAGS = flags.FLAGS
+__all__ = [
+    'ApiMethodInfo',
+    'ApiUploadInfo',
+    'BaseApiClient',
+    'BaseApiService',
+    'NormalizeApiEndpoint',
+    ]
 
 # TODO(craigcitro): Remove this once we quiet the spurious logging in
 # oauth2client (or drop oauth2client).
 logging.getLogger('oauth2client.util').setLevel(logging.ERROR)
+
+_MAX_URL_LENGTH = 2048
 
 
 class ApiUploadInfo(messages.Message):
@@ -38,7 +40,8 @@ class ApiUploadInfo(messages.Message):
   Fields:
     accept: (repeated) MIME Media Ranges for acceptable media uploads
         to this method.
-    max_size: Maximum size of a media upload, such as "1MB" or "3TB".
+    max_size: (integer) Maximum size of a media upload, such as 3MB
+        or 1TB (converted to an integer).
     resumable_path: Path to use for resumable uploads.
     resumable_multipart: (boolean) Whether or not the resumable endpoint
         supports multipart uploads.
@@ -114,95 +117,64 @@ def _RequireClassAttrs(obj, attrs):
       raise exceptions.GeneratedClientError(msg)
 
 
-def _Typecheck(arg, arg_type, msg=None):
-  if not isinstance(arg, arg_type):
-    if msg is None:
-      if isinstance(arg_type, tuple):
-        msg = 'Type of arg is "%s", not one of %r' % (type(arg), arg_type)
-      else:
-        msg = 'Type of arg is "%s", not "%s"' % (type(arg), arg_type)
-      raise exceptions.TypecheckError(msg)
-  return arg
-
-
 def NormalizeApiEndpoint(api_endpoint):
   if not api_endpoint.endswith('/'):
     api_endpoint += '/'
   return api_endpoint
 
 
-class BaseApiModel(apiclient.model.JsonModel):
-  """Base model for generated clients."""
-  alt_param = None
+class _UrlBuilder(object):
+  """Convenient container for url data."""
 
-  def __init__(self, request_type, response_type, log_request, log_response,
-               *args, **kwds):
-    self.__request_type = request_type
-    self.__response_type = response_type
-    self.__log_request = log_request
-    self.__log_response = log_response
-    # TODO(craigcitro): Remove this field when we switch to proto2.
-    self.include_fields = None
-    super(BaseApiModel, self).__init__(*args, **kwds)
+  def __init__(self, base_url, relative_path=None, query_params=None):
+    components = urlparse.urlsplit(urlparse.urljoin(
+        base_url, relative_path or ''))
+    if components.fragment:
+      raise exceptions.ConfigurationValueError(
+          'Unexpected url fragment: %s' % components.fragment)
+    self.query_params = urlparse.parse_qs(components.query or '')
+    if query_params is not None:
+      self.query_params.update(query_params)
+    self.__scheme = components.scheme
+    self.__netloc = components.netloc
+    self.relative_path = components.path
 
-  # TODO(craigcitro): Delete these methods once we don't have to
-  # support both variations of apiclient.
-  @staticmethod
-  def _GetDumpFlag():
-    if hasattr(FLAGS, 'dump_request_response'):
-      return FLAGS.dump_request_response
-    else:
-      return apiclient.model.dump_request_response
-
-  @staticmethod
-  def _SetDumpFlag(value):
-    if hasattr(FLAGS, 'dump_request_response'):
-      FLAGS.dump_request_response = value
-    else:
-      apiclient.model.dump_request_response = value
-
-  def _log_request(self, *args, **kwds):
-    old_value = self._GetDumpFlag()
-    if self.__log_request:
-      self._SetDumpFlag(True)
-    super(BaseApiModel, self)._log_request(*args, **kwds)
-    self._SetDumpFlag(old_value)
-
-  def _log_response(self, *args, **kwds):
-    old_value = self._GetDumpFlag()
-    if self.__log_response:
-      self._SetDumpFlag(True)
-    super(BaseApiModel, self)._log_response(*args, **kwds)
-    self._SetDumpFlag(old_value)
-
-  def serialize(self, body_value):
-    """Serialize a message (which might involve ProtoRPC messages)."""
-    _Typecheck(body_value, self.__request_type)
-    return encoding.MessageToJson(
-        body_value, include_fields=self.include_fields)
-
-  def deserialize(self, content):
-    """Deserialize a message (which might involve ProtoRPC messages)."""
-    try:
-      message = encoding.JsonToMessage(self.__response_type, content)
-    except (exceptions.InvalidDataFromServerError,
-            messages.ValidationError) as e:
-      raise exceptions.InvalidDataFromServerError(
-          'Error decoding response "%s" as type %s: %s' % (
-              content, self.__response_type, e))
-    return message
-
-
-class BaseMediaDownloadModel(BaseApiModel):
-  """Base class for requests that return media in the response."""
-  alt_param = 'media'
-
-  def deserialize(self, content):
-    return content
+  @classmethod
+  def FromUrl(cls, url):
+    urlparts = urlparse.urlsplit(url)
+    query_params = urlparse.parse_qs(urlparts.query)
+    base_url = urlparse.urlunsplit((
+        urlparts.scheme, urlparts.netloc, '', None, None))
+    relative_path = urlparts.path
+    return cls(base_url, relative_path=relative_path, query_params=query_params)
 
   @property
-  def no_content_response(self):
-    return ''
+  def base_url(self):
+    return urlparse.urlunsplit((self.__scheme, self.__netloc, '', '', ''))
+
+  @base_url.setter
+  def base_url(self, value):
+    components = urlparse.urlsplit(value)
+    if components.path or components.query or components.fragment:
+      raise exceptions.ConfigurationValueError('Invalid base url: %s' % value)
+    self.__scheme = components.scheme
+    self.__netloc = components.netloc
+
+  @property
+  def query(self):
+    # TODO(craigcitro): In the case that some of the query params are
+    # non-ASCII, we may silently fail to encode correctly. We should
+    # figure out who is responsible for owning the object -> str
+    # conversion.
+    return urllib.urlencode(self.query_params, doseq=True)
+
+  @property
+  def url(self):
+    if '{' in self.relative_path or '}' in self.relative_path:
+      raise exceptions.ConfigurationValueError(
+          'Cannot create url with relative path %s' % self.relative_path)
+    return urlparse.urlunsplit((
+        self.__scheme, self.__netloc, self.relative_path, self.query, ''))
 
 
 class BaseApiClient(object):
@@ -217,38 +189,75 @@ class BaseApiClient(object):
   _USER_AGENT = ''
 
   def __init__(self, url, credentials=None, get_credentials=True, http=None,
-               model=None, log_request=False, log_response=False,
-               default_global_params=None):
+               model=None, log_request=False, log_response=False, num_retries=5,
+               credentials_args=None, default_global_params=None):
     _RequireClassAttrs(self, (
         '_package', '_scopes', '_client_id', '_client_secret',
         'messages_module'))
     if default_global_params is not None:
-      _Typecheck(default_global_params, self.params_type)
+      util.Typecheck(default_global_params, self.params_type)
     self.__default_global_params = default_global_params
     self.log_request = log_request
     self.log_response = log_response
-    self._base_model_class = model or BaseApiModel
+    self.__num_retries = 5
+    # We let the @property machinery below do our validation.
+    self.num_retries = num_retries
     self._url = url
     self._credentials = credentials
     if get_credentials and not credentials:
-      # TODO(craigcitro): It's a bit dangerous to pass this
-      # still-half-initialized self into this method, but we might need
-      # to set attributes on it associated with our credentials.
-      # Consider another way around this (maybe a callback?) and whether
-      # or not it's worth it.
-      self._credentials = credentials_lib.GetCredentials(
-          self._PACKAGE, self._SCOPES, self._CLIENT_ID, self._CLIENT_SECRET,
-          self._USER_AGENT, api_key=self._API_KEY, client=self)
-    self._http = http or httplib2.Http()
+      credentials_args = credentials_args or {}
+      self._SetCredentials(**credentials_args)
+    self._http = http or http_wrapper.GetHttp()
     # Note that "no credentials" is totally possible.
     if self._credentials is not None:
       self._http = self._credentials.authorize(self._http)
     # TODO(craigcitro): Remove this field when we switch to proto2.
     self.__include_fields = None
 
+    # TODO(craigcitro): Finish deprecating these fields.
+    _ = model
+
+  def _SetCredentials(self, **kwds):
+    """Fetch credentials, and set them for this client.
+
+    Note that we can't simply return credentials, since creating them
+    may involve side-effecting self.
+
+    Args:
+      **kwds: Additional keyword arguments are passed on to GetCredentials.
+
+    Returns:
+      None. Sets self._credentials.
+    """
+    args = {
+        'api_key': self._API_KEY,
+        'client': self,
+        'client_id': self._CLIENT_ID,
+        'client_secret': self._CLIENT_SECRET,
+        'package_name': self._PACKAGE,
+        'scopes': self._SCOPES,
+        'user_agent': self._USER_AGENT,
+    }
+    args.update(kwds)
+    # TODO(craigcitro): It's a bit dangerous to pass this
+    # still-half-initialized self into this method, but we might need
+    # to set attributes on it associated with our credentials.
+    # Consider another way around this (maybe a callback?) and whether
+    # or not it's worth it.
+    self._credentials = credentials_lib.GetCredentials(**args)
+
+  @classmethod
+  def ClientInfo(cls):
+    return {
+        'client_id': cls._CLIENT_ID,
+        'client_secret': cls._CLIENT_SECRET,
+        'scope': ' '.join(sorted(util.NormalizeScopes(cls._SCOPES))),
+        'user_agent': cls._USER_AGENT,
+        }
+
   @property
   def base_model_class(self):
-    return self._base_model_class
+    return None
 
   @property
   def http(self):
@@ -267,6 +276,10 @@ class BaseApiClient(object):
     return _LoadClass('StandardQueryParameters', self.MESSAGES_MODULE)
 
   @property
+  def user_agent(self):
+    return self._USER_AGENT
+
+  @property
   def _default_global_params(self):
     if self.__default_global_params is None:
       self.__default_global_params = self.params_type()
@@ -280,14 +293,80 @@ class BaseApiClient(object):
   def global_params(self):
     return encoding.CopyProtoMessage(self._default_global_params)
 
-  def ConfigureModel(self, model):
-    model.include_fields = self.__include_fields
-
   @contextlib.contextmanager
   def IncludeFields(self, include_fields):
     self.__include_fields = include_fields
     yield
     self.__include_fields = None
+
+  @property
+  def num_retries(self):
+    return self.__num_retries
+
+  @num_retries.setter
+  def num_retries(self, value):
+    util.Typecheck(value, (int, long))
+    if value < 0:
+      raise exceptions.InvalidDataError(
+          'Cannot have negative value for num_retries')
+    self.__num_retries = value
+
+  @contextlib.contextmanager
+  def WithRetries(self, num_retries):
+    old_num_retries = self.num_retries
+    self.num_retries = num_retries
+    yield
+    self.num_retries = old_num_retries
+
+  def ProcessRequest(self, method_config, request):
+    """Hook for pre-processing of requests."""
+    if self.log_request:
+      logging.info(
+          'Calling method %s with %s: %s', method_config.method_id,
+          method_config.request_type_name, request)
+    return request
+
+  def ProcessHttpRequest(self, http_request):
+    """Hook for pre-processing of http requests."""
+    if self.log_request:
+      logging.info('Making http %s to %s',
+                   http_request.http_method, http_request.url)
+      logging.info('Headers: %s', pprint.pformat(http_request.headers))
+      if http_request.body:
+        # TODO(craigcitro): Make this safe to print in the case of
+        # non-printable body characters.
+        logging.info('Body:\n%s', http_request.body)
+      else:
+        logging.info('Body: (none)')
+    return http_request
+
+  def ProcessResponse(self, method_config, response):
+    if self.log_response:
+      logging.info('Response of type %s: %s',
+                   method_config.response_type_name, response)
+    return response
+
+  # TODO(craigcitro): Decide where these two functions should live.
+  def SerializeMessage(self, message):
+    return encoding.MessageToJson(message, include_fields=self.__include_fields)
+
+  def DeserializeMessage(self, response_type, data):
+    """Deserialize the given data as method_config.response_type."""
+    try:
+      message = encoding.JsonToMessage(response_type, data)
+    except (exceptions.InvalidDataFromServerError,
+            messages.ValidationError) as e:
+      raise exceptions.InvalidDataFromServerError(
+          'Error decoding response "%s" as type %s: %s' % (
+              data, response_type.__name__, e))
+    return message
+
+  def FinalizeTransferUrl(self, url):
+    """Modify the url for a given transfer, based on auth and version."""
+    url_builder = _UrlBuilder.FromUrl(url)
+    if self.global_params.key:
+      url_builder.query_params['key'] = self.global_params.key
+    return url_builder.url
 
 
 class BaseApiService(object):
@@ -301,7 +380,7 @@ class BaseApiService(object):
     return self.__client
 
   def __CombineGlobalParams(self, global_params, default_params):
-    _Typecheck(global_params, (types.NoneType, self.__client.params_type))
+    util.Typecheck(global_params, (types.NoneType, self.__client.params_type))
     result = self.__client.params_type()
     global_params = global_params or self.__client.params_type()
     for field in result.all_fields():
@@ -312,17 +391,29 @@ class BaseApiService(object):
     return result
 
   def __ConstructQueryParams(self, query_params, request, global_params):
+    """Construct a dictionary of query parameters for this request."""
+    global_params = self.__CombineGlobalParams(
+        global_params, self.__client.global_params)
     query_info = dict((field.name, getattr(global_params, field.name))
                       for field in self.__client.params_type.all_fields())
     query_info.update(
         (param, getattr(request, param, None)) for param in query_params)
     query_info = dict((k, v) for k, v in query_info.iteritems()
                       if v is not None)
+    for k, v in query_info.iteritems():
+      if isinstance(v, unicode):
+        query_info[k] = v.encode('utf8')
+      elif isinstance(v, str):
+        query_info[k] = v.decode('utf8')
     return query_info
 
-  def __ConstructPathParams(self, method_config, request):
-    path = method_config.relative_path
-    path_params = {}
+  def __ConstructRelativePath(self, method_config, request, relative_path=None):
+    """Determine the relative path for request."""
+    path = relative_path or method_config.relative_path
+    # TODO(user): Why does the discovery document have pluses?
+    # Figure this out.
+    path = path.replace('+', '')
+
     for param in method_config.path_params:
       param_template = '{%s}' % param
       if param_template not in path:
@@ -339,199 +430,138 @@ class BaseApiService(object):
         raise exceptions.InvalidUserInputError(
             'Request missing required parameter %s' % param)
       try:
+        # TODO(user): this isn't likely to break anything, but if you notice
+        # that it does please contact me and I'll get a concrete fix in ASAP
+        if not isinstance(value, basestring):
+          value = str(value)
         path = path.replace(param_template,
                             urllib.quote(value.encode('utf_8'), ''))
       except TypeError as e:
         raise exceptions.InvalidUserInputError(
             'Error setting required parameter %s to value %s: %s' % (
                 param, value, e))
-      path_params[param] = value
-    return path, path_params
+    return path
 
-  def __GetUploadStrategy(self, upload, upload_config):
-    # Choose a protocol: We generally prefer resumable, unless the
-    # server only supports simple, or if we have a small transfer.
-    strategy = 'resumable'
-    if upload_config.simple_path:
-      if not upload_config.resumable_path:
-        strategy = 'simple'
-      elif (upload.total_size is not None and
-            upload.total_size < 4 * 1 << 20 and
-            upload_config.simple_multipart):
-        strategy = 'simple'
-    return strategy
+  def __FinalizeRequest(self, http_request, url_builder):
+    """Make any final general adjustments to the request."""
+    if (http_request.http_method == 'GET' and
+        len(http_request.url) > _MAX_URL_LENGTH):
+      http_request.http_method = 'POST'
+      http_request.headers['x-http-method-override'] = 'GET'
+      http_request.headers['content-type'] = 'application/x-www-form-urlencoded'
+      http_request.body = url_builder.query
+      url_builder.query_params = {}
+    http_request.url = url_builder.url
 
-  def __GetUploadParams(self, upload, upload_config, body_value):
-    strategy = self.__GetUploadStrategy(upload, upload_config)
-    params = {}
-    if strategy == 'simple':
-      params['uploadType'] = 'multipart' if body_value else 'media'
+  def __ProcessHttpResponse(self, method_config, http_response):
+    """Process the given http response."""
+    if http_response.status_code not in (httplib.OK, httplib.NO_CONTENT):
+      raise exceptions.HttpError.FromResponse(http_response)
+    if http_response.status_code == httplib.NO_CONTENT:
+      # TODO(craigcitro): Find out why _replace doesn't seem to work here.
+      http_response = http_wrapper.Response(
+          info=http_response.info, content='{}',
+          request_url=http_response.request_url)
+    response_type = _LoadClass(
+        method_config.response_type_name, self.__client.MESSAGES_MODULE)
+    return self.__client.DeserializeMessage(
+        response_type, http_response.content)
+
+  def __SetBaseHeaders(self, http_request, client):
+    """Fill in the basic headers on http_request."""
+    # TODO(craigcitro): Make the default a little better here, and
+    # include the apitools version.
+    user_agent = client.user_agent or 'apitools-client/1.0'
+    http_request.headers['user-agent'] = user_agent
+    http_request.headers['accept'] = 'application/json'
+    http_request.headers['accept-encoding'] = 'gzip, deflate'
+
+  def __SetBody(self, http_request, method_config, request, upload):
+    """Fill in the body on http_request."""
+    if not method_config.request_field:
+      return
+
+    request_type = _LoadClass(
+        method_config.request_type_name, self.__client.MESSAGES_MODULE)
+    if method_config.request_field == REQUEST_IS_BODY:
+      body_value = request
+      body_type = request_type
     else:
-      params['uploadType'] = 'resumable'
-    return params
+      body_value = getattr(request, method_config.request_field)
+      body_field = request_type.field_by_name(method_config.request_field)
+      util.Typecheck(body_field, messages.MessageField)
+      body_type = body_field.type
 
-  def __GetUploadPath(self, upload, upload_config):
-    # In theory, we should use the resumable path in the case that the
-    # strategy is 'resumable'. However, apiclient is designed around a
-    # flow that pushes the original body in the first request, and
-    # pumps the media bytes through on successive requests.
-    _ = self.__GetUploadStrategy(upload, upload_config)
-    return upload_config.simple_path
+    if upload and not body_value:
+      # We're going to fill in the body later.
+      return
+    util.Typecheck(body_value, body_type)
+    http_request.headers['content-type'] = 'application/json'
+    http_request.body = self.__client.SerializeMessage(body_value)
 
-  def __SimpleMediaBody(self, upload, headers, body_value):
-    # Rewrite the body. (This section follows apiclient.discovery.)
-    upload.stream.seek(0)
-    if not body_value:
-      headers['content-type'] = upload.mime_type
-      body_value = upload.stream.read()
-    else:
-      # This is a multipart/related upload.
-      msg_root = mime_multipart.MIMEMultipart('related')
-      # msg_root should not write out it's own headers
-      setattr(msg_root, '_write_headers', lambda self: None)
+  def PrepareHttpRequest(self, method_config, request, global_params=None,
+                         upload=None, upload_config=None, download=None):
+    """Prepares an HTTP request to be sent."""
+    request_type = _LoadClass(
+        method_config.request_type_name, self.__client.MESSAGES_MODULE)
+    util.Typecheck(request, request_type)
+    request = self.__client.ProcessRequest(method_config, request)
 
-      # attach the body as one part
-      msg = mime_nonmultipart.MIMENonMultipart(
-          *headers['content-type'].split('/'))
-      msg.set_payload(body_value)
-      msg_root.attach(msg)
+    http_request = http_wrapper.Request(http_method=method_config.http_method)
+    self.__SetBaseHeaders(http_request, self.__client)
+    self.__SetBody(http_request, method_config, request, upload)
 
-      # attach the media as the second part
-      msg = mime_nonmultipart.MIMENonMultipart(
-          *upload.mime_type.split('/'))
-      msg['Content-Transfer-Encoding'] = 'binary'
-      msg.set_payload(upload.stream.read())
-      msg_root.attach(msg)
+    url_builder = _UrlBuilder(
+        self.__client.url, relative_path=method_config.relative_path)
+    url_builder.query_params = self.__ConstructQueryParams(
+        method_config.query_params, request, global_params)
 
-      body_value = msg_root.as_string()
-      multipart_boundary = msg_root.get_boundary()
-      headers['content-type'] = ('multipart/related; '
-                                 'boundary=%r') % multipart_boundary
-    return headers, body_value
+    # It's important that upload and download go before we fill in the
+    # relative path, so that they can replace it.
+    if upload is not None:
+      upload.ConfigureRequest(upload_config, http_request, url_builder)
+    if download is not None:
+      download.ConfigureRequest(http_request, url_builder)
 
-  def __CreateMediaUpload(self, upload, upload_config, headers, body_value):
-    # Validate total_size vs. max_size
-    if (upload.total_size and upload_config.max_size and
-        upload.total_size > upload_config.max_size):
-      raise exceptions.InvalidUserInputError(
-          'Upload too big: %s larger than max size %s' % (
-              upload.total_size, upload_config.max_size))
-    # Validate mime type
-    if not mimeparse.best_match(upload_config.accept, upload.mime_type):
-      raise exceptions.InvalidUserInputError(
-          'MIME type %s does not match any accepted MIME ranges %s' % (
-              upload.mime_type, upload_config.accept))
-    strategy = self.__GetUploadStrategy(upload, upload_config)
-    # Create a MediaIoBaseUpload
-    if strategy == 'simple':
-      media_upload = False
-      headers, body_value = self.__SimpleMediaBody(upload, headers, body_value)
-    elif strategy == 'resumable':
-      # Don't need to set a body value in this case, since the
-      # HttpRequest is in charge of uploading it.
-      media_upload = apiclient_http.MediaIoBaseUpload(
-          upload.stream, upload.mime_type, resumable=True)
-    return media_upload, headers, body_value
+    url_builder.relative_path = self.__ConstructRelativePath(
+        method_config, request, relative_path=url_builder.relative_path)
+    self.__FinalizeRequest(http_request, url_builder)
 
-  def __IsRetryable(self, exc):
-    status = int(exc.resp.get('status'))
-    # 308 doesn't have a name in httplib.
-    retryable_status = status in util.RETRYABLE_STATUS_CODES
-    return retryable_status and 'location' in exc.resp
-
-  def __ExecuteRequest(self, request, url):
-    try:
-      return request.execute()
-    except apiclient_errors.HttpError as e:
-      if self.__IsRetryable(e):
-        logging.info('Got redirect for %s', request.uri)
-        request.uri = e.resp['location']
-        logging.info('Redirecting to %s', request.uri)
-        return self.__ExecuteRequest(request, request.uri)
-      e.content = e.content.decode('ascii', 'replace')
-      logging.error('Error making request to "%s": "%s", "%s"',
-                    url, e, e.content)
-      raise exceptions.HttpError.FromApiclientError(e)
-    except httplib2.HttpLib2Error as e:
-      raise exceptions.CommunicationError(
-          'Communication error making request to "%s": "%s"' % (url, e))
+    return self.__client.ProcessHttpRequest(http_request)
 
   def _RunMethod(self, method_config, request, global_params=None,
                  upload=None, upload_config=None, download=None):
     """Call this method with request."""
-    global_params = self.__CombineGlobalParams(
-        global_params, self.__client.global_params)
-    request_type = _LoadClass(
-        method_config.request_type_name, self.__client.MESSAGES_MODULE)
-    response_type = _LoadClass(
-        method_config.response_type_name, self.__client.MESSAGES_MODULE)
-    _Typecheck(request, request_type)
-    if self.__client.log_request:
-      logging.info('Request of type %s: %s',
-                   method_config.request_type_name, request)
-    body_type = None
-    if method_config.request_field == REQUEST_IS_BODY:
-      body_type = request_type
-    elif method_config.request_field:
-      body_field = request_type.field_by_name(method_config.request_field)
-      _Typecheck(body_field, messages.MessageField)
-      body_type = body_field.type
-    # TODO(craigcitro): Make the http and model objects configurable.
-    request_builder = apiclient_http.HttpRequest
-    model_class = self.__client.base_model_class
-    if download:
-      model_class = BaseMediaDownloadModel
-    api_model = model_class(
-        body_type, response_type,
-        self.__client.log_request, self.__client.log_response)
-    self.__client.ConfigureModel(api_model)
+    if upload is not None and download is not None:
+      # TODO(craigcitro): This just involves refactoring the logic
+      # below into callbacks that we can pass around; in particular,
+      # the order should be that the upload gets the initial request,
+      # and then passes its reply to a download if one exists, and
+      # then that goes to ProcessResponse and is returned.
+      raise exceptions.NotYetImplementedError(
+          'Cannot yet use both upload and download at once')
 
-    body_value = None
-    if method_config.request_field == REQUEST_IS_BODY:
-      body_value = request
-    elif method_config.request_field:
-      body_value = getattr(request, method_config.request_field)
+    http_request = self.PrepareHttpRequest(
+        method_config, request, global_params, upload, upload_config, download)
 
-    query_params = self.__ConstructQueryParams(
-        method_config.query_params, request, global_params)
-    if upload:
-      query_params.update(self.__GetUploadParams(
-          upload, upload_config, body_value))
-      method_config.relative_path = self.__GetUploadPath(upload, upload_config)
-    relative_path, path_params = self.__ConstructPathParams(
-        method_config, request)
-
-    # Note that api_model.request side-effects the headers, so must
-    # be threaded through.
-    headers = {}
-    headers, path_params, query, body = api_model.request(
-        headers, path_params, query_params, body_value)
-
-    resumable = False
-    if upload:
-      resumable, headers, body = self.__CreateMediaUpload(
-          upload, upload_config, headers, body)
-
-    url = urlparse.urljoin(self.__client.url, ''.join((relative_path, query)))
-    if self.__client.log_request:
-      logging.info('%s %s', method_config.http_method, url)
-    request = request_builder(
-        self.__client.http,
-        api_model.response,
-        url,
-        method=method_config.http_method,
-        body=body,
-        headers=headers,
-        methodId=method_config.method_id,
-        resumable=resumable)
-
-    if download:
-      download.InitializeDownload(
-          str(request.uri), request.http, headers=request.headers)
+    # TODO(craigcitro): Make num_retries customizable on Transfer
+    # objects, and pass in self.__client.num_retries when initializing
+    # an upload or download.
+    if download is not None:
+      download.InitializeDownload(http_request, client=self._client)
       return
 
-    response = self.__ExecuteRequest(request, url)
-    if self.__client.log_response:
-      logging.info('Response of type %s: %s',
-                   method_config.response_type_name, response)
-    return response
+    http_response = None
+    if upload is not None:
+      http_response = upload.InitializeUpload(http_request, client=self._client)
+    if http_response is None:
+      http_response = http_wrapper.MakeRequest(
+          self.__client.http, http_request, retries=self.__client.num_retries)
+
+    return self.ProcessHttpResponse(method_config, http_response)
+
+  def ProcessHttpResponse(self, method_config, http_response):
+    """Convert an HTTP response to the expected message type."""
+    return self.__client.ProcessResponse(
+        method_config,
+        self.__ProcessHttpResponse(method_config, http_response))

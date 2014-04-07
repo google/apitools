@@ -9,14 +9,10 @@ import urllib2
 
 from apitools.base.py import exceptions
 
-RETRYABLE_STATUS_CODES = (
-    httplib.MOVED_PERMANENTLY,
-    httplib.FOUND,
-    httplib.SEE_OTHER,
-    httplib.TEMPORARY_REDIRECT,
-    # 308 doesn't have a name in httplib.
-    308,
-    )
+__all__ = [
+    'DetectGae',
+    'DetectGce',
+    ]
 
 
 def DetectGae():
@@ -58,3 +54,14 @@ def NormalizeScopes(scope_spec):
   raise exceptions.TypecheckError(
       'NormalizeScopes expected string or iterable, found %s' % (
           type(scope_spec),))
+
+
+def Typecheck(arg, arg_type, msg=None):
+  if not isinstance(arg, arg_type):
+    if msg is None:
+      if isinstance(arg_type, tuple):
+        msg = 'Type of arg is "%s", not one of %r' % (type(arg), arg_type)
+      else:
+        msg = 'Type of arg is "%s", not "%s"' % (type(arg), arg_type)
+      raise exceptions.TypecheckError(msg)
+  return arg

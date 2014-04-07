@@ -8,7 +8,6 @@ import textwrap
 
 
 from apitools.base.py import base_api
-from apitools.gen import util
 
 
 class ServiceRegistry(object):
@@ -67,12 +66,57 @@ class ServiceRegistry(object):
     printer('  (%s) The response message.', method_info.response_type_name)
     printer('"""')
 
-  def __WriteSingleService(self, printer, name, method_info_map):
+  def __WriteSingleService(
+      self, printer, name, method_info_map, client_class_name):
     printer()
     class_name = self.__GetServiceClassName(name)
     printer('class %s(base_api.BaseApiService):', class_name)
     with printer.Indent():
       printer('"""Service class for the %s resource."""', name)
+
+      # Print the configs for the methods first.
+      printer()
+      printer('def __init__(self, client):')
+      with printer.Indent():
+        printer('super(%s.%s, self).__init__(client)',
+                client_class_name, class_name)
+        printer('self.__configs = {')
+        with printer.Indent(indent='    '):
+          for method_name, method_info in method_info_map.iteritems():
+            printer("'%s': base_api.ApiMethodInfo(", method_name)
+            with printer.Indent(indent='    '):
+              attrs = sorted(x.name for x in method_info.all_fields())
+              for attr in attrs:
+                if attr in ('upload_config', 'description'):
+                  continue
+                printer('%s=%r,', attr, getattr(method_info, attr))
+            printer('),')
+          printer('}')
+        printer()
+        printer('self.__upload_configs = {')
+        with printer.Indent(indent='    '):
+          for method_name, method_info in method_info_map.iteritems():
+            upload_config = method_info.upload_config
+            if upload_config is not None:
+              printer("'%s': base_api.ApiUploadInfo(", method_name)
+              with printer.Indent(indent='    '):
+                attrs = sorted(x.name for x in upload_config.all_fields())
+                for attr in attrs:
+                  printer('%s=%r,', attr, getattr(upload_config, attr))
+              printer('),')
+          printer('}')
+      printer()
+
+      printer('def GetMethodConfig(self, method):')
+      with printer.Indent():
+        printer('return self.__configs.get(method)')
+      printer()
+
+      printer('def GetMethodUploadConfig(self, method):')
+      with printer.Indent():
+        printer('return self.__upload_configs.get(method)')
+
+      # Now write each method in turn.
       for method_name, method_info in method_info_map.iteritems():
         printer()
         params = ['self', 'request', 'global_params=None']
@@ -83,24 +127,11 @@ class ServiceRegistry(object):
         printer('def %s(%s):', method_name, ', '.join(params))
         with printer.Indent():
           self.__PrintDocstring(printer, method_info, method_name, name)
-          printer('config = base_api.ApiMethodInfo(')
-          with printer.Indent(indent='    '):
-            attrs = sorted(x.name for x in method_info.all_fields())
-            for attr in attrs:
-              if attr in ('upload_config', 'description'):
-                continue
-              printer('%s=%r,', attr, getattr(method_info, attr))
-          printer(')')
-
+          printer("config = self.GetMethodConfig('%s')", method_name)
           upload_config = method_info.upload_config
           if upload_config is not None:
-            printer('upload_config = base_api.ApiUploadInfo(')
-            with printer.Indent(indent='    '):
-              attrs = sorted(x.name for x in upload_config.all_fields())
-              for attr in attrs:
-                printer('%s=%r,', attr, getattr(upload_config, attr))
-            printer(')')
-
+            printer("upload_config = self.GetMethodUploadConfig('%s')",
+                    method_name)
           arg_lines = ['config, request, global_params=global_params']
           if method_info.upload_config:
             arg_lines.append('upload=upload, upload_config=upload_config')
@@ -127,11 +158,10 @@ class ServiceRegistry(object):
                 method_info.response_type_name)
     printer('}')
 
-  def WriteProtoFile(self, out):
+  def WriteProtoFile(self, printer):
     """Write the services in this registry to out as proto."""
     self.Validate()
     client_info = self.__client_info
-    printer = util.SimplePrettyPrinter(out)
     printer('// Generated services for %s version %s.',
             client_info.package, client_info.version)
     printer()
@@ -142,11 +172,10 @@ class ServiceRegistry(object):
     for name, method_info_map in self.__service_method_info_map.iteritems():
       self.__WriteProtoServiceDeclaration(printer, name, method_info_map)
 
-  def WriteFile(self, out):
+  def WriteFile(self, printer):
     """Write the services in this registry to out."""
     self.Validate()
     client_info = self.__client_info
-    printer = util.SimplePrettyPrinter(out)
     printer('"""Generated client library for %s version %s."""',
             client_info.package, client_info.version)
     printer()
@@ -160,12 +189,18 @@ class ServiceRegistry(object):
       printer()
       client_info_items = client_info._asdict().iteritems()  # pylint:disable=protected-access
       for attr, val in client_info_items:
+        if attr == 'scopes':
+          # We want to drop one scope as a special case.
+          extra_scope = 'https://www.googleapis.com/auth/cloud-platform'
+          if extra_scope in val:
+            val.remove(extra_scope)
         printer('_%s = %r' % (attr.upper(), val))
       printer()
       printer("def __init__(self, url='', credentials=None,")
-      printer('             get_credentials=True, http=None, model=None,')
-      printer('             log_request=False, log_response=False,')
-      printer('             default_global_params=None):')
+      with printer.Indent(indent='             '):
+        printer('get_credentials=True, http=None, model=None,')
+        printer('log_request=False, log_response=False,')
+        printer('credentials_args=None, default_global_params=None):')
       with printer.Indent():
         printer('"""Create a new %s handle."""', client_info.package)
         printer('url = url or %r', self.__base_url)
@@ -173,12 +208,14 @@ class ServiceRegistry(object):
         printer('    url, credentials=credentials,')
         printer('    get_credentials=get_credentials, http=http, model=model,')
         printer('    log_request=log_request, log_response=log_response,')
+        printer('    credentials_args=credentials_args,')
         printer('    default_global_params=default_global_params)')
         for name in self.__service_method_info_map.iterkeys():
           printer('self.%s = self.%s(self)',
                   name, self.__GetServiceClassName(name))
       for name, method_info_map in self.__service_method_info_map.iteritems():
-        self.__WriteSingleService(printer, name, method_info_map)
+        self.__WriteSingleService(
+            printer, name, method_info_map, client_info.client_class_name)
 
   def __RegisterService(self, service_name, method_info_map):
     if service_name in self.__service_method_info_map:

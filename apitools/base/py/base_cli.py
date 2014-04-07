@@ -13,25 +13,55 @@ import sys
 from google.apputils import appcommands
 import gflags as flags
 
+from apitools.base.py import encoding
+from apitools.base.py import exceptions
+
+__all__ = [
+    'ConsoleWithReadline',
+    'DeclareBaseFlags',
+    'FormatOutput',
+    'SetupLogger',
+    'run_main',
+    ]
+
+
 # TODO(craigcitro): We should move all the flags for the
 # StandardQueryParameters into this file, so that they can be used
 # elsewhere easily.
 
-# TODO(craigcitro): FlagValidators?
-flags.DEFINE_boolean(
-    'log_request', False,
-    'Log requests.')
-flags.DEFINE_boolean(
-    'log_response', False,
-    'Log responses.')
-flags.DEFINE_boolean(
-    'log_request_response', False,
-    'Log requests and responses.')
+_BASE_FLAGS_DECLARED = False
+_OUTPUT_FORMATTER_MAP = {
+    'protorpc': lambda x: x,
+    'json': encoding.MessageToJson,
+    }
+
+
+def DeclareBaseFlags():
+  """Declare base flags for all CLIs."""
+  # TODO(craigcitro): FlagValidators?
+  global _BASE_FLAGS_DECLARED
+  if _BASE_FLAGS_DECLARED:
+    return
+  flags.DEFINE_boolean(
+      'log_request', False,
+      'Log requests.')
+  flags.DEFINE_boolean(
+      'log_response', False,
+      'Log responses.')
+  flags.DEFINE_boolean(
+      'log_request_response', False,
+      'Log requests and responses.')
+  flags.DEFINE_enum(
+      'output_format',
+      'protorpc',
+      _OUTPUT_FORMATTER_MAP.viewkeys(),
+      'Display format for results.')
+  _BASE_FLAGS_DECLARED = True
 
 # NOTE: This is specified here so that it can be read by other files
 # without depending on the flag to be registered.
 TRACE_HELP = (
-    'A tracing token of the form "trace:<traceid>" '
+    'A tracing token of the form "token:<tokenid>" '
     'to include in api requests.')
 FLAGS = flags.FLAGS
 
@@ -40,6 +70,15 @@ def SetupLogger():
   if FLAGS.log_request or FLAGS.log_response or FLAGS.log_request_response:
     logging.basicConfig()
     logging.getLogger().setLevel(logging.INFO)
+
+
+def FormatOutput(message, output_format=None):
+  """Convert the output to the user-specified format."""
+  output_format = output_format or FLAGS.output_format
+  formatter = _OUTPUT_FORMATTER_MAP.get(FLAGS.output_format)
+  if formatter is None:
+    raise exceptions.UserError('Unknown output format: %s' % output_format)
+  return formatter(message)
 
 
 class _SmartCompleter(rlcompleter.Completer):
