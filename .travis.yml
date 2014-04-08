@@ -1,3 +1,3 @@
 language: python
-install: pip install . --allow-insecure google-apputils
+install: pip install .
 script: nosetests
