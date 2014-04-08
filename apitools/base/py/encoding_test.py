@@ -104,7 +104,7 @@ class EncodingTest(googletest.TestCase):
     new_msg = encoding.JsonToMessage(type(msg), encoded_msg)
     self.assertEqual(
         set(('key_one', 'key_two')),
-        {x.key for x in new_msg.additional_properties})
+        set([x.key for x in new_msg.additional_properties]))
     self.assertIsNot(msg, new_msg)
 
     new_msg.additional_properties.pop()
@@ -136,7 +136,7 @@ class EncodingTest(googletest.TestCase):
     new_msg = encoding.JsonToMessage(type(msg), encoded_msg)
     self.assertEqual(
         set(('key_one', 'key_two')),
-        {x.key for x in new_msg.nested.additional_properties})
+        set([x.key for x in new_msg.nested.additional_properties]))
 
     new_msg.nested.additional_properties.pop()
     self.assertEqual(1, len(new_msg.nested.additional_properties))
