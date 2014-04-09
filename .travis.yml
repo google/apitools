@@ -3,5 +3,5 @@ python:
   - "2.6"
   - "2.7"
   - "pypy"
-install: pip install .
+install: pip install . --allow-external argparse
 script: nosetests
