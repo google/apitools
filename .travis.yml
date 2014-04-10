@@ -2,7 +2,6 @@ language: python
 python:
   - "2.6"
   - "2.7"
-# command to install dependencies
-install: "pip install ."
-# command to run tests
+  - "pypy"
+install: pip install . --allow-external argparse
 script: nosetests
