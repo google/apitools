@@ -1,5 +1,7 @@
 # apitools
 
+[![Build Status](https://travis-ci.org/craigcitro/apitools.svg?branch=master)](https://travis-ci.org/craigcitro/apitools)
+
 `apitools` is a collection of utilities to make it easier to build client-side
 tools, especially those that talk to Google APIs.
 
