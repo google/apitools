@@ -430,10 +430,13 @@ class CommandRegistry(object):
     printer(flags_import)
     printer()
     printer('import %s as apitools_base', self.__base_files_package)
-    printer('from %s import %s as client_lib',
-            self.__root_package, self.__client_info.client_rule_name)
-    printer('from %s import %s as messages',
-            self.__root_package, self.__client_info.messages_rule_name)
+    import_prefix = ''
+    if self.__root_package:
+      import_prefix = 'from %s ' % self.__root_package
+    printer('%simport %s as client_lib',
+            import_prefix, self.__client_info.client_rule_name)
+    printer('%simport %s as messages',
+            import_prefix, self.__client_info.messages_rule_name)
     self.__PrintFlagDeclarations(printer)
     printer()
     printer()

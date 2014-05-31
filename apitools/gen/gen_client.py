@@ -40,6 +40,9 @@ flags.DEFINE_string(
     'Ultimate destination for generated code (used for generating '
     'correct import lines). Defaults to the value of FLAGS.outdir.'
     )
+flags.DEFINE_string(
+    'root_package', '',
+    'Python import path for where these modules should be imported from.')
 
 
 flags.DEFINE_multistring(
@@ -119,11 +122,7 @@ def _GetCodegenFromFlags():
     raise exceptions.ConfigurationValueError(
         'Output directory exists, pass --overwrite to replace '
         'the existing files.')
-  if not FLAGS.root_package_dir:
-    FLAGS.root_package_dir = outdir
-  FLAGS.root_package_dir = os.path.abspath(FLAGS.root_package_dir)
-  root_package = (
-      util.GetPackage(FLAGS.root_package_dir))
+  root_package = FLAGS.root_package
   base_package = FLAGS.base_package
   return gen_client_lib.DescriptorGenerator(
       discovery_doc, client_info, names, root_package, outdir,
@@ -161,6 +160,7 @@ def _WriteGeneratedFiles(codegen):
     if FLAGS.generate_cli:
       with open(codegen.client_info.cli_file_name, 'w') as out:
         codegen.WriteCli(out)
+      os.chmod(codegen.client_info.cli_file_name, 0755)
 
 
 def _WriteInit(codegen):
