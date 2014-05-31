@@ -241,7 +241,7 @@ class SimplePrettyPrinter(object):
       line = line.encode('ascii', 'backslashreplace')
       print >>self.__out, '%s%s' % (self.__indent, line)
     else:
-      print >>self.__out, line
+      print >>self.__out, ''
 
 
 def NormalizeDiscoveryUrl(discovery_url):
