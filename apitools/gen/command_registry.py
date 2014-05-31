@@ -410,6 +410,7 @@ class CommandRegistry(object):
 
   def WriteFile(self, printer):
     """Write a simple CLI (currently just a stub)."""
+    printer('#!/usr/bin/env python')
     printer('"""CLI for %s, version %s."""', self.__package, self.__version)
     # TODO(craigcitro): Add a build stamp, along with some other
     # information.

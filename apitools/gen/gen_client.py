@@ -191,7 +191,7 @@ class GenerateProto(appcommands.Cmd):
     _WriteProtoFiles(codegen)
 
 
-# pylint: disable-msg=invalid-name
+# pylint:disable=invalid-name
 
 
 def run_main():
@@ -199,14 +199,14 @@ def run_main():
   # Put the flags for this module somewhere the flags module will look
   # for them.
 
-  # pylint: disable-msg=protected-access
+  # pylint:disable=protected-access
   new_name = flags._GetMainModule()
   sys.modules[new_name] = sys.modules['__main__']
   for flag in FLAGS.FlagsByModuleDict().get(__name__, []):
     FLAGS._RegisterFlagByModule(new_name, flag)
     for key_flag in FLAGS.KeyFlagsByModuleDict().get(__name__, []):
       FLAGS._RegisterKeyFlagForModule(new_name, key_flag)
-  # pylint: enable-msg=protected-access
+  # pylint:enable=protected-access
 
   # Now set __main__ appropriately so that appcommands will be
   # happy.

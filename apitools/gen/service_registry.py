@@ -178,6 +178,9 @@ class ServiceRegistry(object):
     client_info = self.__client_info
     printer('"""Generated client library for %s version %s."""',
             client_info.package, client_info.version)
+    printer('from %s import base_api', self.__base_files_package)
+    printer('from %s import %s as messages', self.__root_package_dir,
+            client_info.messages_rule_name)
     printer()
     printer()
     printer('class %s(base_api.BaseApiClient):', client_info.client_class_name)
