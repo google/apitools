@@ -20,7 +20,6 @@ import platform
 
 from ez_setup import use_setuptools
 use_setuptools()
-# pylint:disable=C6204
 import setuptools
 
 # Configure the required packages and scripts to install, depending on
@@ -48,7 +47,6 @@ if py_version < '2.7':
   REQUIRED_PACKAGES.append('unittest2==0.5.1')
   REQUIRED_PACKAGES.append('argparse==1.2.1')
 
-_NAMESPACE = 'apitools'
 _APITOOLS_VERSION = '0.2'
 
 setuptools.setup(
@@ -64,7 +62,6 @@ setuptools.setup(
         'console_scripts': CONSOLE_SCRIPTS,
         },
     install_requires=REQUIRED_PACKAGES,
-    namespace_packages=[_NAMESPACE],
     provides=[
         'apitools (%s)' % (_APITOOLS_VERSION,),
         ],
