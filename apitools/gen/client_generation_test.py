@@ -5,6 +5,7 @@ import logging
 import os
 import shutil
 import subprocess
+import sys
 import tempfile
 
 from google.apputils import basetest as googletest
@@ -37,6 +38,12 @@ class ClientGenerationTest(googletest.TestCase):
     self.gen_client_binary = 'gen_client'
 
   def testGeneration(self):
+    if sys.version < (2, 7):
+      # TODO(craigcitro): Make apitools codegen support python 2.6.
+      # Maybe.
+      #
+      # unittest in 2.6 doesn't have skipIf.
+      return
     for api in _API_LIST:
       with TempDir() as path:
         args = [
