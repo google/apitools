@@ -1,6 +1,8 @@
-apitools.egg-info/*
-build/*
-dist/*
-distribute-*
 *~
-*.pyc
+*.py[cod]
+apitools.egg-info/*
+build/
+dist/
+distribute-*
+# Test files
+.tox/
