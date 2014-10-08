@@ -5,6 +5,18 @@
 `apitools` is a collection of utilities to make it easier to build client-side
 tools, especially those that talk to Google APIs.
 
+## Installing as a library
+
+* `pip install apitools`
+
+## Installing the command-line tools
+
+* `pip install apitools[cli]`
+
+## Installing the testing dependencies
+
+* `pip install apitools[testing]`
+
 ## Current status
 
 There are a few imminent large changes:

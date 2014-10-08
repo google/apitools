@@ -28,16 +28,23 @@ except ImportError:
 # Configure the required packages and scripts to install, depending on
 # Python version and OS.
 REQUIRED_PACKAGES = [
-    'google-apputils',
     'httplib2',
     'mimeparse',
-    'mock',
     'oauth2client',
     'protorpc',
     'python-dateutil',
-    'python-gflags',
     'pytz',
     ]
+
+CLI_PACKAGES = [
+    'google-apputils',
+    'python-gflags',
+]
+
+TESTING_PACKAGES = [
+    'google-apputils',
+    'mock',
+]
 
 PINNED_PACKAGES = [
     'google-apputils==0.4.0',
@@ -76,8 +83,11 @@ setuptools.setup(
         'console_scripts': CONSOLE_SCRIPTS,
         },
     install_requires=REQUIRED_PACKAGES,
+    tests_require=REQUIRED_PACKAGES + TESTING_PACKAGES,
     extras_require = {
         'pinned': PINNED_PACKAGES,
+        'cli': CLI_PACKAGES,
+        'testing': TESTING_PACKAGES,
         },
     provides=[
         'apitools (%s)' % (_APITOOLS_VERSION,),
