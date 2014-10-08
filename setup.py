@@ -83,7 +83,7 @@ setuptools.setup(
         'console_scripts': CONSOLE_SCRIPTS,
         },
     install_requires=REQUIRED_PACKAGES,
-    tests_require=REQUIRED_PACKAGES + TESTING_PACKAGES,
+    tests_require=REQUIRED_PACKAGES + CLI_PACKAGES + TESTING_PACKAGES,
     extras_require = {
         'pinned': PINNED_PACKAGES,
         'cli': CLI_PACKAGES,
