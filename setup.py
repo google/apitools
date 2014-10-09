@@ -18,14 +18,35 @@
 
 import platform
 
-from ez_setup import use_setuptools
-use_setuptools()
-import setuptools
+try:
+    import setuptools
+except ImportError:
+    from ez_setup import use_setuptools
+    use_setuptools()
+    import setuptools
 
 # Configure the required packages and scripts to install, depending on
 # Python version and OS.
 REQUIRED_PACKAGES = [
-    'ez-setup==0.9',
+    'httplib2',
+    'mimeparse',
+    'oauth2client',
+    'protorpc',
+    'python-dateutil',
+    'pytz',
+    ]
+
+CLI_PACKAGES = [
+    'google-apputils',
+    'python-gflags',
+]
+
+TESTING_PACKAGES = [
+    'google-apputils',
+    'mock',
+]
+
+PINNED_PACKAGES = [
     'google-apputils==0.4.0',
     'httplib2==0.8',
     'mimeparse==0.1.3',
@@ -35,8 +56,8 @@ REQUIRED_PACKAGES = [
     'python-dateutil==1.5',
     'python-gflags==2.0',
     'pytz==2013.7',
-    'wsgiref==0.1.2',
     ]
+
 CONSOLE_SCRIPTS = [
     'gen_client = apitools.gen.gen_client:run_main',
     ]
@@ -62,6 +83,12 @@ setuptools.setup(
         'console_scripts': CONSOLE_SCRIPTS,
         },
     install_requires=REQUIRED_PACKAGES,
+    tests_require=REQUIRED_PACKAGES + CLI_PACKAGES + TESTING_PACKAGES,
+    extras_require = {
+        'pinned': PINNED_PACKAGES,
+        'cli': CLI_PACKAGES,
+        'testing': TESTING_PACKAGES,
+        },
     provides=[
         'apitools (%s)' % (_APITOOLS_VERSION,),
         ],
