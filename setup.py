@@ -28,33 +28,20 @@ except ImportError:
 # Configure the required packages and scripts to install, depending on
 # Python version and OS.
 REQUIRED_PACKAGES = [
-    'httplib2',
-    'oauth2client',
-    'protorpc',
-    'python-dateutil',
-    'pytz',
+    'httplib2>=0.8',
+    'oauth2client>=1.2',
+    'protorpc>=0.9.1',
     ]
 
 CLI_PACKAGES = [
-    'google-apputils',
-    'python-gflags',
+    'google-apputils>=0.4.0',
+    'python-gflags>=2.0',
 ]
 
 TESTING_PACKAGES = [
-    'google-apputils',
-    'mock',
+    'google-apputils>=0.4.0',
+    'mock>=1.0.1',
 ]
-
-PINNED_PACKAGES = [
-    'google-apputils==0.4.0',
-    'httplib2==0.8',
-    'mock==1.0.1',
-    'oauth2client==1.2',
-    'protorpc==0.9.1',
-    'python-dateutil==1.5',
-    'python-gflags==2.0',
-    'pytz==2013.7',
-    ]
 
 CONSOLE_SCRIPTS = [
     'gen_client = apitools.gen.gen_client:run_main',
@@ -63,8 +50,8 @@ CONSOLE_SCRIPTS = [
 py_version = platform.python_version()
 
 if py_version < '2.7':
-  REQUIRED_PACKAGES.append('unittest2==0.5.1')
-  REQUIRED_PACKAGES.append('argparse==1.2.1')
+    REQUIRED_PACKAGES.append('unittest2==0.5.1')
+    REQUIRED_PACKAGES.append('argparse==1.2.1')
 
 _APITOOLS_VERSION = '0.3'
 
@@ -83,7 +70,6 @@ setuptools.setup(
     install_requires=REQUIRED_PACKAGES,
     tests_require=REQUIRED_PACKAGES + CLI_PACKAGES + TESTING_PACKAGES,
     extras_require={
-        'pinned': PINNED_PACKAGES,
         'cli': CLI_PACKAGES,
         'testing': TESTING_PACKAGES,
         },
