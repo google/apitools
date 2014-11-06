@@ -7,8 +7,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
-
-from google.apputils import basetest as googletest
+import unittest
 
 from apitools.gen import util
 
@@ -31,7 +30,7 @@ def TempDir():
     shutil.rmtree(path)
 
 
-class ClientGenerationTest(googletest.TestCase):
+class ClientGenerationTest(unittest.TestCase):
 
   def setUp(self):
     super(ClientGenerationTest, self).setUp()
@@ -73,4 +72,4 @@ class ClientGenerationTest(googletest.TestCase):
 
 
 if __name__ == '__main__':
-  googletest.main()
+  unittest.main()
