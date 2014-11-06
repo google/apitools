@@ -9,6 +9,8 @@ from protorpc import messages
 
 from apitools.gen import extended_descriptor
 
+# This is a code generator; we're purposely verbose.
+# pylint:disable=too-many-statements
 
 _VARIANT_TO_FLAG_TYPE_MAP = {
     messages.Variant.DOUBLE: 'float',
@@ -24,7 +26,7 @@ _VARIANT_TO_FLAG_TYPE_MAP = {
     messages.Variant.ENUM: 'enum',
     messages.Variant.SINT32: 'integer',
     messages.Variant.SINT64: 'integer',
-    }
+}
 
 
 class FlagInfo(messages.Message):
@@ -134,7 +136,7 @@ class CommandRegistry(object):
           name=name,
           description=extended_field.description,
           conversion=self.__GetConversion(extended_field, request_type),
-          ))
+      ))
       arg_names.append(name)
     flags = []
     for extended_field in sorted(request_type.fields, key=lambda x: x.name):
@@ -183,7 +185,7 @@ class CommandRegistry(object):
         client_method_path=calling_path,
         has_upload=bool(method_info.upload_config),
         has_download=bool(method_info.supports_download)
-        )
+    )
     self.__command_list.append(command_info)
 
   def __LookupMessage(self, message, field):
@@ -286,12 +288,17 @@ class CommandRegistry(object):
         printer("'history_file',")
         printer('%r,', '~/.%s.%s.history' % (self.__package, self.__version))
         printer("'File with interactive shell history.')")
+      printer('flags.DEFINE_multistring(')
+      with printer.Indent('    '):
+        printer("'add_header', [],")
+        printer("'Additional http headers (as key=value strings). Can be '")
+        printer("'specified multiple times.')")
       for flag_info in self.__global_flags:
         self.__PrintFlag(printer, flag_info)
     printer()
     printer()
     printer('FLAGS = flags.FLAGS')
-    printer('apitools_base.DeclareBaseFlags()')
+    printer('apitools_base_cli.DeclareBaseFlags()')
     printer('%s()', function_name)
 
   def __PrintGetGlobalParams(self, printer):
@@ -319,12 +326,15 @@ class CommandRegistry(object):
       printer('log_response = FLAGS.log_response or FLAGS.log_request_response')
       printer('api_endpoint = apitools_base.NormalizeApiEndpoint('
               'FLAGS.api_endpoint)')
+      printer("additional_http_headers = dict(x.split('=', 1) for x in "
+              "FLAGS.add_header)")
       printer('try:')
       with printer.Indent():
         printer('client = client_lib.%s(', self.__client_info.client_class_name)
         with printer.Indent(indent='    '):
           printer('api_endpoint, log_request=log_request,')
-          printer('log_response=log_response)')
+          printer('log_response=log_response,')
+          printer('additional_http_headers=additional_http_headers)')
       printer('except apitools_base.CredentialsError as e:')
       with printer.Indent():
         printer("print 'Error creating credentials: %%s' %% e")
@@ -334,14 +344,15 @@ class CommandRegistry(object):
     printer()
 
   def __PrintCommandDocstring(self, printer, command_info):
-    for line in textwrap.wrap('"""%s' % command_info.description,
-                              printer.CalculateWidth()):
-      printer(line)
-    extended_descriptor.PrintIndentedDescriptions(
-        printer, command_info.args, 'Args')
-    extended_descriptor.PrintIndentedDescriptions(
-        printer, command_info.flags, 'Flags')
-    printer('"""')
+    with printer.CommentContext():
+      for line in textwrap.wrap('"""%s' % command_info.description,
+                                printer.CalculateWidth()):
+        printer(line)
+      extended_descriptor.PrintIndentedDescriptions(
+          printer, command_info.args, 'Args')
+      extended_descriptor.PrintIndentedDescriptions(
+          printer, command_info.flags, 'Flags')
+      printer('"""')
 
   def __PrintFlag(self, printer, flag_info):
     printer('flags.DEFINE_%s(', flag_info.type)
@@ -357,7 +368,8 @@ class CommandRegistry(object):
           drop_whitespace=False)
       for line in description_lines[:-1]:
         printer('%r', line)
-      printer('%r%s', description_lines[-1], ',' if flag_info.fv else ')')
+      last_line = description_lines[-1] if description_lines else ''
+      printer('%r%s', last_line, ',' if flag_info.fv else ')')
       if flag_info.fv:
         printer('flag_values=%s)', flag_info.fv)
     if flag_info.required:
@@ -365,6 +377,7 @@ class CommandRegistry(object):
 
   def __PrintPyShell(self, printer):
     printer('class PyShell(appcommands.Cmd):')
+    printer()
     with printer.Indent():
       printer('def Run(self, _):')
       with printer.Indent():
@@ -393,7 +406,7 @@ class CommandRegistry(object):
         printer('}')
         printer("if platform.system() == 'Linux':")
         with printer.Indent():
-          printer('console = apitools_base.ConsoleWithReadline(')
+          printer('console = apitools_base_cli.ConsoleWithReadline(')
           with printer.Indent(indent='    '):
             printer('local_vars, histfile=FLAGS.history_file)')
         printer('else:')
@@ -430,6 +443,8 @@ class CommandRegistry(object):
     printer(flags_import)
     printer()
     printer('import %s as apitools_base', self.__base_files_package)
+    printer('from %s import cli as apitools_base_cli',
+            self.__base_files_package)
     import_prefix = ''
     if self.__root_package:
       import_prefix = 'from %s ' % self.__root_package
@@ -451,7 +466,7 @@ class CommandRegistry(object):
         printer("appcommands.AddCmd('%s', %s)",
                 command_info.name, command_info.class_name)
       printer()
-      printer('apitools_base.SetupLogger()')
+      printer('apitools_base_cli.SetupLogger()')
       # TODO(craigcitro): Just call SetDefaultCommand as soon as
       # another appcommands release happens and this exists
       # externally.
@@ -460,7 +475,7 @@ class CommandRegistry(object):
         printer("appcommands.SetDefaultCommand('pyshell')")
     printer()
     printer()
-    printer('run_main = apitools_base.run_main')
+    printer('run_main = apitools_base_cli.run_main')
     printer()
     printer("if __name__ == '__main__':")
     with printer.Indent():
@@ -470,7 +485,7 @@ class CommandRegistry(object):
     """Print all commands in this registry using printer."""
     for command_info in self.__command_list:
       arg_list = [arg_info.name for arg_info in command_info.args]
-      printer('class %s(apitools_base.NewCmd):', command_info.class_name)
+      printer('class %s(apitools_base_cli.NewCmd):', command_info.class_name)
       with printer.Indent():
         printer('"""Command wrapping %s."""', command_info.client_method_path)
         printer()
@@ -525,6 +540,6 @@ class CommandRegistry(object):
           printer('result = client.%s(', command_info.client_method_path)
           with printer.Indent(indent='    '):
             printer('%s)', ', '.join(call_args))
-          printer('print apitools_base.FormatOutput(result)')
+          printer('print apitools_base_cli.FormatOutput(result)')
       printer()
       printer()

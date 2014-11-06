@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """Test gen_client against all the APIs we use regularly."""
 
 import contextlib

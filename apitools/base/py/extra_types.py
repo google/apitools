@@ -6,6 +6,7 @@ from protorpc.
 """
 
 import collections
+import datetime
 import json
 import numbers
 
@@ -18,18 +19,39 @@ from apitools.base.py import exceptions
 from apitools.base.py import util
 
 __all__ = [
+    'DateField',
     'DateTimeMessage',
     'JsonArray',
     'JsonObject',
     'JsonValue',
     'JsonProtoEncoder',
     'JsonProtoDecoder',
-    ]
+]
 
 # We import from protorpc.
 # pylint:disable=invalid-name
 DateTimeMessage = message_types.DateTimeMessage
 # pylint:enable=invalid-name
+
+
+class DateField(messages.Field):
+  """Field definition for Date values."""
+
+  # We insert our own metaclass here to avoid letting ProtoRPC
+  # register this as the default field type for strings.
+  #  * since ProtoRPC does this via metaclasses, we don't have any
+  #    choice but to use one ourselves
+  #  * since a subclass's metaclass must inherit from its superclass's
+  #    metaclass, we're forced to have this hard-to-read inheritance.
+  #
+  class __metaclass__(messages.Field.__metaclass__):  # pylint: disable=invalid-name
+
+    def __init__(cls, name, bases, dct):  # pylint: disable=no-self-argument
+      super(messages.Field.__metaclass__, cls).__init__(name, bases, dct)
+
+  VARIANTS = frozenset([messages.Variant.STRING])
+  DEFAULT_VARIANT = messages.Variant.STRING
+  type = datetime.date
 
 
 def _ValidateJsonValue(json_value):
@@ -155,7 +177,7 @@ _JSON_PROTO_TO_PYTHON_MAP = {
     JsonArray: _JsonArrayToPythonValue,
     JsonObject: _JsonObjectToPythonValue,
     JsonValue: _JsonValueToPythonValue,
-    }
+}
 _JSON_PROTO_TYPES = tuple(_JSON_PROTO_TO_PYTHON_MAP.keys())
 
 
@@ -181,12 +203,25 @@ def _JsonToJsonProto(json_data, unused_decoder=None):
   return _PythonValueToJsonProto(json.loads(json_data))
 
 
+def _JsonToJsonValue(json_data, unused_decoder=None):
+  result = _PythonValueToJsonProto(json.loads(json_data))
+  if isinstance(result, JsonValue):
+    return result
+  elif isinstance(result, JsonObject):
+    return JsonValue(object_value=result)
+  elif isinstance(result, JsonArray):
+    return JsonValue(array_value=result)
+  else:
+    raise exceptions.InvalidDataError(
+        'Malformed JsonValue: %s' % json_data)
+
+
 # pylint:disable=invalid-name
 JsonProtoEncoder = _JsonProtoToJson
 JsonProtoDecoder = _JsonToJsonProto
 # pylint:enable=invalid-name
 encoding.RegisterCustomMessageCodec(
-    encoder=JsonProtoEncoder, decoder=JsonProtoDecoder)(JsonValue)
+    encoder=JsonProtoEncoder, decoder=_JsonToJsonValue)(JsonValue)
 encoding.RegisterCustomMessageCodec(
     encoder=JsonProtoEncoder, decoder=JsonProtoDecoder)(JsonObject)
 encoding.RegisterCustomMessageCodec(
@@ -230,3 +265,19 @@ def _DecodeInt64Field(unused_field, value):
 
 encoding.RegisterFieldTypeCodec(_EncodeInt64Field, _DecodeInt64Field)(
     messages.IntegerField)
+
+
+def _EncodeDateField(field, value):
+  """Encoder for datetime.date objects."""
+  if field.repeated:
+    result = [d.isoformat() for d in value]
+  else:
+    result = value.isoformat()
+  return encoding.CodecResult(value=result, complete=True)
+
+
+def _DecodeDateField(unused_field, value):
+  date = datetime.datetime.strptime(value, '%Y-%m-%d').date()
+  return encoding.CodecResult(value=date, complete=True)
+
+encoding.RegisterFieldTypeCodec(_EncodeDateField, _DecodeDateField)(DateField)

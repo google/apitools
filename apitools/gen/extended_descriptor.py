@@ -20,6 +20,8 @@ from protorpc import descriptor
 from protorpc import message_types
 from protorpc import messages
 
+import apitools.base.py as apitools_base
+
 
 class ExtendedEnumValueDescriptor(messages.Message):
   """Enum value descriptor with additional fields.
@@ -134,14 +136,16 @@ def WritePythonFile(file_descriptor, package, version, printer):
 
 def PrintIndentedDescriptions(printer, ls, name, prefix=''):
   if ls:
-    width = printer.CalculateWidth() - len(prefix)
-    printer(prefix)
-    printer('%s%s:', prefix, name)
-    for x in ls:
-      description = '%s: %s' % (x.name, x.description)
-      for line in textwrap.wrap(description, width, initial_indent='  ',
-                                subsequent_indent='    '):
-        printer('%s%s', prefix, line)
+    with printer.Indent(indent=prefix):
+      with printer.CommentContext():
+        width = printer.CalculateWidth() - len(prefix)
+        printer()
+        printer(name + ':')
+        for x in ls:
+          description = '%s: %s' % (x.name, x.description)
+          for line in textwrap.wrap(description, width, initial_indent='  ',
+                                    subsequent_indent='    '):
+            printer(line)
 
 
 def _EmptyMessage(message_type):
@@ -333,19 +337,23 @@ class _ProtoRpcPrinter(ProtoPrinter):
     short_description = (
         _EmptyMessage(message_type) and
         len(description) < (self.__printer.CalculateWidth() - 6))
-    if short_description:
-      self.__printer('"""%s"""', description)
-      return
-    for line in textwrap.wrap('"""%s' % description,
-                              self.__printer.CalculateWidth()):
-      self.__printer(line)
+    with self.__printer.CommentContext():
+      if short_description:
+        # Note that we use explicit string interpolation here since
+        # we're in comment context.
+        self.__printer('"""%s"""' % description)
+        return
+      for line in textwrap.wrap('"""%s' % description,
+                                self.__printer.CalculateWidth()):
+        self.__printer(line)
 
-    PrintIndentedDescriptions(self.__printer, message_type.enum_types, 'Enums')
-    PrintIndentedDescriptions(
-        self.__printer, message_type.message_types, 'Messages')
-    PrintIndentedDescriptions(self.__printer, message_type.fields, 'Fields')
-    self.__printer('"""')
-    self.__printer()
+      PrintIndentedDescriptions(self.__printer, message_type.enum_types,
+                                'Enums')
+      PrintIndentedDescriptions(
+          self.__printer, message_type.message_types, 'Messages')
+      PrintIndentedDescriptions(self.__printer, message_type.fields, 'Fields')
+      self.__printer('"""')
+      self.__printer()
 
   def PrintMessage(self, message_type):
     if message_type.alias_for:
@@ -378,7 +386,7 @@ def _PrintMessages(proto_printer, message_list):
 
 _MESSAGE_FIELD_MAP = {
     message_types.DateTimeMessage.definition_name(): message_types.DateTimeField,
-    }
+}
 
 
 def _PrintFields(fields, printer):
@@ -393,12 +401,15 @@ def _PrintFields(fields, printer):
         'label_format': '',
         'variant_format': '',
         'default_format': '',
-        }
+    }
 
     message_field = _MESSAGE_FIELD_MAP.get(field.type_name)
     if message_field:
       printed_field_info['module'] = 'message_types'
       field_type = message_field
+    elif field.type_name == 'extra_types.DateField':
+      printed_field_info['module'] = 'extra_types'
+      field_type = apitools_base.DateField
     else:
       field_type = messages.Field.lookup_field_type_by_variant(field.variant)
 

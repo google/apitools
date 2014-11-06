@@ -29,7 +29,6 @@ except ImportError:
 # Python version and OS.
 REQUIRED_PACKAGES = [
     'httplib2',
-    'mimeparse',
     'oauth2client',
     'protorpc',
     'python-dateutil',
@@ -49,7 +48,6 @@ TESTING_PACKAGES = [
 PINNED_PACKAGES = [
     'google-apputils==0.4.0',
     'httplib2==0.8',
-    'mimeparse==0.1.3',
     'mock==1.0.1',
     'oauth2client==1.2',
     'protorpc==0.9.1',
@@ -68,7 +66,7 @@ if py_version < '2.7':
   REQUIRED_PACKAGES.append('unittest2==0.5.1')
   REQUIRED_PACKAGES.append('argparse==1.2.1')
 
-_APITOOLS_VERSION = '0.2'
+_APITOOLS_VERSION = '0.2.1'
 
 setuptools.setup(
     name='apitools',
@@ -84,7 +82,7 @@ setuptools.setup(
         },
     install_requires=REQUIRED_PACKAGES,
     tests_require=REQUIRED_PACKAGES + CLI_PACKAGES + TESTING_PACKAGES,
-    extras_require = {
+    extras_require={
         'pinned': PINNED_PACKAGES,
         'cli': CLI_PACKAGES,
         'testing': TESTING_PACKAGES,

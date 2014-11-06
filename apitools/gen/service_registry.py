@@ -9,6 +9,11 @@ import textwrap
 
 from apitools.base.py import base_api
 
+# We're a code generator. I don't care.
+# pylint:disable=too-many-statements
+
+_MIME_PATTERN_RE = re.compile(r'(?i)[a-z0-9_*-]+/[a-z0-9_*-]+')
+
 
 class ServiceRegistry(object):
   """Registry for service types."""
@@ -50,7 +55,8 @@ class ServiceRegistry(object):
       description = '%s%s%s' % (first_line, newline, remaining)
     else:
       description = '%s method for the %s service.' % (method_name, name)
-    printer('"""%s', description)
+    with printer.CommentContext():
+      printer('"""%s' % description)
     printer()
     printer('Args:')
     printer('  request: (%s) input message', method_info.request_type_name)
@@ -73,6 +79,8 @@ class ServiceRegistry(object):
     printer('class %s(base_api.BaseApiService):', class_name)
     with printer.Indent():
       printer('"""Service class for the %s resource."""', name)
+      printer()
+      printer('_NAME = %s', repr(name))
 
       # Print the configs for the methods first.
       printer()
@@ -80,7 +88,7 @@ class ServiceRegistry(object):
       with printer.Indent():
         printer('super(%s.%s, self).__init__(client)',
                 client_class_name, class_name)
-        printer('self.__configs = {')
+        printer('self._method_configs = {')
         with printer.Indent(indent='    '):
           for method_name, method_info in method_info_map.iteritems():
             printer("'%s': base_api.ApiMethodInfo(", method_name)
@@ -93,7 +101,7 @@ class ServiceRegistry(object):
             printer('),')
           printer('}')
         printer()
-        printer('self.__upload_configs = {')
+        printer('self._upload_configs = {')
         with printer.Indent(indent='    '):
           for method_name, method_info in method_info_map.iteritems():
             upload_config = method_info.upload_config
@@ -105,16 +113,6 @@ class ServiceRegistry(object):
                   printer('%s=%r,', attr, getattr(upload_config, attr))
               printer('),')
           printer('}')
-      printer()
-
-      printer('def GetMethodConfig(self, method):')
-      with printer.Indent():
-        printer('return self.__configs.get(method)')
-      printer()
-
-      printer('def GetMethodUploadConfig(self, method):')
-      with printer.Indent():
-        printer('return self.__upload_configs.get(method)')
 
       # Now write each method in turn.
       for method_name, method_info in method_info_map.iteritems():
@@ -130,8 +128,7 @@ class ServiceRegistry(object):
           printer("config = self.GetMethodConfig('%s')", method_name)
           upload_config = method_info.upload_config
           if upload_config is not None:
-            printer("upload_config = self.GetMethodUploadConfig('%s')",
-                    method_name)
+            printer("upload_config = self.GetUploadConfig('%s')", method_name)
           arg_lines = ['config, request, global_params=global_params']
           if method_info.upload_config:
             arg_lines.append('upload=upload, upload_config=upload_config')
@@ -195,18 +192,16 @@ class ServiceRegistry(object):
       printer()
       client_info_items = client_info._asdict().iteritems()  # pylint:disable=protected-access
       for attr, val in client_info_items:
-        if attr == 'scopes':
-          # We want to drop one scope as a special case.
-          extra_scope = 'https://www.googleapis.com/auth/cloud-platform'
-          if extra_scope in val:
-            val.remove(extra_scope)
+        if attr == 'scopes' and not val:
+          val = ['https://www.googleapis.com/auth/userinfo.email']
         printer('_%s = %r' % (attr.upper(), val))
       printer()
       printer("def __init__(self, url='', credentials=None,")
       with printer.Indent(indent='             '):
         printer('get_credentials=True, http=None, model=None,')
         printer('log_request=False, log_response=False,')
-        printer('credentials_args=None, default_global_params=None):')
+        printer('credentials_args=None, default_global_params=None,')
+        printer('additional_http_headers=None):')
       with printer.Indent():
         printer('"""Create a new %s handle."""', client_info.package)
         printer('url = url or %r', self.__base_url)
@@ -215,7 +210,8 @@ class ServiceRegistry(object):
         printer('    get_credentials=get_credentials, http=http, model=model,')
         printer('    log_request=log_request, log_response=log_response,')
         printer('    credentials_args=credentials_args,')
-        printer('    default_global_params=default_global_params)')
+        printer('    default_global_params=default_global_params,')
+        printer('    additional_http_headers=additional_http_headers)')
         for name in self.__service_method_info_map.iterkeys():
           printer('self.%s = self.%s(self)',
                   name, self.__GetServiceClassName(name))
@@ -314,6 +310,10 @@ class ServiceRegistry(object):
           'method %s, using */*', method_id)
     config.accept.extend([
         str(a) for a in media_upload_config.get('accept', '*/*')])
+
+    for accept_pattern in config.accept:
+      if not _MIME_PATTERN_RE.match(accept_pattern):
+        logging.warn('Unexpected MIME type: %s', accept_pattern)
     protocols = media_upload_config.get('protocols', {})
     for protocol in ('simple', 'resumable'):
       media = protocols.get(protocol, {})
@@ -339,7 +339,7 @@ class ServiceRegistry(object):
         request_type_name=self.__names.ClassName(request),
         response_type_name=self.__names.ClassName(response),
         request_field=request_field,
-        )
+    )
     if method_description.get('supportsMediaUpload', False):
       method_info.upload_config = self.__ComputeUploadConfig(
           method_description.get('mediaUpload'), method_id)

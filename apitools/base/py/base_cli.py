@@ -22,7 +22,7 @@ __all__ = [
     'FormatOutput',
     'SetupLogger',
     'run_main',
-    ]
+]
 
 
 # TODO(craigcitro): We should move all the flags for the
@@ -33,7 +33,7 @@ _BASE_FLAGS_DECLARED = False
 _OUTPUT_FORMATTER_MAP = {
     'protorpc': lambda x: x,
     'json': encoding.MessageToJson,
-    }
+}
 
 
 def DeclareBaseFlags():
@@ -56,6 +56,7 @@ def DeclareBaseFlags():
       'protorpc',
       _OUTPUT_FORMATTER_MAP.viewkeys(),
       'Display format for results.')
+
   _BASE_FLAGS_DECLARED = True
 
 # NOTE: This is specified here so that it can be read by other files
@@ -82,6 +83,7 @@ def FormatOutput(message, output_format=None):
 
 
 class _SmartCompleter(rlcompleter.Completer):
+
   def _callable_postfix(self, val, word):
     if ('(' in readline.get_line_buffer() or
         not callable(val)):
@@ -107,7 +109,7 @@ class ConsoleWithReadline(code.InteractiveConsole):
         '_SmartCompleter': _SmartCompleter,
         'readline': readline,
         'rlcompleter': rlcompleter,
-        })
+    })
     code.InteractiveConsole.__init__(self, new_locals, filename)
     readline.parse_and_bind('tab: complete')
     readline.set_completer(_SmartCompleter(new_locals).complete)

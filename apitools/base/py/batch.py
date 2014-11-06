@@ -1,16 +1,12 @@
 #!/usr/bin/env python
-"""HTTP batch requests for apitools.
-
-This library is copied heavily from apiclient's BatchHttpRequest.
-Some unneeded parts are removed, and apitools' BatchHttpRequest is
-modified to work with the classes in http_wrapper instead of httplib2.
-"""
+"""Library for handling batch HTTP requests for apitools."""
 
 import collections
 import email.generator as generator
 import email.mime.multipart as mime_multipart
 import email.mime.nonmultipart as mime_nonmultipart
 import email.parser as email_parser
+import httplib
 import itertools
 import StringIO
 import time
@@ -23,29 +19,54 @@ from apitools.base.py import http_wrapper
 
 __all__ = [
     'BatchApiRequest',
-    ]
+]
 
 
-RequestResponseHandler = collections.namedtuple(
-    'RequestResponseHandler', ['request', 'response', 'handler'])
+class RequestResponseAndHandler(collections.namedtuple(
+    'RequestResponseAndHandler', ['request', 'response', 'handler'])):
+  """Container for data related to completing an HTTP request.
+
+  This contains an HTTP request, its response, and a callback for handling
+  the response from the server.
+
+  Attributes:
+    request: An http_wrapper.Request object representing the HTTP request.
+    response: The http_wrapper.Response object returned from the server.
+    handler: A callback function accepting two arguments, response
+      and exception. Response is an http_wrapper.Response object, and
+      exception is an apiclient.errors.HttpError object if an error
+      occurred, or otherwise None.
+  """
 
 
 class BatchApiRequest(object):
-  """Friendly interface for batching API requests."""
 
-  class ApiRequestResponse(object):
-    """Each individual request is stored in its own object."""
+  class ApiCall(object):
+    """Holds request and response information for each request.
+
+    ApiCalls are ultimately exposed to the client once the HTTP batch request
+    has been completed.
+
+    Attributes:
+      http_request: A client-supplied http_wrapper.Request to be
+          submitted to the server.
+      response: A http_wrapper.Response object given by the server as a
+          response to the user request, or None if an error occurred.
+      exception: An apiclient.errors.HttpError object if an error
+          occurred, or None.
+    """
 
     def __init__(self, request, retryable_codes, service, method_config):
       """Initialize an individual API request.
 
       Args:
         request: An http_wrapper.Request object.
-        retryable_codes: A list of HTTP codes that can be retried.
+        retryable_codes: A list of integer HTTP codes that can be retried.
         service: A service inheriting from base_api.BaseApiService.
         method_config: Method config for the desired API request.
       """
-      self.__retryable_codes = retryable_codes
+      self.__retryable_codes = list(
+          set(retryable_codes + [httplib.UNAUTHORIZED]))
       self.__http_response = None
       self.__service = service
       self.__method_config = method_config
@@ -68,12 +89,20 @@ class BatchApiRequest(object):
       return self.__exception
 
     @property
+    def authorization_failed(self):
+      return (self.__http_response and (
+          self.__http_response.status_code == httplib.UNAUTHORIZED))
+
+    @property
     def terminal_state(self):
       return (self.__http_response and (
           self.__http_response.status_code not in self.__retryable_codes))
 
     def HandleResponse(self, http_response, exception):
-      """Callback used with BatchApiRequest.
+      """Handles an incoming http response to the request in http_request.
+
+      This is intended to be used as a callback function for
+      BatchHttpRequest.Add.
 
       Args:
         http_response: Deserialized http_wrapper.Response object.
@@ -81,7 +110,7 @@ class BatchApiRequest(object):
       """
       self.__http_response = http_response
       self.__exception = exception
-      if self.terminal_state:
+      if self.terminal_state and not self.__exception:
         self.__response = self.__service.ProcessHttpResponse(
             self.__method_config, self.__http_response)
 
@@ -90,7 +119,7 @@ class BatchApiRequest(object):
 
     Args:
       batch_url: Base URL for batch API calls.
-      retryable_codes: A list of HTTP codes that can be retried.
+      retryable_codes: A list of integer HTTP codes that can be retried.
     """
     self.api_requests = []
     self.retryable_codes = retryable_codes or []
@@ -101,17 +130,18 @@ class BatchApiRequest(object):
 
     Args:
       service: A class inheriting base_api.BaseApiService.
-      method: The desired method from the service.
+      method: A string indicated desired method from the service. See
+          the example in the class docstring.
       request: An input message appropriate for the specified service.method.
       global_params: Optional additional parameters to pass into
-                     method.PrepareHttpRequest.
+          method.PrepareHttpRequest.
 
     Returns:
       None
     """
     # Retrieve the configs for the desired method and service.
     method_config = service.GetMethodConfig(method)
-    upload_config = service.GetMethodUploadConfig(method)
+    upload_config = service.GetUploadConfig(method)
 
     # Prepare the HTTP Request.
     http_request = service.PrepareHttpRequest(
@@ -119,7 +149,7 @@ class BatchApiRequest(object):
         upload_config=upload_config)
 
     # Create the request and add it to our master list.
-    api_request = self.ApiRequestResponse(
+    api_request = self.ApiCall(
         http_request, self.retryable_codes, service, method_config)
     self.api_requests.append(api_request)
 
@@ -128,13 +158,13 @@ class BatchApiRequest(object):
 
     Args:
       http: httplib2.Http object for use in the request.
-      sleep_between_polls: How long to sleep between polls, in seconds.
+      sleep_between_polls: Integer number of seconds to sleep between polls.
       max_retries: Max retries. Any requests that have not succeeded by
-                   this number of retries simply report the last response or
-                   exception, whatever it happened to be.
+          this number of retries simply report the last response or
+          exception, whatever it happened to be.
 
     Returns:
-      List of ApiRequestResponses.
+      List of ApiCalls.
     """
     requests = [request for request in self.api_requests if not
                 request.terminal_state]
@@ -154,6 +184,10 @@ class BatchApiRequest(object):
       requests = [request for request in self.api_requests if not
                   request.terminal_state]
 
+      if (any(request.authorization_failed for request in requests)
+          and hasattr(http.request, 'credentials')):
+        http.request.credentials.refresh(http)
+
       if not requests:
         break
 
@@ -167,8 +201,8 @@ class BatchHttpRequest(object):
     """Constructor for a BatchHttpRequest.
 
     Args:
-      batch_url: string, URL to send batch requests to.
-      callback: callable, A callback to be called for each response, of the
+      batch_url: URL to send batch requests to.
+      callback: A callback to be called for each response, of the
         form callback(response, exception). The first parameter is
         the deserialized Response object. The second is an
         apiclient.errors.HttpError exception object if an HTTP error
@@ -189,11 +223,11 @@ class BatchHttpRequest(object):
     # Unique ID on which to base the Content-ID headers.
     self.__base_id = uuid.uuid4()
 
-  def _IdToHeader(self, request_id):
+  def _ConvertIdToHeader(self, request_id):
     """Convert an id to a Content-ID header value.
 
     Args:
-      request_id: string, identifier of individual request.
+      request_id: String identifier for a individual request.
 
     Returns:
       A Content-ID header with the id_ encoded into it. A UUID is prepended to
@@ -202,14 +236,15 @@ class BatchHttpRequest(object):
     """
     return '<%s+%s>' % (self.__base_id, urllib.quote(request_id))
 
-  def _HeaderToId(self, header):
+  @staticmethod
+  def _ConvertHeaderToId(header):
     """Convert a Content-ID header value to an id.
 
-    Presumes the Content-ID header conforms to the format that _IdToHeader()
-    returns.
+    Presumes the Content-ID header conforms to the format that
+    _ConvertIdToHeader() returns.
 
     Args:
-      header: string, Content-ID header value.
+      header: A string indicating the Content-ID header value.
 
     Returns:
       The extracted id value.
@@ -229,7 +264,7 @@ class BatchHttpRequest(object):
     """Convert a http_wrapper.Request object into a string.
 
     Args:
-      request: http_wrapper.Request, the request to serialize.
+      request: A http_wrapper.Request to serialize.
 
     Returns:
       The request as a string in application/http format.
@@ -242,11 +277,10 @@ class BatchHttpRequest(object):
     major, minor = request.headers.get(
         'content-type', 'application/json').split('/')
     msg = mime_nonmultipart.MIMENonMultipart(major, minor)
-    headers = request.headers.copy()
 
     # MIMENonMultipart adds its own Content-Type header.
     # Keep all of the other headers in headers.
-    for key, value in headers.iteritems():
+    for key, value in request.headers.iteritems():
       if key == 'content-type':
         continue
       msg[key] = value
@@ -258,11 +292,11 @@ class BatchHttpRequest(object):
       msg.set_payload(request.body)
 
     # Serialize the mime message.
-    fp = StringIO.StringIO()
+    str_io = StringIO.StringIO()
     # maxheaderlen=0 means don't line wrap headers.
-    g = generator.Generator(fp, maxheaderlen=0)
-    g.flatten(msg, unixfrom=False)
-    body = fp.getvalue()
+    gen = generator.Generator(str_io, maxheaderlen=0)
+    gen.flatten(msg, unixfrom=False)
+    body = str_io.getvalue()
 
     # Strip off the \n\n that the MIME lib tacks onto the end of the payload.
     if request.body is None:
@@ -274,7 +308,7 @@ class BatchHttpRequest(object):
     """Convert string into Response and content.
 
     Args:
-      payload: string, headers and body as a string.
+      payload: Header and body string to be deserialized.
 
     Returns:
       A Response object
@@ -302,7 +336,7 @@ class BatchHttpRequest(object):
     Auto incrementing number that avoids conflicts with ids already used.
 
     Returns:
-       string, a new unique id.
+       A new unique id string.
     """
     return str(self.__last_auto_id.next())
 
@@ -310,8 +344,8 @@ class BatchHttpRequest(object):
     """Add a new request.
 
     Args:
-      request: http_wrapper.Request, http_wrapper.Request to add to the batch.
-      callback: callable, A callback to be called for this response, of the
+      request: A http_wrapper.Request to add to the batch.
+      callback: A callback to be called for this response, of the
         form callback(response, exception). The first parameter is the
         deserialized response object. The second is an
         apiclient.errors.HttpError exception object if an HTTP error
@@ -320,14 +354,14 @@ class BatchHttpRequest(object):
     Returns:
       None
     """
-    self.__request_response_handlers[self._NewId()] = RequestResponseHandler(
+    self.__request_response_handlers[self._NewId()] = RequestResponseAndHandler(
         request, None, callback)
 
   def _Execute(self, http):
     """Serialize batch request, send to server, process response.
 
     Args:
-      http: httplib2.Http, an http object to be used to make the request with.
+      http: A httplib2.Http object to be used to make the request with.
 
     Raises:
       httplib2.HttpLib2Error if a transport error has occured.
@@ -341,7 +375,7 @@ class BatchHttpRequest(object):
     for key in self.__request_response_handlers:
       msg = mime_nonmultipart.MIMENonMultipart('application', 'http')
       msg['Content-Transfer-Encoding'] = 'binary'
-      msg['Content-ID'] = self._IdToHeader(key)
+      msg['Content-ID'] = self._ConvertIdToHeader(key)
 
       body = self._SerializeRequest(
           self.__request_response_handlers[key].request)
@@ -368,9 +402,11 @@ class BatchHttpRequest(object):
       raise exceptions.BatchError('Response not in multipart/mixed format.')
 
     for part in mime_response.get_payload():
-      request_id = self._HeaderToId(part['Content-ID'])
+      request_id = self._ConvertHeaderToId(part['Content-ID'])
       response = self._DeserializeResponse(part.get_payload())
 
+      # Disable protected access because namedtuple._replace(...)
+      # is not actually meant to be protected.
       self.__request_response_handlers[request_id] = (
           self.__request_response_handlers[request_id]._replace(  # pylint: disable=protected-access
               response=response))
@@ -379,7 +415,7 @@ class BatchHttpRequest(object):
     """Execute all the requests as a single batched HTTP request.
 
     Args:
-      http: httplib2.Http object to be used with the request.
+      http: A httplib2.Http object to be used with the request.
 
     Returns:
       None
@@ -398,7 +434,6 @@ class BatchHttpRequest(object):
 
       if response.status_code >= 300:
         exception = exceptions.HttpError.FromResponse(response)
-        response = None
 
       if callback is not None:
         callback(response, exception)

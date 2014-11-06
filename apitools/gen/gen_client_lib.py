@@ -23,13 +23,13 @@ def _StandardQueryParametersSchema(discovery_doc):
       'type': 'object',
       'description': 'Query parameters accepted by all methods.',
       'properties': discovery_doc.get('parameters', {}),
-      }
+  }
   # We add an entry for the trace, since Discovery doesn't.
   standard_query_schema['properties']['trace'] = {
       'type': 'string',
       'description': base_cli.TRACE_HELP,
       'location': 'query',
-      }
+  }
   return standard_query_schema
 
 
@@ -106,7 +106,8 @@ class DescriptorGenerator(object):
     if api_methods:
       self.__services_registry.AddServiceFromResource(
           'api', {'methods': api_methods})
-    self.__client_info = self.__client_info._replace(scopes=self.__services_registry.scopes)  # pylint:disable=protected-access,g-line-too-long
+    self.__client_info = self.__client_info._replace(  # pylint:disable=protected-access
+        scopes=self.__services_registry.scopes)
 
   @property
   def client_info(self):
@@ -137,6 +138,7 @@ class DescriptorGenerator(object):
     printer = self._GetPrinter(out)
     printer('"""Common imports for generated %s client library."""',
             self.__client_info.package)
+    printer('# pylint:disable=wildcard-import')
     printer()
     printer('import pkgutil')
     printer()

@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 
+import datetime
 import json
 import math
 
@@ -60,10 +61,24 @@ class ExtraTypesTest(googletest.TestCase):
         extra_types.JsonValue(integer_value=3),
         extra_types.JsonValue(string_value='four'),
         extra_types.JsonValue(boolean_value=False),
-        ])
+    ])
     self.assertRoundTrip(array)
     self.assertRoundTrip(json_array)
     self.assertTranslations(array, json_array)
+
+  def testArrayAsValue(self):
+    array_json = '[3, "four", false]'
+    array = [3, 'four', False]
+    value = encoding.JsonToMessage(extra_types.JsonValue, array_json)
+    self.assertTrue(isinstance(value, extra_types.JsonValue))
+    self.assertEqual(array, encoding.MessageToPyValue(value))
+
+  def testObjectAsValue(self):
+    obj_json = '{"works": true}'
+    obj = {'works': True}
+    value = encoding.JsonToMessage(extra_types.JsonValue, obj_json)
+    self.assertTrue(isinstance(value, extra_types.JsonValue))
+    self.assertEqual(obj, encoding.MessageToPyValue(value))
 
   def testDictEncoding(self):
     d = {'a': 6, 'b': 'eleventeen'}
@@ -72,7 +87,7 @@ class ExtraTypesTest(googletest.TestCase):
             key='a', value=extra_types.JsonValue(integer_value=6)),
         extra_types.JsonObject.Property(
             key='b', value=extra_types.JsonValue(string_value='eleventeen')),
-        ])
+    ])
     self.assertRoundTrip(d)
     # We don't know json_d will round-trip, because of randomness in
     # python dictionary iteration ordering. We also need to force
@@ -97,6 +112,25 @@ class ExtraTypesTest(googletest.TestCase):
 
     self.assertEqual(json_value, encoding.MessageToJson(value))
     self.assertEqual(json_obj, encoding.MessageToJson(obj))
+
+  def testDateField(self):
+
+    class DateMsg(messages.Message):
+      start_date = extra_types.DateField(1)
+      all_dates = extra_types.DateField(2, repeated=True)
+
+    msg = DateMsg(
+        start_date=datetime.date(1752, 9, 9), all_dates=[
+            datetime.date(1979, 5, 6),
+            datetime.date(1980, 10, 24),
+            datetime.date(1981, 1, 19),
+            ])
+    json_msg = json.dumps({
+        'start_date': '1752-09-09', 'all_dates': [
+            '1979-05-06', '1980-10-24', '1981-01-19',
+            ]})
+    self.assertEqual(json_msg, encoding.MessageToJson(msg))
+    self.assertEqual(msg, encoding.JsonToMessage(DateMsg, json_msg))
 
   def testInt64(self):
     # Testing roundtrip of type 'long'
@@ -123,7 +157,7 @@ class ExtraTypesTest(googletest.TestCase):
         result = json_msg if json_msg else message
         return result
       return DoRoundtrip(class_type=class_type, json_msg=json_msg,
-                         message=message, times=times-1)
+                         message=message, times=times - 1)
 
     # Single
     json_msg = ('{"such_string": "poot", "wow": "-1234",'

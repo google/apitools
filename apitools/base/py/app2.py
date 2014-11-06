@@ -16,7 +16,7 @@ import gflags as flags
 __all__ = [
     'NewCmd',
     'Repl',
-    ]
+]
 
 flags.DEFINE_boolean(
     'debug_mode', False,
@@ -48,7 +48,8 @@ class NewCmd(appcommands.Cmd):
 
       argspec = inspect.getargspec(func)
       if argspec.args and argspec.args[0] == 'self':
-        argspec = argspec._replace(args=argspec.args[1:])  # pylint: disable=protected-access,g-line-too-long
+        argspec = argspec._replace(  # pylint: disable=protected-access
+            args=argspec.args[1:])
       self._argspec = argspec
       # TODO(craigcitro): Do we really want to support all this
       # nonsense?

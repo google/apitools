@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """Upload and download support for apitools."""
 
+import email.generator as email_generator
 import email.mime.multipart as mime_multipart
 import email.mime.nonmultipart as mime_nonmultipart
 import httplib
@@ -8,17 +9,17 @@ import io
 import json
 import mimetypes
 import os
+import StringIO
 import threading
-
-import mimeparse
 
 from apitools.base.py import exceptions
 from apitools.base.py import http_wrapper
+from apitools.base.py import util
 
 __all__ = [
     'Download',
     'Upload',
-    ]
+]
 
 _RESUMABLE_UPLOAD_THRESHOLD = 5 << 20
 _SIMPLE_UPLOAD = 'simple'
@@ -124,7 +125,7 @@ class Download(_Transfer):
       httplib.NO_CONTENT,
       httplib.PARTIAL_CONTENT,
       httplib.REQUESTED_RANGE_NOT_SATISFIABLE,
-      ))
+  ))
   _REQUIRED_SERIALIZATION_KEYS = set((
       'auto_transfer', 'progress', 'total_size', 'url'))
 
@@ -179,7 +180,7 @@ class Download(_Transfer):
         'progress': self.progress,
         'total_size': self.total_size,
         'url': self.url,
-        }
+    }
 
   @property
   def total_size(self):
@@ -446,7 +447,7 @@ class Upload(_Transfer):
         'mime_type': self.mime_type,
         'total_size': self.total_size,
         'url': self.url,
-        }
+    }
 
   @property
   def complete(self):
@@ -520,7 +521,7 @@ class Upload(_Transfer):
           'Upload too big: %s larger than max size %s' % (
               self.total_size, upload_config.max_size))
     # Validate mime type
-    if not mimeparse.best_match(upload_config.accept, self.mime_type):
+    if not util.AcceptableMimeType(upload_config.accept, self.mime_type):
       raise exceptions.InvalidUserInputError(
           'MIME type %s does not match any accepted MIME ranges %s' % (
               self.mime_type, upload_config.accept))
@@ -563,7 +564,13 @@ class Upload(_Transfer):
     msg.set_payload(self.stream.read())
     msg_root.attach(msg)
 
-    http_request.body = msg_root.as_string()
+    # encode the body: note that we can't use `as_string`, because
+    # it plays games with `From ` lines.
+    fp = StringIO.StringIO()
+    g = email_generator.Generator(fp, mangle_from_=False)
+    g.flatten(msg_root, unixfrom=False)
+    http_request.body = fp.getvalue()
+
     multipart_boundary = msg_root.get_boundary()
     http_request.headers['content-type'] = (
         'multipart/related; boundary=%r' % multipart_boundary)
@@ -704,5 +711,6 @@ class Upload(_Transfer):
     # TODO(craigcitro): Add retries on no progress?
     last_byte = self.__GetLastByte(response.info['range'])
     if last_byte + 1 != end:
-      response = self.__SendChunk(last_byte + 1, data[last_byte + 1 - start:])
+      new_start = last_byte + 1 - start
+      response = self.__SendChunk(last_byte + 1, data=data[new_start:])
     return response

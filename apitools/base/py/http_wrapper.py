@@ -15,11 +15,13 @@ import urlparse
 import httplib2
 
 from apitools.base.py import exceptions
+from apitools.base.py import util
 
 __all__ = [
     'GetHttp',
     'MakeRequest',
-    ]
+    'Request',
+]
 
 
 # 308 and 429 don't have names in httplib.
@@ -31,7 +33,7 @@ _REDIRECT_STATUS_CODES = (
     httplib.SEE_OTHER,
     httplib.TEMPORARY_REDIRECT,
     RESUME_INCOMPLETE,
-    )
+)
 
 
 class Request(object):
@@ -65,15 +67,22 @@ class Response(collections.namedtuple(
   __slots__ = ()
 
   def __len__(self):
+    def ProcessContentRange(content_range):
+      _, _, range_spec = content_range.partition(' ')
+      byte_range, _, _ = range_spec.partition('/')
+      start, _, end = byte_range.partition('-')
+      return int(end) - int(start) + 1
+
     if '-content-encoding' in self.info and 'content-range' in self.info:
       # httplib2 rewrites content-length in the case of a compressed
       # transfer; we can't trust the content-length header in that
       # case, but we *can* trust content-range, if it's present.
-      _, _, range_spec = self.info['content-range'].partition(' ')
-      byte_range, _, _ = range_spec.partition('/')
-      start, _, end = byte_range.partition('-')
-      return int(end) - int(start) + 1
-    return int(self.info.get('content-length', len(self.content)))
+      return ProcessContentRange(self.info['content-range'])
+    elif 'content-length' in self.info:
+      return int(self.info.get('content-length'))
+    elif 'content-range' in self.info:
+      return ProcessContentRange(self.info['content-range'])
+    return len(self.content)
 
   @property
   def status_code(self):
@@ -139,21 +148,30 @@ def MakeRequest(http, http_request, retries=5, redirections=5):
         raise
       logging.error('Caught socket error, retrying: %s', e)
       exc = e
+    except httplib.IncompleteRead as e:
+      if http_request.http_method != 'GET':
+        raise
+      logging.error('Caught IncompleteRead error, retrying: %s', e)
+      exc = e
     if info is not None:
       response = Response(info, content, http_request.url)
-      if (response.status_code < 500 and response.status_code != 429 and
+      if (response.status_code < 500 and
+          response.status_code != TOO_MANY_REQUESTS and
           not response.retry_after):
         break
-      logging.info('Retrying request to url <%s> after status code %s',
+      logging.info('Retrying request to url <%s> after status code %s.',
                    response.request_url, response.status_code)
+    elif isinstance(exc, httplib.IncompleteRead):
+      logging.info('Retrying request to url <%s> after incomplete read.',
+                   str(http_request.url))
     else:
-      logging.info('Retrying request to url <%s> after connection break',
+      logging.info('Retrying request to url <%s> after connection break.',
                    str(http_request.url))
     # TODO(craigcitro): Make this timeout configurable.
     if response:
-      time.sleep(response.retry_after or 2 ** retry)
+      time.sleep(response.retry_after or util.CalculateWaitForRetry(retry))
     else:
-      time.sleep(2 ** retry)
+      time.sleep(util.CalculateWaitForRetry(retry))
   if response is None:
     raise exceptions.InvalidDataFromServerError(
         'HTTP error on final retry: %s' % exc)

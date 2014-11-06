@@ -34,7 +34,7 @@ class MessageRegistry(object):
                          variant=messages.FloatField.DEFAULT_VARIANT),
       'any': TypeInfo(type_name='extra_types.JsonValue',
                       variant=messages.Variant.MESSAGE),
-      }
+  }
 
   PRIMITIVE_FORMAT_MAP = {
       'int32': TypeInfo(type_name='integer',
@@ -51,11 +51,11 @@ class MessageRegistry(object):
                         variant=messages.Variant.FLOAT),
       'byte': TypeInfo(type_name='byte',
                        variant=messages.BytesField.DEFAULT_VARIANT),
-      'date': TypeInfo(type_name='protorpc.message_types.DateTimeMessage',
-                       variant=messages.Variant.MESSAGE),
+      'date': TypeInfo(type_name='extra_types.DateField',
+                       variant=messages.Variant.STRING),
       'date-time': TypeInfo(type_name='protorpc.message_types.DateTimeMessage',
                             variant=messages.Variant.MESSAGE),
-      }
+  }
 
   def __init__(self, client_info, names, description,
                root_package_dir, base_files_package):
@@ -70,7 +70,7 @@ class MessageRegistry(object):
     # Add required imports
     self.__file_descriptor.additional_imports = [
         'from protorpc import messages',
-        ]
+    ]
     # Map from scoped names (i.e. Foo.Bar) to MessageDescriptors.
     self.__message_registry = collections.OrderedDict()
     # A set of types that we're currently adding (for cycle detection).
@@ -207,10 +207,10 @@ class MessageRegistry(object):
     attrs = {
         'items': {
             '$ref': entries_type_name,
-            },
+        },
         'description': description,
         'type': 'array',
-        }
+    }
     field_name = 'additionalProperties'
     message.fields.append(self.__FieldDescriptorFromProperties(
         field_name, len(properties) + 1, attrs))
@@ -222,6 +222,9 @@ class MessageRegistry(object):
     """Add a new MessageDescriptor named schema_name based on schema."""
     # TODO(craigcitro): Is schema_name redundant?
     if self.__GetDescriptor(schema_name):
+      return
+    if schema.get('enum'):
+      self.__DeclareEnum(schema_name, schema)
       return
     if schema.get('type') == 'any':
       self.__DeclareMessageAlias(schema, 'extra_types.JsonValue')
@@ -259,10 +262,10 @@ class MessageRegistry(object):
             'key': {
                 'type': 'string',
                 'description': 'Name of the additional property.',
-                },
-            'value': property_schema,
             },
-        }
+            'value': property_schema,
+        },
+    }
     self.AddDescriptorFromSchema(new_type_name, schema)
     return new_type_name
 
@@ -278,9 +281,9 @@ class MessageRegistry(object):
             'entry': {
                 'type': 'array',
                 'items': entry_schema,
-                },
             },
-        }
+        },
+    }
     self.AddDescriptorFromSchema(entry_type_name, schema)
     return entry_type_name
 
@@ -316,17 +319,26 @@ class MessageRegistry(object):
       return descriptor.FieldDescriptor.Label.REQUIRED
     elif attrs.get('type') == 'array':
       return descriptor.FieldDescriptor.Label.REPEATED
+    elif attrs.get('repeated'):
+      return descriptor.FieldDescriptor.Label.REPEATED
     return descriptor.FieldDescriptor.Label.OPTIONAL
+
+  def __DeclareEnum(self, enum_name, attrs):
+    description = attrs.get('description', '')
+    self.AddEnumDescriptor(enum_name, description,
+                           attrs['enum'], attrs['enumDescriptions'])
+    self.__AddIfUnknown(enum_name)
+    return TypeInfo(type_name=enum_name, variant=messages.Variant.ENUM)
+
+  def __AddIfUnknown(self, type_name):
+    type_name = self.__names.ClassName(type_name)
+    full_type_name = self.__ComputeFullName(type_name)
+    if (full_type_name not in self.__message_registry.viewkeys() and
+        type_name not in self.__message_registry.viewkeys()):
+      self.__unknown_types.add(type_name)
 
   def __GetTypeInfo(self, attrs, name_hint):
     """Return a TypeInfo object for attrs, creating one if needed."""
-
-    def AddIfUnknown(type_name):
-      type_name = self.__names.ClassName(type_name)
-      full_type_name = self.__ComputeFullName(type_name)
-      if (full_type_name not in self.__message_registry.viewkeys() and
-          type_name not in self.__message_registry.viewkeys()):
-        self.__unknown_types.add(type_name)
 
     type_ref = self.__names.ClassName(attrs.get('$ref'))
     type_name = attrs.get('type')
@@ -334,22 +346,21 @@ class MessageRegistry(object):
       raise ValueError('No type found for %s' % attrs)
 
     if type_ref:
-      AddIfUnknown(type_ref)
+      self.__AddIfUnknown(type_ref)
       return TypeInfo(type_name=type_ref, variant=messages.Variant.MESSAGE)
 
     if 'enum' in attrs:
       enum_name = '%sValuesEnum' % name_hint
-      description = attrs.get('description', '')
-      self.AddEnumDescriptor(enum_name, description,
-                             attrs['enum'], attrs['enumDescriptions'])
-      AddIfUnknown(enum_name)
-      return TypeInfo(type_name=enum_name, variant=messages.Variant.ENUM)
+      return self.__DeclareEnum(enum_name, attrs)
 
     if 'format' in attrs:
       type_info = self.PRIMITIVE_FORMAT_MAP.get(attrs['format'])
       if (type_info.type_name.startswith('protorpc.message_types.') or
           type_info.type_name.startswith('message_types.')):
         self.__AddImport('from protorpc import message_types')
+      if type_info.type_name.startswith('extra_types.'):
+        self.__AddImport(
+            'from %s import extra_types' % self.__base_files_package)
       if type_info is None:
         raise ValueError('Unknown format %s for type %s' % (
             attrs['format'], type_name))
@@ -384,7 +395,7 @@ class MessageRegistry(object):
       schema = dict(attrs)
       schema['id'] = name_hint
       self.AddDescriptorFromSchema(name_hint, schema)
-      AddIfUnknown(name_hint)
+      self.__AddIfUnknown(name_hint)
       return TypeInfo(type_name=name_hint, variant=messages.Variant.MESSAGE)
 
     raise ValueError('Unknown type: %s' % type_name)

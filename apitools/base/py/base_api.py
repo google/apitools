@@ -2,6 +2,7 @@
 """Base class for api services."""
 
 import contextlib
+import datetime
 import httplib
 import logging
 import pprint
@@ -25,7 +26,7 @@ __all__ = [
     'BaseApiClient',
     'BaseApiService',
     'NormalizeApiEndpoint',
-    ]
+]
 
 # TODO(craigcitro): Remove this once we quiet the spurious logging in
 # oauth2client (or drop oauth2client).
@@ -137,7 +138,7 @@ class _UrlBuilder(object):
       self.query_params.update(query_params)
     self.__scheme = components.scheme
     self.__netloc = components.netloc
-    self.relative_path = components.path
+    self.relative_path = components.path or ''
 
   @classmethod
   def FromUrl(cls, url):
@@ -145,7 +146,7 @@ class _UrlBuilder(object):
     query_params = urlparse.parse_qs(urlparts.query)
     base_url = urlparse.urlunsplit((
         urlparts.scheme, urlparts.netloc, '', None, None))
-    relative_path = urlparts.path
+    relative_path = urlparts.path or ''
     return cls(base_url, relative_path=relative_path, query_params=query_params)
 
   @property
@@ -190,10 +191,9 @@ class BaseApiClient(object):
 
   def __init__(self, url, credentials=None, get_credentials=True, http=None,
                model=None, log_request=False, log_response=False, num_retries=5,
-               credentials_args=None, default_global_params=None):
-    _RequireClassAttrs(self, (
-        '_package', '_scopes', '_client_id', '_client_secret',
-        'messages_module'))
+               credentials_args=None, default_global_params=None,
+               additional_http_headers=None):
+    _RequireClassAttrs(self, ('_package', '_scopes', 'messages_module'))
     if default_global_params is not None:
       util.Typecheck(default_global_params, self.params_type)
     self.__default_global_params = default_global_params
@@ -202,11 +202,11 @@ class BaseApiClient(object):
     self.__num_retries = 5
     # We let the @property machinery below do our validation.
     self.num_retries = num_retries
-    self._url = url
     self._credentials = credentials
     if get_credentials and not credentials:
       credentials_args = credentials_args or {}
       self._SetCredentials(**credentials_args)
+    self._url = NormalizeApiEndpoint(url)
     self._http = http or http_wrapper.GetHttp()
     # Note that "no credentials" is totally possible.
     if self._credentials is not None:
@@ -214,8 +214,12 @@ class BaseApiClient(object):
     # TODO(craigcitro): Remove this field when we switch to proto2.
     self.__include_fields = None
 
+    self.additional_http_headers = additional_http_headers or {}
+
     # TODO(craigcitro): Finish deprecating these fields.
     _ = model
+
+    self.__response_type_model = 'proto'
 
   def _SetCredentials(self, **kwds):
     """Fetch credentials, and set them for this client.
@@ -253,7 +257,7 @@ class BaseApiClient(object):
         'client_secret': cls._CLIENT_SECRET,
         'scope': ' '.join(sorted(util.NormalizeScopes(cls._SCOPES))),
         'user_agent': cls._USER_AGENT,
-        }
+    }
 
   @property
   def base_model_class(self):
@@ -300,6 +304,18 @@ class BaseApiClient(object):
     self.__include_fields = None
 
   @property
+  def response_type_model(self):
+    return self.__response_type_model
+
+  @contextlib.contextmanager
+  def JsonResponseModel(self):
+    """In this context, return raw JSON instead of proto."""
+    old_model = self.response_type_model
+    self.__response_type_model = 'json'
+    yield
+    self.__response_type_model = old_model
+
+  @property
   def num_retries(self):
     return self.__num_retries
 
@@ -328,6 +344,7 @@ class BaseApiClient(object):
 
   def ProcessHttpRequest(self, http_request):
     """Hook for pre-processing of http requests."""
+    http_request.headers.update(self.additional_http_headers)
     if self.log_request:
       logging.info('Making http %s to %s',
                    http_request.http_method, http_request.url)
@@ -374,10 +391,32 @@ class BaseApiService(object):
 
   def __init__(self, client):
     self.__client = client
+    self._method_configs = {}
+    self._upload_configs = {}
 
   @property
   def _client(self):
     return self.__client
+
+  @property
+  def client(self):
+    return self.__client
+
+  def GetMethodConfig(self, method):
+    return self._method_configs[method]
+
+  def GetUploadConfig(self, method):
+    return self._upload_configs.get(method)
+
+  def GetRequestType(self, method):
+    method_config = self.GetMethodConfig(method)
+    return getattr(self.client.MESSAGES_MODULE,
+                   method_config.request_type_name)
+
+  def GetResponseType(self, method):
+    method_config = self.GetMethodConfig(method)
+    return getattr(self.client.MESSAGES_MODULE,
+                   method_config.response_type_name)
 
   def __CombineGlobalParams(self, global_params, default_params):
     util.Typecheck(global_params, (types.NoneType, self.__client.params_type))
@@ -405,42 +444,16 @@ class BaseApiService(object):
         query_info[k] = v.encode('utf8')
       elif isinstance(v, str):
         query_info[k] = v.decode('utf8')
+      elif isinstance(v, datetime.datetime):
+        query_info[k] = v.isoformat()
     return query_info
 
   def __ConstructRelativePath(self, method_config, request, relative_path=None):
     """Determine the relative path for request."""
-    path = relative_path or method_config.relative_path
-    # TODO(user): Why does the discovery document have pluses?
-    # Figure this out.
-    path = path.replace('+', '')
-
-    for param in method_config.path_params:
-      param_template = '{%s}' % param
-      if param_template not in path:
-        raise exceptions.InvalidUserInputError(
-            'Missing path parameter %s' % param)
-      try:
-        # TODO(craigcitro): Do we want to support some sophisticated
-        # mapping here?
-        value = getattr(request, param)
-      except AttributeError:
-        raise exceptions.InvalidUserInputError(
-            'Request missing required parameter %s' % param)
-      if value is None:
-        raise exceptions.InvalidUserInputError(
-            'Request missing required parameter %s' % param)
-      try:
-        # TODO(user): this isn't likely to break anything, but if you notice
-        # that it does please contact me and I'll get a concrete fix in ASAP
-        if not isinstance(value, basestring):
-          value = str(value)
-        path = path.replace(param_template,
-                            urllib.quote(value.encode('utf_8'), ''))
-      except TypeError as e:
-        raise exceptions.InvalidUserInputError(
-            'Error setting required parameter %s to value %s: %s' % (
-                param, value, e))
-    return path
+    params = dict([(param, getattr(request, param, None))
+                   for param in method_config.path_params])
+    return util.ExpandRelativePath(method_config, params,
+                                   relative_path=relative_path)
 
   def __FinalizeRequest(self, http_request, url_builder):
     """Make any final general adjustments to the request."""
@@ -462,10 +475,13 @@ class BaseApiService(object):
       http_response = http_wrapper.Response(
           info=http_response.info, content='{}',
           request_url=http_response.request_url)
-    response_type = _LoadClass(
-        method_config.response_type_name, self.__client.MESSAGES_MODULE)
-    return self.__client.DeserializeMessage(
-        response_type, http_response.content)
+    if self.__client.response_type_model == 'json':
+      return http_response.content
+    else:
+      response_type = _LoadClass(
+          method_config.response_type_name, self.__client.MESSAGES_MODULE)
+      return self.__client.DeserializeMessage(
+          response_type, http_response.content)
 
   def __SetBaseHeaders(self, http_request, client):
     """Fill in the basic headers on http_request."""
@@ -548,12 +564,12 @@ class BaseApiService(object):
     # objects, and pass in self.__client.num_retries when initializing
     # an upload or download.
     if download is not None:
-      download.InitializeDownload(http_request, client=self._client)
+      download.InitializeDownload(http_request, client=self.client)
       return
 
     http_response = None
     if upload is not None:
-      http_response = upload.InitializeUpload(http_request, client=self._client)
+      http_response = upload.InitializeUpload(http_request, client=self.client)
     if http_response is None:
       http_response = http_wrapper.MakeRequest(
           self.__client.http, http_request, retries=self.__client.num_retries)

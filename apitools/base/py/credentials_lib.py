@@ -27,7 +27,7 @@ __all__ = [
     'GetCredentials',
     'ServiceAccountCredentials',
     'ServiceAccountCredentialsFromFile',
-    ]
+]
 
 
 
@@ -45,7 +45,7 @@ def GetCredentials(package_name, scopes, client_id, client_secret, user_agent,
       'client_secret': client_secret,
       'scope': ' '.join(sorted(util.NormalizeScopes(scopes))),
       'user_agent': user_agent or '%s-generated/0.1' % package_name,
-      }
+  }
   if service_account_name is not None:
     credentials = ServiceAccountCredentialsFromFile(
         service_account_name, service_account_keyfile, scopes)

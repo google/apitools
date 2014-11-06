@@ -21,14 +21,15 @@ flags.DEFINE_string(
     '--discovery_url.')
 flags.DEFINE_string(
     'discovery_url', '',
-    'URL of the discovery document to use. Mutually exclusive with --infile.')
+    'URL (or "name/version") of the discovery document to use. '
+    'Mutually exclusive with --infile.')
 
 flags.DEFINE_string(
     'base_package',
     'apitools.base.py',
     'Base package path of apitools (defaults to '
     'apitools.base.py)'
-    )
+)
 flags.DEFINE_string(
     'outdir', '',
     'Directory name for output files. (Defaults to the API name.)')
@@ -39,7 +40,7 @@ flags.DEFINE_string(
     'root_package_dir', '',
     'Ultimate destination for generated code (used for generating '
     'correct import lines). Defaults to the value of FLAGS.outdir.'
-    )
+)
 flags.DEFINE_string(
     'root_package', '',
     'Python import path for where these modules should be imported from.')
@@ -52,6 +53,10 @@ flags.DEFINE_multistring(
 flags.DEFINE_string(
     'api_key', None,
     'API key to use for API access.')
+flags.DEFINE_string(
+    'client_json', None,
+    'Use the given file downloaded from the dev. console for client_id '
+    'and client_secret.')
 flags.DEFINE_string(
     'client_id', None,
     'Client ID to use for the generated client.')
@@ -81,8 +86,6 @@ flags.DEFINE_boolean(
 
 FLAGS = flags.FLAGS
 
-flags.MarkFlagAsRequired('client_id')
-flags.MarkFlagAsRequired('client_secret')
 flags.RegisterValidator(
     'infile', lambda i: not (i and FLAGS.discovery_url),
     'Cannot specify both --infile and --discovery_url')
@@ -114,15 +117,45 @@ def _GetCodegenFromFlags():
       FLAGS.strip_prefix,
       FLAGS.experimental_name_convention,
       FLAGS.experimental_capitalize_enums)
+
+  if FLAGS.client_json:
+    try:
+      with open(FLAGS.client_json) as client_json:
+        f = json.loads(client_json.read())
+        web = f.get('web', {})
+        client_id = web.get('client_id')
+        client_secret = web.get('client_secret')
+    except IOError:
+      raise exceptions.NotFoundError(
+          'Failed to open client json file: %s' % FLAGS.client_json)
+  else:
+    client_id = FLAGS.client_id
+    client_secret = FLAGS.client_secret
+
+  if client_id is None:
+    logging.warning('No client ID supplied')
+    client_id = ''
+
+  if client_secret is None:
+    logging.warning('No client secret supplied')
+    client_secret = ''
+
   client_info = util.ClientInfo.Create(
-      discovery_doc, FLAGS.scope, FLAGS.client_id, FLAGS.client_secret,
+      discovery_doc, FLAGS.scope, client_id, client_secret,
       FLAGS.user_agent, names, FLAGS.api_key)
   outdir = os.path.expanduser(FLAGS.outdir) or client_info.default_directory
   if os.path.exists(outdir) and not FLAGS.overwrite:
     raise exceptions.ConfigurationValueError(
         'Output directory exists, pass --overwrite to replace '
         'the existing files.')
-  root_package = FLAGS.root_package
+  if FLAGS.root_package:
+    root_package = FLAGS.root_package
+  else:
+    if not FLAGS.root_package_dir:
+      FLAGS.root_package_dir = outdir
+    FLAGS.root_package_dir = os.path.abspath(FLAGS.root_package_dir)
+    root_package = (
+        util.GetPackage(FLAGS.root_package_dir))
   base_package = FLAGS.base_package
   return gen_client_lib.DescriptorGenerator(
       discovery_doc, client_info, names, root_package, outdir,

@@ -44,7 +44,9 @@ class Names(object):
 
   @staticmethod
   def __ToCamel(name, separator='_'):
-    return ''.join(s[0].upper() + s[1:] for s in name.split(separator))
+    # TODO(craigcitro): Consider what to do about leading or trailing
+    # underscores (such as `_refValue` in discovery).
+    return ''.join(s[0:1].upper() + s[1:] for s in name.split(separator))
 
   @staticmethod
   def __ToLowerCamel(name, separator='_'):
@@ -160,7 +162,7 @@ class ClientInfo(collections.namedtuple('ClientInfo', (
         'client_secret': client_secret,
         'user_agent': user_agent,
         'api_key': api_key,
-        }
+    }
     client_class_name = ''.join(
         map(names.ClassName, (client_info['package'], client_info['version'])))
     client_info['client_class_name'] = client_class_name
@@ -219,6 +221,7 @@ class SimplePrettyPrinter(object):
     self.__out = out
     self.__indent = ''
     self.__skip = False
+    self.__comment_context = False
 
   @property
   def indent(self):
@@ -234,10 +237,23 @@ class SimplePrettyPrinter(object):
     yield
     self.__indent = previous_indent
 
+  @contextlib.contextmanager
+  def CommentContext(self):
+    """Print without any argument formatting."""
+    old_context = self.__comment_context
+    self.__comment_context = True
+    yield
+    self.__comment_context = old_context
+
 
   def __call__(self, *args):
+    if self.__comment_context and args[1:]:
+      raise Error('Cannot do string interpolation in comment context')
     if args and args[0]:
-      line = (args[0] % args[1:]).rstrip()
+      if not self.__comment_context:
+        line = (args[0] % args[1:]).rstrip()
+      else:
+        line = args[0].rstrip()
       line = line.encode('ascii', 'backslashreplace')
       print >>self.__out, '%s%s' % (self.__indent, line)
     else:
