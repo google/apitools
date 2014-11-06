@@ -9,14 +9,13 @@ import sys
 import tempfile
 import unittest
 
-from apitools.gen import util
-
 _API_LIST = [
     'drive.v2',
     'bigquery.v2',
     'compute.v1',
     'storage.v1',
 ]
+
 
 @contextlib.contextmanager
 def TempDir():
@@ -44,7 +43,7 @@ class ClientGenerationTest(unittest.TestCase):
       # unittest in 2.6 doesn't have skipIf.
       return
     for api in _API_LIST:
-      with TempDir() as path:
+      with TempDir():
         args = [
             self.gen_client_binary,
             '--client_id=12345',
@@ -54,7 +53,8 @@ class ClientGenerationTest(unittest.TestCase):
             '--overwrite',
             'client',
         ]
-        logging.info('Testing API %s with command line: %s', api, ' '.join(args))
+        logging.info(
+            'Testing API %s with command line: %s', api, ' '.join(args))
         retcode = subprocess.call(args)
         if retcode == 128:
           logging.error('Failed to fetch discovery doc, continuing.')
