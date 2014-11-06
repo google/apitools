@@ -237,7 +237,8 @@ class EncodingTest(googletest.TestCase):
     msg = SimpleMessage(field='field',repfield=['field','field',],)
     self.assertEqual(
         encoding.MessageToRepr(msg),
-        r"__main__.SimpleMessage(field='field',repfield=['field','field',],)")
+        r"%s.SimpleMessage(field='field',repfield=['field','field',],)" % (
+            __name__,))
     self.assertEqual(
         encoding.MessageToRepr(msg, no_modules=True),
         r"SimpleMessage(field='field',repfield=['field','field',],)")
@@ -251,9 +252,9 @@ class EncodingTest(googletest.TestCase):
         # pylint:disable=line-too-long, Too much effort to make MessageToRepr
         # wrap lines properly.
         """\
-__main__.TimeMessage(
+%s.TimeMessage(
     timefield=datetime.datetime(2014, 7, 2, 23, 33, 25, 541000, tzinfo=protorpc.util.TimeZoneOffset(datetime.timedelta(0))),
-)""")
+)""" % __name__)
     self.assertEqual(
         encoding.MessageToRepr(msg, multiline=True, no_modules=True),
         # pylint:disable=line-too-long, Too much effort to make MessageToRepr
