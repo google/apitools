@@ -50,8 +50,8 @@ CONSOLE_SCRIPTS = [
 py_version = platform.python_version()
 
 if py_version < '2.7':
-    REQUIRED_PACKAGES.append('unittest2==0.5.1')
-    REQUIRED_PACKAGES.append('argparse==1.2.1')
+    REQUIRED_PACKAGES.append('unittest2>=0.5.1')
+    REQUIRED_PACKAGES.append('argparse>=1.2.1')
 
 _APITOOLS_VERSION = '0.3'
 
