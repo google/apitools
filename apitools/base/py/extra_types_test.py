@@ -6,14 +6,14 @@ import json
 import math
 
 from protorpc import messages
+import unittest2
 
-from google.apputils import basetest as googletest
 from apitools.base.py import encoding
 from apitools.base.py import exceptions
 from apitools.base.py import extra_types
 
 
-class ExtraTypesTest(googletest.TestCase):
+class ExtraTypesTest(unittest2.TestCase):
 
   def assertRoundTrip(self, value):
     if isinstance(value, extra_types._JSON_PROTO_TYPES):
@@ -172,4 +172,4 @@ class ExtraTypesTest(googletest.TestCase):
 
 
 if __name__ == '__main__':
-  googletest.main()
+  unittest2.main()

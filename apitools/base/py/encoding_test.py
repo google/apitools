@@ -8,8 +8,8 @@ import json
 from protorpc import message_types
 from protorpc import messages
 from protorpc import util
+import unittest2
 
-from google.apputils import basetest as googletest
 from apitools.base.py import encoding
 
 
@@ -74,7 +74,7 @@ class ExtraNestedMessage(messages.Message):
   nested = messages.MessageField(HasNestedMessage, 1)
 
 
-class EncodingTest(googletest.TestCase):
+class EncodingTest(unittest2.TestCase):
 
   def testCopyProtoMessage(self):
     msg = SimpleMessage(field='abc')
@@ -266,4 +266,4 @@ TimeMessage(
 
 
 if __name__ == '__main__':
-  googletest.main()
+  unittest2.main()
