@@ -40,7 +40,7 @@ CLI_PACKAGES = [
 
 TESTING_PACKAGES = [
     'google-apputils>=0.4.0',
-    'unittest2',
+    'unittest2>=0.5.1',
     'mock>=1.0.1',
 ]
 
