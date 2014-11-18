@@ -14,7 +14,11 @@ import oauth2client.gce
 import oauth2client.multistore_file
 import oauth2client.tools
 
-import gflags as flags
+try:
+    from gflags import FLAGS
+except ImportError:
+    FLAGS = None
+
 import logging
 
 from apitools.base.py import exceptions
@@ -192,8 +196,8 @@ def CredentialsFromFile(path, client_info):
       client_info['client_id'],
       client_info['user_agent'],
       client_info['scope'])
-  if hasattr(flags.FLAGS, 'auth_local_webserver'):
-    flags.FLAGS.auth_local_webserver = False
+  if getattr(FLAGS, 'auth_local_webserver', FLAGS) is not FLAGS:
+    FLAGS.auth_local_webserver = False
   credentials = credential_store.get()
   if credentials is None or credentials.invalid:
     print 'Generating new OAuth credentials ...'
