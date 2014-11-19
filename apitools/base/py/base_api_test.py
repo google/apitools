@@ -8,7 +8,8 @@ import urllib
 from protorpc import message_types
 from protorpc import messages
 
-from google.apputils import basetest as googletest
+import unittest2
+
 from apitools.base.py import base_api
 from apitools.base.py import http_wrapper
 
@@ -47,7 +48,7 @@ class FakeService(base_api.BaseApiService):
     super(FakeService, self).__init__(client)
 
 
-class BaseApiTest(googletest.TestCase):
+class BaseApiTest(unittest2.TestCase):
 
   def __GetFakeClient(self):
     return FakeClient('', credentials=FakeCredentials())
@@ -109,4 +110,4 @@ class BaseApiTest(googletest.TestCase):
 
 
 if __name__ == '__main__':
-  googletest.main()
+  unittest2.main()

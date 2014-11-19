@@ -7,8 +7,8 @@ import StringIO
 import urllib2
 
 import mock
+import unittest2
 
-from google.apputils import basetest as googletest
 from apitools.base.py import credentials_lib
 from apitools.base.py import util
 
@@ -27,7 +27,7 @@ def CreateUriValidator(uri_regexp, content=''):
   return CheckUri
 
 
-class CredentialsLibTest(googletest.TestCase):
+class CredentialsLibTest(unittest2.TestCase):
 
   def _GetServiceCreds(self, service_account_name=None, scopes=None):
     scopes = scopes or ['scope1']
@@ -51,4 +51,4 @@ class CredentialsLibTest(googletest.TestCase):
 
 
 if __name__ == '__main__':
-  googletest.main()
+  unittest2.main()
