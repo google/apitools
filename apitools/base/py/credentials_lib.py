@@ -196,7 +196,7 @@ def CredentialsFromFile(path, client_info):
       client_info['client_id'],
       client_info['user_agent'],
       client_info['scope'])
-  if getattr(FLAGS, 'auth_local_webserver', FLAGS) is not FLAGS:
+  if hasattr(FLAGS, 'auth_local_webserver'):
     FLAGS.auth_local_webserver = False
   credentials = credential_store.get()
   if credentials is None or credentials.invalid:
