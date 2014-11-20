@@ -73,9 +73,6 @@ setuptools.setup(
         'cli': CLI_PACKAGES,
         'testing': TESTING_PACKAGES,
         },
-    provides=[
-        'apitools (%s)' % (_APITOOLS_VERSION,),
-        ],
     # PyPI package information.
     classifiers=[
         'License :: OSI Approved :: Apache Software License',
