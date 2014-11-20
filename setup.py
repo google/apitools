@@ -55,10 +55,14 @@ if py_version < '2.7':
 
 _APITOOLS_VERSION = '0.3'
 
+with open('README.rst') as fileobj:
+    README = fileobj.read()
+
 setuptools.setup(
     name='google-apitools',
     version=_APITOOLS_VERSION,
     description='client libraries for humans',
+    long_description=README,
     url='http://github.com/craigcitro/apitools',
     author='Craig Citro',
     author_email='craigcitro@google.com',
