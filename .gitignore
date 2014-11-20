@@ -1,6 +1,6 @@
 *~
 *.py[cod]
-apitools.egg-info/*
+*.egg-info/
 build/
 dist/
 distribute-*

@@ -56,7 +56,7 @@ if py_version < '2.7':
 _APITOOLS_VERSION = '0.3'
 
 setuptools.setup(
-    name='apitools',
+    name='google-apitools',
     version=_APITOOLS_VERSION,
     description='client libraries for humans',
     url='http://github.com/craigcitro/apitools',
