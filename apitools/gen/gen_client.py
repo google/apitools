@@ -193,7 +193,7 @@ def _WriteGeneratedFiles(codegen):
     if FLAGS.generate_cli:
       with open(codegen.client_info.cli_file_name, 'w') as out:
         codegen.WriteCli(out)
-      os.chmod(codegen.client_info.cli_file_name, 0755)
+      os.chmod(codegen.client_info.cli_file_name, 0o755)
 
 
 def _WriteInit(codegen):

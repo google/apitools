@@ -102,7 +102,7 @@ class BaseApiTest(unittest2.TestCase):
         request_type_name='MessageWithTime', query_params=['timestamp'])
     service = FakeService()
     request = MessageWithTime(
-        timestamp=datetime.datetime(2014, 10, 07, 12, 53, 13))
+        timestamp=datetime.datetime(2014, 10, 7, 12, 53, 13))
     http_request = service.PrepareHttpRequest(method_config, request)
 
     url_timestamp = urllib.quote(request.timestamp.isoformat())

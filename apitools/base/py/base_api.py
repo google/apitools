@@ -3,16 +3,15 @@
 
 import contextlib
 import datetime
-import httplib
 import logging
 import pprint
-import types
 import urllib
 import urlparse
 
-
 from protorpc import message_types
 from protorpc import messages
+import six
+from six.moves import http_client
 
 from apitools.base.py import credentials_lib
 from apitools.base.py import encoding
@@ -321,7 +320,7 @@ class BaseApiClient(object):
 
   @num_retries.setter
   def num_retries(self, value):
-    util.Typecheck(value, (int, long))
+    util.Typecheck(value, six.integer_types)
     if value < 0:
       raise exceptions.InvalidDataError(
           'Cannot have negative value for num_retries')
@@ -419,7 +418,7 @@ class BaseApiService(object):
                    method_config.response_type_name)
 
   def __CombineGlobalParams(self, global_params, default_params):
-    util.Typecheck(global_params, (types.NoneType, self.__client.params_type))
+    util.Typecheck(global_params, (type(None), self.__client.params_type))
     result = self.__client.params_type()
     global_params = global_params or self.__client.params_type()
     for field in result.all_fields():
@@ -437,10 +436,10 @@ class BaseApiService(object):
                       for field in self.__client.params_type.all_fields())
     query_info.update(
         (param, getattr(request, param, None)) for param in query_params)
-    query_info = dict((k, v) for k, v in query_info.iteritems()
+    query_info = dict((k, v) for k, v in query_info.items()
                       if v is not None)
-    for k, v in query_info.iteritems():
-      if isinstance(v, unicode):
+    for k, v in query_info.items():
+      if isinstance(v, six.text_type):
         query_info[k] = v.encode('utf8')
       elif isinstance(v, str):
         query_info[k] = v.decode('utf8')
@@ -468,9 +467,10 @@ class BaseApiService(object):
 
   def __ProcessHttpResponse(self, method_config, http_response):
     """Process the given http response."""
-    if http_response.status_code not in (httplib.OK, httplib.NO_CONTENT):
+    if http_response.status_code not in (http_client.OK,
+                                         http_client.NO_CONTENT):
       raise exceptions.HttpError.FromResponse(http_response)
-    if http_response.status_code == httplib.NO_CONTENT:
+    if http_response.status_code == http_client.NO_CONTENT:
       # TODO(craigcitro): Find out why _replace doesn't seem to work here.
       http_response = http_wrapper.Response(
           info=http_response.info, content='{}',

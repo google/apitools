@@ -7,10 +7,10 @@ import datetime
 import json
 import logging
 
-
 from protorpc import message_types
 from protorpc import messages
 from protorpc import protojson
+import six
 
 from apitools.base.py import exceptions
 
@@ -171,7 +171,7 @@ def MessageToRepr(msg, multiline=False, **kwargs):
     s += ')'
     return s
 
-  if isinstance(msg, basestring):
+  if isinstance(msg, six.string_types):
     if kwargs.get('shortstrings') and len(msg) > 100:
       msg = msg[:100]
 
@@ -283,7 +283,7 @@ class _ProtoJsonApiTools(protojson.ProtoJson):
       try:
         field_value = super(_ProtoJsonApiTools, self).decode_field(field, value)
       except messages.DecodeError:
-        if not isinstance(value, basestring):
+        if not isinstance(value, six.string_types):
           raise
         field_value = None
     else:
@@ -350,7 +350,7 @@ def _DecodeUnknownMessages(message, encoded_message, pair_type):
   field_type = pair_type.value.type
   new_values = []
   all_field_names = [x.name for x in message.all_fields()]
-  for name, value_dict in encoded_message.iteritems():
+  for name, value_dict in encoded_message.items():
     if name in all_field_names:
       continue
     value = PyValueToMessage(field_type, value_dict)
@@ -475,7 +475,7 @@ def _ProcessUnknownMessages(message, encoded_message):
   decoded_message = json.loads(encoded_message)
   message_fields = [x.name for x in message.all_fields()] + list(
       message.all_unrecognized_fields())
-  missing_fields = [x for x in decoded_message.iterkeys()
+  missing_fields = [x for x in decoded_message.keys()
                     if x not in message_fields]
   for field_name in missing_fields:
     message.set_unrecognized_field(field_name, decoded_message[field_name],

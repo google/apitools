@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Assorted utilities shared between parts of apitools."""
+from __future__ import print_function
 
 import collections
 import contextlib
@@ -9,7 +10,8 @@ import logging
 import os
 import re
 import urllib2
-import urlparse
+
+from six.moves import range
 
 
 
@@ -163,9 +165,9 @@ class ClientInfo(collections.namedtuple('ClientInfo', (
         'user_agent': user_agent,
         'api_key': api_key,
     }
-    client_class_name = ''.join(
-        map(names.ClassName, (client_info['package'], client_info['version'])))
-    client_info['client_class_name'] = client_class_name
+    client_info['client_class_name'] = '%s%s' % (
+        names.ClassName(client_info['package']),
+        names.ClassName(client_info['version']))
     return cls(**client_info)
 
   @property
@@ -255,9 +257,9 @@ class SimplePrettyPrinter(object):
       else:
         line = args[0].rstrip()
       line = line.encode('ascii', 'backslashreplace')
-      print >>self.__out, '%s%s' % (self.__indent, line)
+      print('%s%s' % (self.__indent, line), file=self.__out)
     else:
-      print >>self.__out, ''
+      print('', file=self.__out)
 
 
 def NormalizeDiscoveryUrl(discovery_url):
@@ -276,7 +278,7 @@ def FetchDiscoveryDoc(discovery_url, retries=5):
   discovery_url = NormalizeDiscoveryUrl(discovery_url)
   discovery_doc = None
   last_exception = None
-  for _ in xrange(retries):
+  for _ in range(retries):
     try:
       discovery_doc = json.loads(urllib2.urlopen(discovery_url).read())
       break

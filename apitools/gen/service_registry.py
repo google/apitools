@@ -6,7 +6,6 @@ import logging
 import re
 import textwrap
 
-
 from apitools.base.py import base_api
 
 # We're a code generator. I don't care.
@@ -90,7 +89,7 @@ class ServiceRegistry(object):
                 client_class_name, class_name)
         printer('self._method_configs = {')
         with printer.Indent(indent='    '):
-          for method_name, method_info in method_info_map.iteritems():
+          for method_name, method_info in method_info_map.items():
             printer("'%s': base_api.ApiMethodInfo(", method_name)
             with printer.Indent(indent='    '):
               attrs = sorted(x.name for x in method_info.all_fields())
@@ -103,7 +102,7 @@ class ServiceRegistry(object):
         printer()
         printer('self._upload_configs = {')
         with printer.Indent(indent='    '):
-          for method_name, method_info in method_info_map.iteritems():
+          for method_name, method_info in method_info_map.items():
             upload_config = method_info.upload_config
             if upload_config is not None:
               printer("'%s': base_api.ApiUploadInfo(", method_name)
@@ -115,7 +114,7 @@ class ServiceRegistry(object):
           printer('}')
 
       # Now write each method in turn.
-      for method_name, method_info in method_info_map.iteritems():
+      for method_name, method_info in method_info_map.items():
         printer()
         params = ['self', 'request', 'global_params=None']
         if method_info.upload_config:
@@ -145,7 +144,7 @@ class ServiceRegistry(object):
     printer()
     printer('service %s {', self.__GetServiceClassName(name))
     with printer.Indent():
-      for method_name, method_info in method_info_map.iteritems():
+      for method_name, method_info in method_info_map.items():
         for line in textwrap.wrap(method_info.description,
                                   printer.CalculateWidth() - 3):
           printer('// %s', line)
@@ -166,7 +165,7 @@ class ServiceRegistry(object):
     printer('package %s;', self.__package)
     printer('import "%s";', client_info.messages_proto_file_name)
     printer()
-    for name, method_info_map in self.__service_method_info_map.iteritems():
+    for name, method_info_map in self.__service_method_info_map.items():
       self.__WriteProtoServiceDeclaration(printer, name, method_info_map)
 
   def WriteFile(self, printer):
@@ -190,7 +189,7 @@ class ServiceRegistry(object):
       printer()
       printer('MESSAGES_MODULE = messages')
       printer()
-      client_info_items = client_info._asdict().iteritems()  # pylint:disable=protected-access
+      client_info_items = client_info._asdict().items()  # pylint:disable=protected-access
       for attr, val in client_info_items:
         if attr == 'scopes' and not val:
           val = ['https://www.googleapis.com/auth/userinfo.email']
@@ -212,10 +211,10 @@ class ServiceRegistry(object):
         printer('    credentials_args=credentials_args,')
         printer('    default_global_params=default_global_params,')
         printer('    additional_http_headers=additional_http_headers)')
-        for name in self.__service_method_info_map.iterkeys():
+        for name in self.__service_method_info_map:
           printer('self.%s = self.%s(self)',
                   name, self.__GetServiceClassName(name))
-      for name, method_info_map in self.__service_method_info_map.iteritems():
+      for name, method_info_map in self.__service_method_info_map.items():
         self.__WriteSingleService(
             printer, name, method_info_map, client_info.client_class_name)
 
@@ -276,7 +275,7 @@ class ServiceRegistry(object):
       return True
     field_names = [x.name for x in message.fields]
     parameters = method_description.get('parameters', {})
-    for param_name, param_info in parameters.iteritems():
+    for param_name, param_info in parameters.items():
       if (param_info.get('location') != 'path' or
           self.__names.CleanName(param_name) not in field_names):
         break
@@ -346,7 +345,7 @@ class ServiceRegistry(object):
     method_info.supports_download = method_description.get(
         'supportsMediaDownload', False)
     self.__all_scopes.update(method_description.get('scopes', ()))
-    for param, desc in method_description.get('parameters', {}).iteritems():
+    for param, desc in method_description.get('parameters', {}).items():
       param = self.__names.CleanName(param)
       location = desc['location']
       if location == 'query':
@@ -385,7 +384,7 @@ class ServiceRegistry(object):
     """Add a new service named service_name with the given methods."""
     method_descriptions = methods.get('methods', {})
     method_info_map = collections.OrderedDict()
-    items = sorted(method_descriptions.iteritems())
+    items = sorted(method_descriptions.items())
     for method_name, method_description in items:
       method_name = self.__names.MethodName(method_name)
 
@@ -417,7 +416,7 @@ class ServiceRegistry(object):
           request, response)
 
     nested_services = methods.get('resources', {})
-    services = sorted(nested_services.iteritems())
+    services = sorted(nested_services.items())
     for subservice_name, submethods in services:
       new_service_name = '%s_%s' % (service_name, subservice_name)
       self.AddServiceFromResource(new_service_name, submethods)

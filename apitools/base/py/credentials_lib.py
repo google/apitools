@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 """Common credentials classes and constructors."""
+from __future__ import print_function
 
-import httplib
 import json
+import logging
 import os
 import urllib2
 
@@ -13,13 +14,13 @@ import oauth2client.client
 import oauth2client.gce
 import oauth2client.multistore_file
 import oauth2client.tools
+from six.moves import http_client
 
 try:
     from gflags import FLAGS
 except ImportError:
     FLAGS = None
 
-import logging
 
 from apitools.base.py import exceptions
 from apitools.base.py import util
@@ -137,7 +138,7 @@ class GceAssertionCredentials(oauth2client.gce.AppAssertionCredentials):
         'service-accounts/%s/token') % self.__service_account_name
     extra_headers = {'X-Google-Metadata-Request': 'True'}
     response, content = do_request(token_uri, headers=extra_headers)
-    if response.status != httplib.OK:
+    if response.status != http_client.OK:
       raise exceptions.CredentialsError(
           'Error refreshing credentials: %s' % content)
     try:
@@ -200,7 +201,7 @@ def CredentialsFromFile(path, client_info):
     FLAGS.auth_local_webserver = False
   credentials = credential_store.get()
   if credentials is None or credentials.invalid:
-    print 'Generating new OAuth credentials ...'
+    print('Generating new OAuth credentials ...')
     while True:
       # If authorization fails, we want to retry, rather than let this
       # cascade up and get caught elsewhere. If users want out of the
@@ -213,9 +214,9 @@ def CredentialsFromFile(path, client_info):
         # Here SystemExit is "no credential at all", and the
         # FlowExchangeError is "invalid" -- usually because you reused
         # a token.
-        print 'Invalid authorization: %s' % (e,)
+        print('Invalid authorization: %s' % (e,))
       except httplib2.HttpLib2Error as e:
-        print 'Communication error: %s' % (e,)
+        print('Communication error: %s' % (e,))
         raise exceptions.CredentialsError(
             'Communication error creating credentials: %s' % e)
   return credentials

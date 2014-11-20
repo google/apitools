@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 """Appcommands-compatible command class with extra fixins."""
+from __future__ import print_function
 
 import cmd
 import inspect
@@ -12,6 +13,7 @@ import types
 from google.apputils import app
 from google.apputils import appcommands
 import gflags as flags
+import six
 
 __all__ = [
     'NewCmd',
@@ -28,12 +30,12 @@ FLAGS = flags.FLAGS
 
 
 def _SafeMakeAscii(s):
-  if isinstance(s, unicode):
+  if isinstance(s, six.text_type):
     return s.encode('ascii')
   elif isinstance(s, str):
     return s.decode('ascii')
   else:
-    return unicode(s).encode('ascii', 'backslashreplace')
+    return six.text_type(s).encode('ascii', 'backslashreplace')
 
 
 class NewCmd(appcommands.Cmd):
@@ -44,7 +46,7 @@ class NewCmd(appcommands.Cmd):
     run_with_args = getattr(self, 'RunWithArgs', None)
     self._new_style = isinstance(run_with_args, types.MethodType)
     if self._new_style:
-      func = run_with_args.im_func
+      func = run_with_args.__func__
 
       argspec = inspect.getargspec(func)
       if argspec.args and argspec.args[0] == 'self':
@@ -102,9 +104,9 @@ class NewCmd(appcommands.Cmd):
       fail = 'Too many positional args; found %d, expected at most %d' % (
           len(args), self._max_args)
     if fail:
-      print fail
+      print(fail)
       if self.usage:
-        print 'Usage: %s' % (self.usage,)
+        print('Usage: %s' % (self.usage,))
       return 1
 
     if self._debug_mode:
@@ -124,7 +126,7 @@ class NewCmd(appcommands.Cmd):
   def EncodeForPrinting(s):
     """Safely encode a string as the encoding for sys.stdout."""
     encoding = sys.stdout.encoding or 'ascii'
-    return unicode(s).encode(encoding, 'backslashreplace')
+    return six.text_type(s).encode(encoding, 'backslashreplace')
 
   def _FormatError(self, e):
     """Hook for subclasses to modify how error messages are printed."""
@@ -132,7 +134,7 @@ class NewCmd(appcommands.Cmd):
 
   def _HandleError(self, e):
     message = self._FormatError(e)
-    print 'Exception raised in %s operation: %s' % (self._command_name, message)
+    print('Exception raised in %s operation: %s' % (self._command_name, message))
     return 1
 
   def _IsDebuggableException(self, e):
@@ -143,22 +145,22 @@ class NewCmd(appcommands.Cmd):
     """Run this command in debug mode."""
     try:
       return_value = self.RunWithArgs(*args, **kwds)
-    except BaseException, e:
+    except BaseException as e:
       # Don't break into the debugger for expected exceptions.
       if not self._IsDebuggableException(e):
         return self._HandleError(e)
-      print
-      print '****************************************************'
-      print '**   Unexpected Exception raised in execution!    **'
+      print()
+      print('****************************************************')
+      print('**   Unexpected Exception raised in execution!    **')
       if FLAGS.headless:
-        print '**  --headless mode enabled, exiting.             **'
-        print '**  See STDERR for traceback.                     **'
+        print('**  --headless mode enabled, exiting.             **')
+        print('**  See STDERR for traceback.                     **')
       else:
-        print '**  --debug_mode enabled, starting pdb.           **'
-      print '****************************************************'
-      print
+        print('**  --debug_mode enabled, starting pdb.           **')
+      print('****************************************************')
+      print()
       traceback.print_exc()
-      print
+      print()
       if not FLAGS.headless:
         pdb.post_mortem()
       return 1
@@ -168,7 +170,7 @@ class NewCmd(appcommands.Cmd):
     """Run this command, turning exceptions into print statements."""
     try:
       return_value = self.RunWithArgs(*args, **kwds)
-    except BaseException, e:
+    except BaseException as e:
       return self._HandleError(e)
     return return_value
 
@@ -183,7 +185,7 @@ class CommandLoop(cmd.Cmd):
     cmd.Cmd.__init__(self)
     self._commands = {'help': commands['help']}
     self._special_command_names = ['help', 'repl', 'EOF']
-    for name, command in commands.iteritems():
+    for name, command in commands.items():
       if (name not in self._special_command_names and
           isinstance(command, NewCmd) and
           command.surface_in_shell):
@@ -218,7 +220,7 @@ class CommandLoop(cmd.Cmd):
     raise CommandLoop.TerminateSignal()
 
   def postloop(self):
-    print 'Goodbye.'
+    print('Goodbye.')
 
   def completedefault(self, unused_text, line, unused_begidx, unused_endidx):
     if not line:
@@ -229,14 +231,14 @@ class CommandLoop(cmd.Cmd):
       if command_name in self._commands:
         usage = self._commands[command_name].usage
       if usage:
-        print
-        print usage
-        print '%s%s' % (self.prompt, line),
+        print()
+        print(usage)
+        print('%s%s' % (self.prompt, line), end=' ')
       return []
 
   def emptyline(self):
-    print 'Available commands:',
-    print ' '.join(list(self._commands))
+    print('Available commands:', end=' ')
+    print(' '.join(list(self._commands)))
 
   def precmd(self, line):
     """Preprocess the shell input."""
@@ -268,8 +270,8 @@ class CommandLoop(cmd.Cmd):
       return True
     except BaseException as e:
       name = line.split(' ')[0]
-      print 'Error running %s:' % name
-      print e
+      print('Error running %s:' % name)
+      print(e)
       self._last_return_code = 1
     return False
 
@@ -304,16 +306,16 @@ class CommandLoop(cmd.Cmd):
             firstline_indent=default_indent) + '\n'
 
     if not command_name:
-      print '\nHelp for commands:\n'
+      print('\nHelp for commands:\n')
       command_names = list(self._commands)
-      print '\n\n'.join(
+      print('\n\n'.join(
           FormatOneCmd(name, command, command_names)
-          for name, command in self._commands.iteritems()
-          if name not in self._special_command_names)
-      print
+          for name, command in self._commands.items()
+          if name not in self._special_command_names))
+      print()
     elif command_name in self._commands:
-      print FormatOneCmd(command_name, self._commands[command_name],
-                         command_names=[command_name])
+      print(FormatOneCmd(command_name, self._commands[command_name],
+                         command_names=[command_name]))
     return 0
 
   def postcmd(self, stop, line):
@@ -337,11 +339,11 @@ class Repl(NewCmd):
     """Start an interactive session."""
     prompt = FLAGS.prompt or self.PROMPT
     repl = CommandLoop(appcommands.GetCommandList(), prompt=prompt)
-    print 'Welcome! (Type help for more information.)'
+    print('Welcome! (Type help for more information.)')
     while True:
       try:
         repl.cmdloop()
         break
       except KeyboardInterrupt:
-        print
+        print()
     return repl.last_return_code

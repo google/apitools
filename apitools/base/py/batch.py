@@ -6,13 +6,15 @@ import email.generator as generator
 import email.mime.multipart as mime_multipart
 import email.mime.nonmultipart as mime_nonmultipart
 import email.parser as email_parser
-import httplib
 import itertools
 import StringIO
 import time
 import urllib
 import urlparse
 import uuid
+
+from six.moves import range
+from six.moves import http_client
 
 from apitools.base.py import exceptions
 from apitools.base.py import http_wrapper
@@ -66,7 +68,7 @@ class BatchApiRequest(object):
         method_config: Method config for the desired API request.
       """
       self.__retryable_codes = list(
-          set(retryable_codes + [httplib.UNAUTHORIZED]))
+          set(retryable_codes + [http_client.UNAUTHORIZED]))
       self.__http_response = None
       self.__service = service
       self.__method_config = method_config
@@ -91,7 +93,7 @@ class BatchApiRequest(object):
     @property
     def authorization_failed(self):
       return (self.__http_response and (
-          self.__http_response.status_code == httplib.UNAUTHORIZED))
+          self.__http_response.status_code == http_client.UNAUTHORIZED))
 
     @property
     def terminal_state(self):
@@ -169,7 +171,7 @@ class BatchApiRequest(object):
     requests = [request for request in self.api_requests if not
                 request.terminal_state]
 
-    for attempt in xrange(max_retries):
+    for attempt in range(max_retries):
       if attempt:
         time.sleep(sleep_between_polls)
 
@@ -280,7 +282,7 @@ class BatchHttpRequest(object):
 
     # MIMENonMultipart adds its own Content-Type header.
     # Keep all of the other headers in headers.
-    for key, value in request.headers.iteritems():
+    for key, value in request.headers.items():
       if key == 'content-type':
         continue
       msg[key] = value
@@ -338,7 +340,7 @@ class BatchHttpRequest(object):
     Returns:
        A new unique id string.
     """
-    return str(self.__last_auto_id.next())
+    return str(next(self.__last_auto_id))
 
   def Add(self, request, callback=None):
     """Add a new request.

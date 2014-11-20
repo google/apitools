@@ -5,7 +5,6 @@ Relevant links:
   https://developers.google.com/discovery/v1/reference/apis#resource
 """
 
-import json
 import logging
 import urlparse
 
@@ -72,7 +71,7 @@ class DescriptorGenerator(object):
         self.__client_info, self.__names, self.__description,
         self.__root_package, self.__base_files_package)
     schemas = self.__discovery_doc.get('schemas', {})
-    for schema_name, schema in schemas.iteritems():
+    for schema_name, schema in schemas.items():
       self.__message_registry.AddDescriptorFromSchema(schema_name, schema)
 
     # We need to add one more message type for the global parameters.
@@ -99,7 +98,7 @@ class DescriptorGenerator(object):
         self.__root_package,
         self.__base_files_package)
     services = self.__discovery_doc.get('resources', {})
-    for service_name, methods in sorted(services.iteritems()):
+    for service_name, methods in services.items():
       self.__services_registry.AddServiceFromResource(service_name, methods)
     # We might also have top-level methods.
     api_methods = self.__discovery_doc.get('methods', [])

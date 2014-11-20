@@ -19,6 +19,7 @@ import textwrap
 from protorpc import descriptor
 from protorpc import message_types
 from protorpc import messages
+import six
 
 import apitools.base.py as apitools_base
 
@@ -154,9 +155,8 @@ def _EmptyMessage(message_type):
                   message_type.fields))
 
 
-class ProtoPrinter(object):
+class ProtoPrinter(six.with_metaclass(abc.ABCMeta, object)):
   """Interface for proto printers."""
-  __metaclass__ = abc.ABCMeta
 
   @abc.abstractmethod
   def PrintPreamble(self, package, version, file_descriptor):
