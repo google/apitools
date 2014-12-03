@@ -54,7 +54,7 @@ def DeclareBaseFlags():
   flags.DEFINE_enum(
       'output_format',
       'protorpc',
-      _OUTPUT_FORMATTER_MAP.viewkeys(),
+      _OUTPUT_FORMATTER_MAP.keys(),
       'Display format for results.')
 
   _BASE_FLAGS_DECLARED = True

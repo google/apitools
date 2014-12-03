@@ -7,6 +7,7 @@ import json
 
 from protorpc import descriptor
 from protorpc import messages
+import six
 
 from apitools.gen import extended_descriptor
 
@@ -109,7 +110,7 @@ class MessageRegistry(object):
       raise ValueError('Malformed MessageRegistry: %s' % mysteries)
 
   def __ComputeFullName(self, name):
-    return '.'.join(map(unicode, self.__current_path[:] + [name]))
+    return '.'.join([six.text_type(x) for x in self.__current_path + [name]])
 
   def __AddImport(self, new_import):
     if new_import not in self.__file_descriptor.additional_imports:
@@ -239,7 +240,7 @@ class MessageRegistry(object):
     self.__DeclareDescriptor(message.name)
     with self.__DescriptorEnv(message):
       properties = schema.get('properties', {})
-      for index, (name, attrs) in enumerate(sorted(properties.iteritems())):
+      for index, (name, attrs) in enumerate(sorted(properties.items())):
         field = self.__FieldDescriptorFromProperties(name, index + 1, attrs)
         message.fields.append(field)
       if 'additionalProperties' in schema:
@@ -333,8 +334,8 @@ class MessageRegistry(object):
   def __AddIfUnknown(self, type_name):
     type_name = self.__names.ClassName(type_name)
     full_type_name = self.__ComputeFullName(type_name)
-    if (full_type_name not in self.__message_registry.viewkeys() and
-        type_name not in self.__message_registry.viewkeys()):
+    if (full_type_name not in self.__message_registry.keys() and
+        type_name not in self.__message_registry.keys()):
       self.__unknown_types.add(type_name)
 
   def __GetTypeInfo(self, attrs, name_hint):

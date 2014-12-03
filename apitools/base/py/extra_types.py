@@ -13,6 +13,7 @@ import numbers
 from protorpc import message_types
 from protorpc import messages
 from protorpc import protojson
+import six
 
 from apitools.base.py import encoding
 from apitools.base.py import exceptions
@@ -101,10 +102,10 @@ def _PythonValueToJsonValue(py_value):
     return JsonValue(is_null=True)
   if isinstance(py_value, bool):
     return JsonValue(boolean_value=py_value)
-  if isinstance(py_value, basestring):
+  if isinstance(py_value, six.string_types):
     return JsonValue(string_value=py_value)
   if isinstance(py_value, numbers.Number):
-    if isinstance(py_value, (int, long)):
+    if isinstance(py_value, six.integer_types):
       if _MININT64 < py_value < _MAXINT64:
         return JsonValue(integer_value=py_value)
     return JsonValue(double_value=float(py_value))
@@ -121,11 +122,11 @@ def _PythonValueToJsonObject(py_value):
   return JsonObject(
       properties=[
           JsonObject.Property(key=key, value=_PythonValueToJsonValue(value))
-          for key, value in py_value.iteritems()])
+          for key, value in py_value.items()])
 
 
 def _PythonValueToJsonArray(py_value):
-  return JsonArray(entries=map(_PythonValueToJsonValue, py_value))
+  return JsonArray(entries=[_PythonValueToJsonValue(val) for val in py_value])
 
 
 class JsonValue(messages.Message):
@@ -190,7 +191,7 @@ def _PythonValueToJsonProto(py_value):
   if isinstance(py_value, dict):
     return _PythonValueToJsonObject(py_value)
   if (isinstance(py_value, collections.Iterable) and
-      not isinstance(py_value, basestring)):
+      not isinstance(py_value, six.string_types)):
     return _PythonValueToJsonArray(py_value)
   return _PythonValueToJsonValue(py_value)
 

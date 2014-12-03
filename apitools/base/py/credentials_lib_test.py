@@ -1,12 +1,11 @@
 #!/usr/bin/env python
 
-
-import httplib
 import re
 import StringIO
 import urllib2
 
 import mock
+from six.moves import http_client
 import unittest2
 
 from apitools.base.py import credentials_lib
@@ -19,10 +18,10 @@ def CreateUriValidator(uri_regexp, content=''):
       raise ValueError('Missing required header')
     if uri_regexp.match(uri):
       message = content
-      status = httplib.OK
+      status = http_client.OK
     else:
       message = 'Expected uri matching pattern %s' % uri_regexp.pattern
-      status = httplib.BAD_REQUEST
+      status = http_client.BAD_REQUEST
     return type('HttpResponse', (object,), {'status': status})(), message
   return CheckUri
 

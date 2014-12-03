@@ -36,7 +36,7 @@ def YieldFromList(
     response = getattr(service, method)(request)
     items = getattr(response, field)
     if predicate:
-      items = filter(predicate, items)
+      items = [item for item in items if predicate(item)]
     for item in items:
       yield item
       if limit is None:
