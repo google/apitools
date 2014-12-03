@@ -176,8 +176,6 @@ class ServiceRegistry(object):
             client_info.package, client_info.version)
     printer('from %s import base_api', self.__base_files_package)
     import_prefix = ''
-    if self.__root_package_dir:
-      import_prefix = 'from %s ' % self.__root_package_dir
     printer('%simport %s as messages', import_prefix,
             client_info.messages_rule_name)
     printer()

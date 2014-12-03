@@ -37,11 +37,6 @@ flags.DEFINE_boolean(
     'overwrite', False,
     'Only overwrite the output directory if this flag is specified.')
 flags.DEFINE_string(
-    'root_package_dir', '',
-    'Ultimate destination for generated code (used for generating '
-    'correct import lines). Defaults to the value of FLAGS.outdir.'
-)
-flags.DEFINE_string(
     'root_package', '',
     'Python import path for where these modules should be imported from.')
 
@@ -148,18 +143,10 @@ def _GetCodegenFromFlags():
     raise exceptions.ConfigurationValueError(
         'Output directory exists, pass --overwrite to replace '
         'the existing files.')
-  if FLAGS.root_package:
-    root_package = FLAGS.root_package
-  else:
-    if not FLAGS.root_package_dir:
-      FLAGS.root_package_dir = outdir
-    FLAGS.root_package_dir = os.path.abspath(FLAGS.root_package_dir)
-    root_package = (
-        util.GetPackage(FLAGS.root_package_dir))
-  base_package = FLAGS.base_package
+  root_package = FLAGS.root_package or util.GetPackage(outdir)
   return gen_client_lib.DescriptorGenerator(
       discovery_doc, client_info, names, root_package, outdir,
-      base_package=base_package,
+      base_package=FLAGS.base_package,
       generate_cli=FLAGS.generate_cli,
       use_proto2=FLAGS.experimental_proto2_output)
 

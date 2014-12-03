@@ -446,8 +446,6 @@ class CommandRegistry(object):
     printer('from %s import cli as apitools_base_cli',
             self.__base_files_package)
     import_prefix = ''
-    if self.__root_package:
-      import_prefix = 'from %s ' % self.__root_package
     printer('%simport %s as client_lib',
             import_prefix, self.__client_info.client_rule_name)
     printer('%simport %s as messages',
