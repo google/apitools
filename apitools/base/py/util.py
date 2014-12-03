@@ -53,7 +53,7 @@ def DetectGce():
 
 def NormalizeScopes(scope_spec):
   """Normalize scope_spec to a set of strings."""
-  if isinstance(scope_spec, str):
+  if isinstance(scope_spec, six.string_types):
     return set(scope_spec.split(' '))
   elif isinstance(scope_spec, collections.Iterable):
     return set(scope_spec)
