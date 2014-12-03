@@ -53,10 +53,10 @@ flags.DEFINE_string(
     'Use the given file downloaded from the dev. console for client_id '
     'and client_secret.')
 flags.DEFINE_string(
-    'client_id', None,
+    'client_id', '1042881264118.apps.googleusercontent.com',
     'Client ID to use for the generated client.')
 flags.DEFINE_string(
-    'client_secret', None,
+    'client_secret', 'x_Tw5K8nnjoRAqULM9PFAC2b',
     'Client secret for the generated client.')
 flags.DEFINE_multistring(
     'scope', [],
@@ -127,13 +127,11 @@ def _GetCodegenFromFlags():
     client_id = FLAGS.client_id
     client_secret = FLAGS.client_secret
 
-  if client_id is None:
+  if not client_id:
     logging.warning('No client ID supplied')
-    client_id = ''
 
-  if client_secret is None:
+  if not client_secret:
     logging.warning('No client secret supplied')
-    client_secret = ''
 
   client_info = util.ClientInfo.Create(
       discovery_doc, FLAGS.scope, client_id, client_secret,
