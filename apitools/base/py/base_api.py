@@ -418,12 +418,14 @@ class BaseApiService(object):
                    method_config.response_type_name)
 
   def __CombineGlobalParams(self, global_params, default_params):
+    """Combine the given params with the defaults."""
     util.Typecheck(global_params, (type(None), self.__client.params_type))
     result = self.__client.params_type()
     global_params = global_params or self.__client.params_type()
     for field in result.all_fields():
-      value = (global_params.get_assigned_value(field.name) or
-               default_params.get_assigned_value(field.name))
+      value = global_params.get_assigned_value(field.name)
+      if value is None:
+        value = default_params.get_assigned_value(field.name)
       if value not in (None, [], ()):
         setattr(result, field.name, value)
     return result
@@ -438,6 +440,10 @@ class BaseApiService(object):
         (param, getattr(request, param, None)) for param in query_params)
     query_info = dict((k, v) for k, v in query_info.items()
                       if v is not None)
+    # The prettyPrint flag needs custom encoding: it should be encoded
+    # as 0 if False, and ignored otherwise (True is the default).
+    if not query_info.pop('prettyPrint', True):
+      query_info['prettyPrint'] = 0
     for k, v in query_info.items():
       if isinstance(v, six.text_type):
         query_info[k] = v.encode('utf8')

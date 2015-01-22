@@ -24,6 +24,7 @@ class MessageWithTime(messages.Message):
 
 class StandardQueryParameters(messages.Message):
   field = messages.StringField(1)
+  prettyPrint = messages.BooleanField(5, default=True)  # pylint: disable=invalid-name
 
 
 class FakeCredentials(object):
@@ -107,6 +108,23 @@ class BaseApiTest(unittest2.TestCase):
 
     url_timestamp = urllib.quote(request.timestamp.isoformat())
     self.assertTrue(http_request.url.endswith(url_timestamp))
+
+  def testPrettyPrintEncoding(self):
+    method_config = base_api.ApiMethodInfo(
+      request_type_name='MessageWithTime', query_params=['timestamp'])
+    service = FakeService()
+    request = MessageWithTime(
+      timestamp=datetime.datetime(2014, 10, 07, 12, 53, 13))
+
+    global_params = StandardQueryParameters()
+    http_request = service.PrepareHttpRequest(method_config, request,
+                                              global_params=global_params)
+    self.assertFalse('prettyPrint' in http_request.url)
+
+    global_params.prettyPrint = False  # pylint: disable=invalid-name
+    http_request = service.PrepareHttpRequest(method_config, request,
+                                              global_params=global_params)
+    self.assertTrue('prettyPrint=0' in http_request.url)
 
 
 if __name__ == '__main__':
