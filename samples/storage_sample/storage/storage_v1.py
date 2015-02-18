@@ -13,6 +13,7 @@ from google.apputils import appcommands
 import gflags as flags
 
 import apitools.base.py as apitools_base
+from apitools.base.py import cli as apitools_base_cli
 import storage_v1_client as client_lib
 import storage_v1_messages as messages
 
@@ -30,6 +31,10 @@ def _DeclareStorageFlags():
       'history_file',
       u'~/.storage.v1.history',
       'File with interactive shell history.')
+  flags.DEFINE_multistring(
+      'add_header', [],
+      'Additional http headers (as key=value strings). Can be '
+      'specified multiple times.')
   flags.DEFINE_enum(
       'alt',
       u'json',
@@ -72,7 +77,7 @@ def _DeclareStorageFlags():
 
 
 FLAGS = flags.FLAGS
-apitools_base.DeclareBaseFlags()
+apitools_base_cli.DeclareBaseFlags()
 _DeclareStorageFlags()
 
 
@@ -103,10 +108,12 @@ def GetClientFromFlags():
   log_request = FLAGS.log_request or FLAGS.log_request_response
   log_response = FLAGS.log_response or FLAGS.log_request_response
   api_endpoint = apitools_base.NormalizeApiEndpoint(FLAGS.api_endpoint)
+  additional_http_headers = dict(x.split('=', 1) for x in FLAGS.add_header)
   try:
     client = client_lib.StorageV1(
         api_endpoint, log_request=log_request,
-        log_response=log_response)
+        log_response=log_response,
+        additional_http_headers=additional_http_headers)
   except apitools_base.CredentialsError as e:
     print 'Error creating credentials: %s' % e
     sys.exit(1)
@@ -114,6 +121,7 @@ def GetClientFromFlags():
 
 
 class PyShell(appcommands.Cmd):
+
   def Run(self, _):
     """Run an interactive python shell with the client."""
     client = GetClientFromFlags()
@@ -135,7 +143,7 @@ class PyShell(appcommands.Cmd):
         'messages': messages,
     }
     if platform.system() == 'Linux':
-      console = apitools_base.ConsoleWithReadline(
+      console = apitools_base_cli.ConsoleWithReadline(
           local_vars, histfile=FLAGS.history_file)
     else:
       console = code.InteractiveConsole(local_vars)
@@ -145,908 +153,7 @@ class PyShell(appcommands.Cmd):
       return e.code
 
 
-class BucketAccessControlsDelete(apitools_base.NewCmd):
-  """Command wrapping bucketAccessControls.Delete."""
-
-  usage = """bucketAccessControls_delete <bucket> <entity>"""
-
-  def __init__(self, name, fv):
-    super(BucketAccessControlsDelete, self).__init__(name, fv)
-
-  def RunWithArgs(self, bucket, entity):
-    """Permanently deletes the ACL entry for the specified entity on the
-    specified bucket.
-
-    Args:
-      bucket: Name of a bucket.
-      entity: The entity holding the permission. Can be user-userId, user-
-        emailAddress, group-groupId, group-emailAddress, allUsers, or
-        allAuthenticatedUsers.
-    """
-    client = GetClientFromFlags()
-    global_params = GetGlobalParamsFromFlags()
-    request = messages.StorageBucketAccessControlsDeleteRequest(
-        bucket=bucket.decode('utf8'),
-        entity=entity.decode('utf8'),
-        )
-    result = client.bucketAccessControls.Delete(
-        request, global_params=global_params)
-    print apitools_base.FormatOutput(result)
-
-
-class BucketAccessControlsGet(apitools_base.NewCmd):
-  """Command wrapping bucketAccessControls.Get."""
-
-  usage = """bucketAccessControls_get <bucket> <entity>"""
-
-  def __init__(self, name, fv):
-    super(BucketAccessControlsGet, self).__init__(name, fv)
-
-  def RunWithArgs(self, bucket, entity):
-    """Returns the ACL entry for the specified entity on the specified bucket.
-
-    Args:
-      bucket: Name of a bucket.
-      entity: The entity holding the permission. Can be user-userId, user-
-        emailAddress, group-groupId, group-emailAddress, allUsers, or
-        allAuthenticatedUsers.
-    """
-    client = GetClientFromFlags()
-    global_params = GetGlobalParamsFromFlags()
-    request = messages.StorageBucketAccessControlsGetRequest(
-        bucket=bucket.decode('utf8'),
-        entity=entity.decode('utf8'),
-        )
-    result = client.bucketAccessControls.Get(
-        request, global_params=global_params)
-    print apitools_base.FormatOutput(result)
-
-
-class BucketAccessControlsInsert(apitools_base.NewCmd):
-  """Command wrapping bucketAccessControls.Insert."""
-
-  usage = """bucketAccessControls_insert <bucket>"""
-
-  def __init__(self, name, fv):
-    super(BucketAccessControlsInsert, self).__init__(name, fv)
-    flags.DEFINE_string(
-        'domain',
-        None,
-        u'The domain associated with the entity, if any.',
-        flag_values=fv)
-    flags.DEFINE_string(
-        'email',
-        None,
-        u'The email address associated with the entity, if any.',
-        flag_values=fv)
-    flags.DEFINE_string(
-        'entity',
-        None,
-        u'The entity holding the permission, in one of the following forms:  '
-        u'- user-userId  - user-email  - group-groupId  - group-email  - '
-        u'domain-domain  - project-team-projectId  - allUsers  - '
-        u'allAuthenticatedUsers Examples:  - The user liz@example.com would '
-        u'be user-liz@example.com.  - The group example@googlegroups.com '
-        u'would be group-example@googlegroups.com.  - To refer to all members'
-        u' of the Google Apps for Business domain example.com, the entity '
-        u'would be domain-example.com.',
-        flag_values=fv)
-    flags.DEFINE_string(
-        'entityId',
-        None,
-        u'The ID for the entity, if any.',
-        flag_values=fv)
-    flags.DEFINE_string(
-        'etag',
-        None,
-        u'HTTP 1.1 Entity tag for the access-control entry.',
-        flag_values=fv)
-    flags.DEFINE_string(
-        'id',
-        None,
-        u'The ID of the access-control entry.',
-        flag_values=fv)
-    flags.DEFINE_string(
-        'kind',
-        u'storage#bucketAccessControl',
-        u'The kind of item this is. For bucket access control entries, this '
-        u'is always storage#bucketAccessControl.',
-        flag_values=fv)
-    flags.DEFINE_string(
-        'projectTeam',
-        None,
-        u'The project team associated with the entity, if any.',
-        flag_values=fv)
-    flags.DEFINE_string(
-        'role',
-        None,
-        u'The access permission for the entity. Can be READER, WRITER, or '
-        u'OWNER.',
-        flag_values=fv)
-    flags.DEFINE_string(
-        'selfLink',
-        None,
-        u'The link to this access-control entry.',
-        flag_values=fv)
-
-  def RunWithArgs(self, bucket):
-    """Creates a new ACL entry on the specified bucket.
-
-    Args:
-      bucket: The name of the bucket.
-
-    Flags:
-      domain: The domain associated with the entity, if any.
-      email: The email address associated with the entity, if any.
-      entity: The entity holding the permission, in one of the following
-        forms:  - user-userId  - user-email  - group-groupId  - group-email  -
-        domain-domain  - project-team-projectId  - allUsers  -
-        allAuthenticatedUsers Examples:  - The user liz@example.com would be
-        user-liz@example.com.  - The group example@googlegroups.com would be
-        group-example@googlegroups.com.  - To refer to all members of the
-        Google Apps for Business domain example.com, the entity would be
-        domain-example.com.
-      entityId: The ID for the entity, if any.
-      etag: HTTP 1.1 Entity tag for the access-control entry.
-      id: The ID of the access-control entry.
-      kind: The kind of item this is. For bucket access control entries, this
-        is always storage#bucketAccessControl.
-      projectTeam: The project team associated with the entity, if any.
-      role: The access permission for the entity. Can be READER, WRITER, or
-        OWNER.
-      selfLink: The link to this access-control entry.
-    """
-    client = GetClientFromFlags()
-    global_params = GetGlobalParamsFromFlags()
-    request = messages.BucketAccessControl(
-        bucket=bucket.decode('utf8'),
-        )
-    if FLAGS['domain'].present:
-      request.domain = FLAGS.domain.decode('utf8')
-    if FLAGS['email'].present:
-      request.email = FLAGS.email.decode('utf8')
-    if FLAGS['entity'].present:
-      request.entity = FLAGS.entity.decode('utf8')
-    if FLAGS['entityId'].present:
-      request.entityId = FLAGS.entityId.decode('utf8')
-    if FLAGS['etag'].present:
-      request.etag = FLAGS.etag.decode('utf8')
-    if FLAGS['id'].present:
-      request.id = FLAGS.id.decode('utf8')
-    if FLAGS['kind'].present:
-      request.kind = FLAGS.kind.decode('utf8')
-    if FLAGS['projectTeam'].present:
-      request.projectTeam = apitools_base.JsonToMessage(messages.BucketAccessControl.ProjectTeamValue, FLAGS.projectTeam)
-    if FLAGS['role'].present:
-      request.role = FLAGS.role.decode('utf8')
-    if FLAGS['selfLink'].present:
-      request.selfLink = FLAGS.selfLink.decode('utf8')
-    result = client.bucketAccessControls.Insert(
-        request, global_params=global_params)
-    print apitools_base.FormatOutput(result)
-
-
-class BucketAccessControlsList(apitools_base.NewCmd):
-  """Command wrapping bucketAccessControls.List."""
-
-  usage = """bucketAccessControls_list <bucket>"""
-
-  def __init__(self, name, fv):
-    super(BucketAccessControlsList, self).__init__(name, fv)
-
-  def RunWithArgs(self, bucket):
-    """Retrieves ACL entries on the specified bucket.
-
-    Args:
-      bucket: Name of a bucket.
-    """
-    client = GetClientFromFlags()
-    global_params = GetGlobalParamsFromFlags()
-    request = messages.StorageBucketAccessControlsListRequest(
-        bucket=bucket.decode('utf8'),
-        )
-    result = client.bucketAccessControls.List(
-        request, global_params=global_params)
-    print apitools_base.FormatOutput(result)
-
-
-class BucketAccessControlsPatch(apitools_base.NewCmd):
-  """Command wrapping bucketAccessControls.Patch."""
-
-  usage = """bucketAccessControls_patch <bucket> <entity>"""
-
-  def __init__(self, name, fv):
-    super(BucketAccessControlsPatch, self).__init__(name, fv)
-    flags.DEFINE_string(
-        'domain',
-        None,
-        u'The domain associated with the entity, if any.',
-        flag_values=fv)
-    flags.DEFINE_string(
-        'email',
-        None,
-        u'The email address associated with the entity, if any.',
-        flag_values=fv)
-    flags.DEFINE_string(
-        'entityId',
-        None,
-        u'The ID for the entity, if any.',
-        flag_values=fv)
-    flags.DEFINE_string(
-        'etag',
-        None,
-        u'HTTP 1.1 Entity tag for the access-control entry.',
-        flag_values=fv)
-    flags.DEFINE_string(
-        'id',
-        None,
-        u'The ID of the access-control entry.',
-        flag_values=fv)
-    flags.DEFINE_string(
-        'kind',
-        u'storage#bucketAccessControl',
-        u'The kind of item this is. For bucket access control entries, this '
-        u'is always storage#bucketAccessControl.',
-        flag_values=fv)
-    flags.DEFINE_string(
-        'projectTeam',
-        None,
-        u'The project team associated with the entity, if any.',
-        flag_values=fv)
-    flags.DEFINE_string(
-        'role',
-        None,
-        u'The access permission for the entity. Can be READER, WRITER, or '
-        u'OWNER.',
-        flag_values=fv)
-    flags.DEFINE_string(
-        'selfLink',
-        None,
-        u'The link to this access-control entry.',
-        flag_values=fv)
-
-  def RunWithArgs(self, bucket, entity):
-    """Updates an ACL entry on the specified bucket. This method supports
-    patch semantics.
-
-    Args:
-      bucket: The name of the bucket.
-      entity: The entity holding the permission, in one of the following
-        forms:  - user-userId  - user-email  - group-groupId  - group-email  -
-        domain-domain  - project-team-projectId  - allUsers  -
-        allAuthenticatedUsers Examples:  - The user liz@example.com would be
-        user-liz@example.com.  - The group example@googlegroups.com would be
-        group-example@googlegroups.com.  - To refer to all members of the
-        Google Apps for Business domain example.com, the entity would be
-        domain-example.com.
-
-    Flags:
-      domain: The domain associated with the entity, if any.
-      email: The email address associated with the entity, if any.
-      entityId: The ID for the entity, if any.
-      etag: HTTP 1.1 Entity tag for the access-control entry.
-      id: The ID of the access-control entry.
-      kind: The kind of item this is. For bucket access control entries, this
-        is always storage#bucketAccessControl.
-      projectTeam: The project team associated with the entity, if any.
-      role: The access permission for the entity. Can be READER, WRITER, or
-        OWNER.
-      selfLink: The link to this access-control entry.
-    """
-    client = GetClientFromFlags()
-    global_params = GetGlobalParamsFromFlags()
-    request = messages.BucketAccessControl(
-        bucket=bucket.decode('utf8'),
-        entity=entity.decode('utf8'),
-        )
-    if FLAGS['domain'].present:
-      request.domain = FLAGS.domain.decode('utf8')
-    if FLAGS['email'].present:
-      request.email = FLAGS.email.decode('utf8')
-    if FLAGS['entityId'].present:
-      request.entityId = FLAGS.entityId.decode('utf8')
-    if FLAGS['etag'].present:
-      request.etag = FLAGS.etag.decode('utf8')
-    if FLAGS['id'].present:
-      request.id = FLAGS.id.decode('utf8')
-    if FLAGS['kind'].present:
-      request.kind = FLAGS.kind.decode('utf8')
-    if FLAGS['projectTeam'].present:
-      request.projectTeam = apitools_base.JsonToMessage(messages.BucketAccessControl.ProjectTeamValue, FLAGS.projectTeam)
-    if FLAGS['role'].present:
-      request.role = FLAGS.role.decode('utf8')
-    if FLAGS['selfLink'].present:
-      request.selfLink = FLAGS.selfLink.decode('utf8')
-    result = client.bucketAccessControls.Patch(
-        request, global_params=global_params)
-    print apitools_base.FormatOutput(result)
-
-
-class BucketAccessControlsUpdate(apitools_base.NewCmd):
-  """Command wrapping bucketAccessControls.Update."""
-
-  usage = """bucketAccessControls_update <bucket> <entity>"""
-
-  def __init__(self, name, fv):
-    super(BucketAccessControlsUpdate, self).__init__(name, fv)
-    flags.DEFINE_string(
-        'domain',
-        None,
-        u'The domain associated with the entity, if any.',
-        flag_values=fv)
-    flags.DEFINE_string(
-        'email',
-        None,
-        u'The email address associated with the entity, if any.',
-        flag_values=fv)
-    flags.DEFINE_string(
-        'entityId',
-        None,
-        u'The ID for the entity, if any.',
-        flag_values=fv)
-    flags.DEFINE_string(
-        'etag',
-        None,
-        u'HTTP 1.1 Entity tag for the access-control entry.',
-        flag_values=fv)
-    flags.DEFINE_string(
-        'id',
-        None,
-        u'The ID of the access-control entry.',
-        flag_values=fv)
-    flags.DEFINE_string(
-        'kind',
-        u'storage#bucketAccessControl',
-        u'The kind of item this is. For bucket access control entries, this '
-        u'is always storage#bucketAccessControl.',
-        flag_values=fv)
-    flags.DEFINE_string(
-        'projectTeam',
-        None,
-        u'The project team associated with the entity, if any.',
-        flag_values=fv)
-    flags.DEFINE_string(
-        'role',
-        None,
-        u'The access permission for the entity. Can be READER, WRITER, or '
-        u'OWNER.',
-        flag_values=fv)
-    flags.DEFINE_string(
-        'selfLink',
-        None,
-        u'The link to this access-control entry.',
-        flag_values=fv)
-
-  def RunWithArgs(self, bucket, entity):
-    """Updates an ACL entry on the specified bucket.
-
-    Args:
-      bucket: The name of the bucket.
-      entity: The entity holding the permission, in one of the following
-        forms:  - user-userId  - user-email  - group-groupId  - group-email  -
-        domain-domain  - project-team-projectId  - allUsers  -
-        allAuthenticatedUsers Examples:  - The user liz@example.com would be
-        user-liz@example.com.  - The group example@googlegroups.com would be
-        group-example@googlegroups.com.  - To refer to all members of the
-        Google Apps for Business domain example.com, the entity would be
-        domain-example.com.
-
-    Flags:
-      domain: The domain associated with the entity, if any.
-      email: The email address associated with the entity, if any.
-      entityId: The ID for the entity, if any.
-      etag: HTTP 1.1 Entity tag for the access-control entry.
-      id: The ID of the access-control entry.
-      kind: The kind of item this is. For bucket access control entries, this
-        is always storage#bucketAccessControl.
-      projectTeam: The project team associated with the entity, if any.
-      role: The access permission for the entity. Can be READER, WRITER, or
-        OWNER.
-      selfLink: The link to this access-control entry.
-    """
-    client = GetClientFromFlags()
-    global_params = GetGlobalParamsFromFlags()
-    request = messages.BucketAccessControl(
-        bucket=bucket.decode('utf8'),
-        entity=entity.decode('utf8'),
-        )
-    if FLAGS['domain'].present:
-      request.domain = FLAGS.domain.decode('utf8')
-    if FLAGS['email'].present:
-      request.email = FLAGS.email.decode('utf8')
-    if FLAGS['entityId'].present:
-      request.entityId = FLAGS.entityId.decode('utf8')
-    if FLAGS['etag'].present:
-      request.etag = FLAGS.etag.decode('utf8')
-    if FLAGS['id'].present:
-      request.id = FLAGS.id.decode('utf8')
-    if FLAGS['kind'].present:
-      request.kind = FLAGS.kind.decode('utf8')
-    if FLAGS['projectTeam'].present:
-      request.projectTeam = apitools_base.JsonToMessage(messages.BucketAccessControl.ProjectTeamValue, FLAGS.projectTeam)
-    if FLAGS['role'].present:
-      request.role = FLAGS.role.decode('utf8')
-    if FLAGS['selfLink'].present:
-      request.selfLink = FLAGS.selfLink.decode('utf8')
-    result = client.bucketAccessControls.Update(
-        request, global_params=global_params)
-    print apitools_base.FormatOutput(result)
-
-
-class BucketsDelete(apitools_base.NewCmd):
-  """Command wrapping buckets.Delete."""
-
-  usage = """buckets_delete <bucket>"""
-
-  def __init__(self, name, fv):
-    super(BucketsDelete, self).__init__(name, fv)
-    flags.DEFINE_string(
-        'ifMetagenerationMatch',
-        None,
-        u'If set, only deletes the bucket if its metageneration matches this '
-        u'value.',
-        flag_values=fv)
-    flags.DEFINE_string(
-        'ifMetagenerationNotMatch',
-        None,
-        u'If set, only deletes the bucket if its metageneration does not '
-        u'match this value.',
-        flag_values=fv)
-
-  def RunWithArgs(self, bucket):
-    """Permanently deletes an empty bucket.
-
-    Args:
-      bucket: Name of a bucket.
-
-    Flags:
-      ifMetagenerationMatch: If set, only deletes the bucket if its
-        metageneration matches this value.
-      ifMetagenerationNotMatch: If set, only deletes the bucket if its
-        metageneration does not match this value.
-    """
-    client = GetClientFromFlags()
-    global_params = GetGlobalParamsFromFlags()
-    request = messages.StorageBucketsDeleteRequest(
-        bucket=bucket.decode('utf8'),
-        )
-    if FLAGS['ifMetagenerationMatch'].present:
-      request.ifMetagenerationMatch = int(FLAGS.ifMetagenerationMatch)
-    if FLAGS['ifMetagenerationNotMatch'].present:
-      request.ifMetagenerationNotMatch = int(FLAGS.ifMetagenerationNotMatch)
-    result = client.buckets.Delete(
-        request, global_params=global_params)
-    print apitools_base.FormatOutput(result)
-
-
-class BucketsGet(apitools_base.NewCmd):
-  """Command wrapping buckets.Get."""
-
-  usage = """buckets_get <bucket>"""
-
-  def __init__(self, name, fv):
-    super(BucketsGet, self).__init__(name, fv)
-    flags.DEFINE_string(
-        'ifMetagenerationMatch',
-        None,
-        u'Makes the return of the bucket metadata conditional on whether the '
-        u"bucket's current metageneration matches the given value.",
-        flag_values=fv)
-    flags.DEFINE_string(
-        'ifMetagenerationNotMatch',
-        None,
-        u'Makes the return of the bucket metadata conditional on whether the '
-        u"bucket's current metageneration does not match the given value.",
-        flag_values=fv)
-    flags.DEFINE_enum(
-        'projection',
-        u'full',
-        [u'full', u'noAcl'],
-        u'Set of properties to return. Defaults to noAcl.',
-        flag_values=fv)
-
-  def RunWithArgs(self, bucket):
-    """Returns metadata for the specified bucket.
-
-    Args:
-      bucket: Name of a bucket.
-
-    Flags:
-      ifMetagenerationMatch: Makes the return of the bucket metadata
-        conditional on whether the bucket's current metageneration matches the
-        given value.
-      ifMetagenerationNotMatch: Makes the return of the bucket metadata
-        conditional on whether the bucket's current metageneration does not
-        match the given value.
-      projection: Set of properties to return. Defaults to noAcl.
-    """
-    client = GetClientFromFlags()
-    global_params = GetGlobalParamsFromFlags()
-    request = messages.StorageBucketsGetRequest(
-        bucket=bucket.decode('utf8'),
-        )
-    if FLAGS['ifMetagenerationMatch'].present:
-      request.ifMetagenerationMatch = int(FLAGS.ifMetagenerationMatch)
-    if FLAGS['ifMetagenerationNotMatch'].present:
-      request.ifMetagenerationNotMatch = int(FLAGS.ifMetagenerationNotMatch)
-    if FLAGS['projection'].present:
-      request.projection = messages.StorageBucketsGetRequest.ProjectionValueValuesEnum(FLAGS.projection)
-    result = client.buckets.Get(
-        request, global_params=global_params)
-    print apitools_base.FormatOutput(result)
-
-
-class BucketsInsert(apitools_base.NewCmd):
-  """Command wrapping buckets.Insert."""
-
-  usage = """buckets_insert <project>"""
-
-  def __init__(self, name, fv):
-    super(BucketsInsert, self).__init__(name, fv)
-    flags.DEFINE_string(
-        'bucket',
-        None,
-        u'A Bucket resource to be passed as the request body.',
-        flag_values=fv)
-    flags.DEFINE_enum(
-        'predefinedAcl',
-        u'authenticatedRead',
-        [u'authenticatedRead', u'private', u'projectPrivate', u'publicRead', u'publicReadWrite'],
-        u'Apply a predefined set of access controls to this bucket.',
-        flag_values=fv)
-    flags.DEFINE_enum(
-        'projection',
-        u'full',
-        [u'full', u'noAcl'],
-        u'Set of properties to return. Defaults to noAcl, unless the bucket '
-        u'resource specifies acl or defaultObjectAcl properties, when it '
-        u'defaults to full.',
-        flag_values=fv)
-
-  def RunWithArgs(self, project):
-    """Creates a new bucket.
-
-    Args:
-      project: A valid API project identifier.
-
-    Flags:
-      bucket: A Bucket resource to be passed as the request body.
-      predefinedAcl: Apply a predefined set of access controls to this bucket.
-      projection: Set of properties to return. Defaults to noAcl, unless the
-        bucket resource specifies acl or defaultObjectAcl properties, when it
-        defaults to full.
-    """
-    client = GetClientFromFlags()
-    global_params = GetGlobalParamsFromFlags()
-    request = messages.StorageBucketsInsertRequest(
-        project=project.decode('utf8'),
-        )
-    if FLAGS['bucket'].present:
-      request.bucket = apitools_base.JsonToMessage(messages.Bucket, FLAGS.bucket)
-    if FLAGS['predefinedAcl'].present:
-      request.predefinedAcl = messages.StorageBucketsInsertRequest.PredefinedAclValueValuesEnum(FLAGS.predefinedAcl)
-    if FLAGS['projection'].present:
-      request.projection = messages.StorageBucketsInsertRequest.ProjectionValueValuesEnum(FLAGS.projection)
-    result = client.buckets.Insert(
-        request, global_params=global_params)
-    print apitools_base.FormatOutput(result)
-
-
-class BucketsList(apitools_base.NewCmd):
-  """Command wrapping buckets.List."""
-
-  usage = """buckets_list <project>"""
-
-  def __init__(self, name, fv):
-    super(BucketsList, self).__init__(name, fv)
-    flags.DEFINE_integer(
-        'maxResults',
-        None,
-        u'Maximum number of buckets to return.',
-        flag_values=fv)
-    flags.DEFINE_string(
-        'pageToken',
-        None,
-        u'A previously-returned page token representing part of the larger '
-        u'set of results to view.',
-        flag_values=fv)
-    flags.DEFINE_enum(
-        'projection',
-        u'full',
-        [u'full', u'noAcl'],
-        u'Set of properties to return. Defaults to noAcl.',
-        flag_values=fv)
-
-  def RunWithArgs(self, project):
-    """Retrieves a list of buckets for a given project.
-
-    Args:
-      project: A valid API project identifier.
-
-    Flags:
-      maxResults: Maximum number of buckets to return.
-      pageToken: A previously-returned page token representing part of the
-        larger set of results to view.
-      projection: Set of properties to return. Defaults to noAcl.
-    """
-    client = GetClientFromFlags()
-    global_params = GetGlobalParamsFromFlags()
-    request = messages.StorageBucketsListRequest(
-        project=project.decode('utf8'),
-        )
-    if FLAGS['maxResults'].present:
-      request.maxResults = FLAGS.maxResults
-    if FLAGS['pageToken'].present:
-      request.pageToken = FLAGS.pageToken.decode('utf8')
-    if FLAGS['projection'].present:
-      request.projection = messages.StorageBucketsListRequest.ProjectionValueValuesEnum(FLAGS.projection)
-    result = client.buckets.List(
-        request, global_params=global_params)
-    print apitools_base.FormatOutput(result)
-
-
-class BucketsPatch(apitools_base.NewCmd):
-  """Command wrapping buckets.Patch."""
-
-  usage = """buckets_patch <bucket>"""
-
-  def __init__(self, name, fv):
-    super(BucketsPatch, self).__init__(name, fv)
-    flags.DEFINE_string(
-        'bucketResource',
-        None,
-        u'A Bucket resource to be passed as the request body.',
-        flag_values=fv)
-    flags.DEFINE_string(
-        'ifMetagenerationMatch',
-        None,
-        u'Makes the return of the bucket metadata conditional on whether the '
-        u"bucket's current metageneration matches the given value.",
-        flag_values=fv)
-    flags.DEFINE_string(
-        'ifMetagenerationNotMatch',
-        None,
-        u'Makes the return of the bucket metadata conditional on whether the '
-        u"bucket's current metageneration does not match the given value.",
-        flag_values=fv)
-    flags.DEFINE_enum(
-        'predefinedAcl',
-        u'authenticatedRead',
-        [u'authenticatedRead', u'private', u'projectPrivate', u'publicRead', u'publicReadWrite'],
-        u'Apply a predefined set of access controls to this bucket.',
-        flag_values=fv)
-    flags.DEFINE_enum(
-        'projection',
-        u'full',
-        [u'full', u'noAcl'],
-        u'Set of properties to return. Defaults to full.',
-        flag_values=fv)
-
-  def RunWithArgs(self, bucket):
-    """Updates a bucket. This method supports patch semantics.
-
-    Args:
-      bucket: Name of a bucket.
-
-    Flags:
-      bucketResource: A Bucket resource to be passed as the request body.
-      ifMetagenerationMatch: Makes the return of the bucket metadata
-        conditional on whether the bucket's current metageneration matches the
-        given value.
-      ifMetagenerationNotMatch: Makes the return of the bucket metadata
-        conditional on whether the bucket's current metageneration does not
-        match the given value.
-      predefinedAcl: Apply a predefined set of access controls to this bucket.
-      projection: Set of properties to return. Defaults to full.
-    """
-    client = GetClientFromFlags()
-    global_params = GetGlobalParamsFromFlags()
-    request = messages.StorageBucketsPatchRequest(
-        bucket=bucket.decode('utf8'),
-        )
-    if FLAGS['bucketResource'].present:
-      request.bucketResource = apitools_base.JsonToMessage(messages.Bucket, FLAGS.bucketResource)
-    if FLAGS['ifMetagenerationMatch'].present:
-      request.ifMetagenerationMatch = int(FLAGS.ifMetagenerationMatch)
-    if FLAGS['ifMetagenerationNotMatch'].present:
-      request.ifMetagenerationNotMatch = int(FLAGS.ifMetagenerationNotMatch)
-    if FLAGS['predefinedAcl'].present:
-      request.predefinedAcl = messages.StorageBucketsPatchRequest.PredefinedAclValueValuesEnum(FLAGS.predefinedAcl)
-    if FLAGS['projection'].present:
-      request.projection = messages.StorageBucketsPatchRequest.ProjectionValueValuesEnum(FLAGS.projection)
-    result = client.buckets.Patch(
-        request, global_params=global_params)
-    print apitools_base.FormatOutput(result)
-
-
-class BucketsUpdate(apitools_base.NewCmd):
-  """Command wrapping buckets.Update."""
-
-  usage = """buckets_update <bucket>"""
-
-  def __init__(self, name, fv):
-    super(BucketsUpdate, self).__init__(name, fv)
-    flags.DEFINE_string(
-        'bucketResource',
-        None,
-        u'A Bucket resource to be passed as the request body.',
-        flag_values=fv)
-    flags.DEFINE_string(
-        'ifMetagenerationMatch',
-        None,
-        u'Makes the return of the bucket metadata conditional on whether the '
-        u"bucket's current metageneration matches the given value.",
-        flag_values=fv)
-    flags.DEFINE_string(
-        'ifMetagenerationNotMatch',
-        None,
-        u'Makes the return of the bucket metadata conditional on whether the '
-        u"bucket's current metageneration does not match the given value.",
-        flag_values=fv)
-    flags.DEFINE_enum(
-        'predefinedAcl',
-        u'authenticatedRead',
-        [u'authenticatedRead', u'private', u'projectPrivate', u'publicRead', u'publicReadWrite'],
-        u'Apply a predefined set of access controls to this bucket.',
-        flag_values=fv)
-    flags.DEFINE_enum(
-        'projection',
-        u'full',
-        [u'full', u'noAcl'],
-        u'Set of properties to return. Defaults to full.',
-        flag_values=fv)
-
-  def RunWithArgs(self, bucket):
-    """Updates a bucket.
-
-    Args:
-      bucket: Name of a bucket.
-
-    Flags:
-      bucketResource: A Bucket resource to be passed as the request body.
-      ifMetagenerationMatch: Makes the return of the bucket metadata
-        conditional on whether the bucket's current metageneration matches the
-        given value.
-      ifMetagenerationNotMatch: Makes the return of the bucket metadata
-        conditional on whether the bucket's current metageneration does not
-        match the given value.
-      predefinedAcl: Apply a predefined set of access controls to this bucket.
-      projection: Set of properties to return. Defaults to full.
-    """
-    client = GetClientFromFlags()
-    global_params = GetGlobalParamsFromFlags()
-    request = messages.StorageBucketsUpdateRequest(
-        bucket=bucket.decode('utf8'),
-        )
-    if FLAGS['bucketResource'].present:
-      request.bucketResource = apitools_base.JsonToMessage(messages.Bucket, FLAGS.bucketResource)
-    if FLAGS['ifMetagenerationMatch'].present:
-      request.ifMetagenerationMatch = int(FLAGS.ifMetagenerationMatch)
-    if FLAGS['ifMetagenerationNotMatch'].present:
-      request.ifMetagenerationNotMatch = int(FLAGS.ifMetagenerationNotMatch)
-    if FLAGS['predefinedAcl'].present:
-      request.predefinedAcl = messages.StorageBucketsUpdateRequest.PredefinedAclValueValuesEnum(FLAGS.predefinedAcl)
-    if FLAGS['projection'].present:
-      request.projection = messages.StorageBucketsUpdateRequest.ProjectionValueValuesEnum(FLAGS.projection)
-    result = client.buckets.Update(
-        request, global_params=global_params)
-    print apitools_base.FormatOutput(result)
-
-
-class ChannelsStop(apitools_base.NewCmd):
-  """Command wrapping channels.Stop."""
-
-  usage = """channels_stop"""
-
-  def __init__(self, name, fv):
-    super(ChannelsStop, self).__init__(name, fv)
-    flags.DEFINE_string(
-        'address',
-        None,
-        u'The address where notifications are delivered for this channel.',
-        flag_values=fv)
-    flags.DEFINE_string(
-        'expiration',
-        None,
-        u'Date and time of notification channel expiration, expressed as a '
-        u'Unix timestamp, in milliseconds. Optional.',
-        flag_values=fv)
-    flags.DEFINE_string(
-        'id',
-        None,
-        u'A UUID or similar unique string that identifies this channel.',
-        flag_values=fv)
-    flags.DEFINE_string(
-        'kind',
-        u'api#channel',
-        u'Identifies this as a notification channel used to watch for changes'
-        u' to a resource. Value: the fixed string "api#channel".',
-        flag_values=fv)
-    flags.DEFINE_string(
-        'params',
-        None,
-        u'Additional parameters controlling delivery channel behavior. '
-        u'Optional.',
-        flag_values=fv)
-    flags.DEFINE_boolean(
-        'payload',
-        None,
-        u'A Boolean value to indicate whether payload is wanted. Optional.',
-        flag_values=fv)
-    flags.DEFINE_string(
-        'resourceId',
-        None,
-        u'An opaque ID that identifies the resource being watched on this '
-        u'channel. Stable across different API versions.',
-        flag_values=fv)
-    flags.DEFINE_string(
-        'resourceUri',
-        None,
-        u'A version-specific identifier for the watched resource.',
-        flag_values=fv)
-    flags.DEFINE_string(
-        'token',
-        None,
-        u'An arbitrary string delivered to the target address with each '
-        u'notification delivered over this channel. Optional.',
-        flag_values=fv)
-    flags.DEFINE_string(
-        'type',
-        None,
-        u'The type of delivery mechanism used for this channel.',
-        flag_values=fv)
-
-  def RunWithArgs(self):
-    """Stop watching resources through this channel
-
-    Flags:
-      address: The address where notifications are delivered for this channel.
-      expiration: Date and time of notification channel expiration, expressed
-        as a Unix timestamp, in milliseconds. Optional.
-      id: A UUID or similar unique string that identifies this channel.
-      kind: Identifies this as a notification channel used to watch for
-        changes to a resource. Value: the fixed string "api#channel".
-      params: Additional parameters controlling delivery channel behavior.
-        Optional.
-      payload: A Boolean value to indicate whether payload is wanted.
-        Optional.
-      resourceId: An opaque ID that identifies the resource being watched on
-        this channel. Stable across different API versions.
-      resourceUri: A version-specific identifier for the watched resource.
-      token: An arbitrary string delivered to the target address with each
-        notification delivered over this channel. Optional.
-      type: The type of delivery mechanism used for this channel.
-    """
-    client = GetClientFromFlags()
-    global_params = GetGlobalParamsFromFlags()
-    request = messages.Channel(
-        )
-    if FLAGS['address'].present:
-      request.address = FLAGS.address.decode('utf8')
-    if FLAGS['expiration'].present:
-      request.expiration = int(FLAGS.expiration)
-    if FLAGS['id'].present:
-      request.id = FLAGS.id.decode('utf8')
-    if FLAGS['kind'].present:
-      request.kind = FLAGS.kind.decode('utf8')
-    if FLAGS['params'].present:
-      request.params = apitools_base.JsonToMessage(messages.Channel.ParamsValue, FLAGS.params)
-    if FLAGS['payload'].present:
-      request.payload = FLAGS.payload
-    if FLAGS['resourceId'].present:
-      request.resourceId = FLAGS.resourceId.decode('utf8')
-    if FLAGS['resourceUri'].present:
-      request.resourceUri = FLAGS.resourceUri.decode('utf8')
-    if FLAGS['token'].present:
-      request.token = FLAGS.token.decode('utf8')
-    if FLAGS['type'].present:
-      request.type = FLAGS.type.decode('utf8')
-    result = client.channels.Stop(
-        request, global_params=global_params)
-    print apitools_base.FormatOutput(result)
-
-
-class DefaultObjectAccessControlsDelete(apitools_base.NewCmd):
+class DefaultObjectAccessControlsDelete(apitools_base_cli.NewCmd):
   """Command wrapping defaultObjectAccessControls.Delete."""
 
   usage = """defaultObjectAccessControls_delete <bucket> <entity>"""
@@ -1072,10 +179,10 @@ class DefaultObjectAccessControlsDelete(apitools_base.NewCmd):
         )
     result = client.defaultObjectAccessControls.Delete(
         request, global_params=global_params)
-    print apitools_base.FormatOutput(result)
+    print apitools_base_cli.FormatOutput(result)
 
 
-class DefaultObjectAccessControlsGet(apitools_base.NewCmd):
+class DefaultObjectAccessControlsGet(apitools_base_cli.NewCmd):
   """Command wrapping defaultObjectAccessControls.Get."""
 
   usage = """defaultObjectAccessControls_get <bucket> <entity>"""
@@ -1101,10 +208,10 @@ class DefaultObjectAccessControlsGet(apitools_base.NewCmd):
         )
     result = client.defaultObjectAccessControls.Get(
         request, global_params=global_params)
-    print apitools_base.FormatOutput(result)
+    print apitools_base_cli.FormatOutput(result)
 
 
-class DefaultObjectAccessControlsInsert(apitools_base.NewCmd):
+class DefaultObjectAccessControlsInsert(apitools_base_cli.NewCmd):
   """Command wrapping defaultObjectAccessControls.Insert."""
 
   usage = """defaultObjectAccessControls_insert <bucket>"""
@@ -1239,10 +346,10 @@ class DefaultObjectAccessControlsInsert(apitools_base.NewCmd):
       request.selfLink = FLAGS.selfLink.decode('utf8')
     result = client.defaultObjectAccessControls.Insert(
         request, global_params=global_params)
-    print apitools_base.FormatOutput(result)
+    print apitools_base_cli.FormatOutput(result)
 
 
-class DefaultObjectAccessControlsList(apitools_base.NewCmd):
+class DefaultObjectAccessControlsList(apitools_base_cli.NewCmd):
   """Command wrapping defaultObjectAccessControls.List."""
 
   usage = """defaultObjectAccessControls_list <bucket>"""
@@ -1285,10 +392,10 @@ class DefaultObjectAccessControlsList(apitools_base.NewCmd):
       request.ifMetagenerationNotMatch = int(FLAGS.ifMetagenerationNotMatch)
     result = client.defaultObjectAccessControls.List(
         request, global_params=global_params)
-    print apitools_base.FormatOutput(result)
+    print apitools_base_cli.FormatOutput(result)
 
 
-class DefaultObjectAccessControlsPatch(apitools_base.NewCmd):
+class DefaultObjectAccessControlsPatch(apitools_base_cli.NewCmd):
   """Command wrapping defaultObjectAccessControls.Patch."""
 
   usage = """defaultObjectAccessControls_patch <bucket> <entity>"""
@@ -1411,10 +518,10 @@ class DefaultObjectAccessControlsPatch(apitools_base.NewCmd):
       request.selfLink = FLAGS.selfLink.decode('utf8')
     result = client.defaultObjectAccessControls.Patch(
         request, global_params=global_params)
-    print apitools_base.FormatOutput(result)
+    print apitools_base_cli.FormatOutput(result)
 
 
-class DefaultObjectAccessControlsUpdate(apitools_base.NewCmd):
+class DefaultObjectAccessControlsUpdate(apitools_base_cli.NewCmd):
   """Command wrapping defaultObjectAccessControls.Update."""
 
   usage = """defaultObjectAccessControls_update <bucket> <entity>"""
@@ -1536,283 +643,551 @@ class DefaultObjectAccessControlsUpdate(apitools_base.NewCmd):
       request.selfLink = FLAGS.selfLink.decode('utf8')
     result = client.defaultObjectAccessControls.Update(
         request, global_params=global_params)
-    print apitools_base.FormatOutput(result)
+    print apitools_base_cli.FormatOutput(result)
 
 
-class ObjectAccessControlsDelete(apitools_base.NewCmd):
-  """Command wrapping objectAccessControls.Delete."""
+class BucketAccessControlsDelete(apitools_base_cli.NewCmd):
+  """Command wrapping bucketAccessControls.Delete."""
 
-  usage = """objectAccessControls_delete <bucket> <object> <entity>"""
+  usage = """bucketAccessControls_delete <bucket> <entity>"""
 
   def __init__(self, name, fv):
-    super(ObjectAccessControlsDelete, self).__init__(name, fv)
-    flags.DEFINE_string(
-        'generation',
-        None,
-        u'If present, selects a specific revision of this object (as opposed '
-        u'to the latest version, the default).',
-        flag_values=fv)
+    super(BucketAccessControlsDelete, self).__init__(name, fv)
 
-  def RunWithArgs(self, bucket, object, entity):
+  def RunWithArgs(self, bucket, entity):
     """Permanently deletes the ACL entry for the specified entity on the
-    specified object.
+    specified bucket.
 
     Args:
       bucket: Name of a bucket.
-      object: Name of the object.
       entity: The entity holding the permission. Can be user-userId, user-
         emailAddress, group-groupId, group-emailAddress, allUsers, or
         allAuthenticatedUsers.
-
-    Flags:
-      generation: If present, selects a specific revision of this object (as
-        opposed to the latest version, the default).
     """
     client = GetClientFromFlags()
     global_params = GetGlobalParamsFromFlags()
-    request = messages.StorageObjectAccessControlsDeleteRequest(
+    request = messages.StorageBucketAccessControlsDeleteRequest(
         bucket=bucket.decode('utf8'),
-        object=object.decode('utf8'),
         entity=entity.decode('utf8'),
         )
-    if FLAGS['generation'].present:
-      request.generation = int(FLAGS.generation)
-    result = client.objectAccessControls.Delete(
+    result = client.bucketAccessControls.Delete(
         request, global_params=global_params)
-    print apitools_base.FormatOutput(result)
+    print apitools_base_cli.FormatOutput(result)
 
 
-class ObjectAccessControlsGet(apitools_base.NewCmd):
-  """Command wrapping objectAccessControls.Get."""
+class BucketAccessControlsGet(apitools_base_cli.NewCmd):
+  """Command wrapping bucketAccessControls.Get."""
 
-  usage = """objectAccessControls_get <bucket> <object> <entity>"""
+  usage = """bucketAccessControls_get <bucket> <entity>"""
 
   def __init__(self, name, fv):
-    super(ObjectAccessControlsGet, self).__init__(name, fv)
-    flags.DEFINE_string(
-        'generation',
-        None,
-        u'If present, selects a specific revision of this object (as opposed '
-        u'to the latest version, the default).',
-        flag_values=fv)
+    super(BucketAccessControlsGet, self).__init__(name, fv)
 
-  def RunWithArgs(self, bucket, object, entity):
-    """Returns the ACL entry for the specified entity on the specified object.
+  def RunWithArgs(self, bucket, entity):
+    """Returns the ACL entry for the specified entity on the specified bucket.
 
     Args:
       bucket: Name of a bucket.
-      object: Name of the object.
       entity: The entity holding the permission. Can be user-userId, user-
         emailAddress, group-groupId, group-emailAddress, allUsers, or
         allAuthenticatedUsers.
-
-    Flags:
-      generation: If present, selects a specific revision of this object (as
-        opposed to the latest version, the default).
     """
     client = GetClientFromFlags()
     global_params = GetGlobalParamsFromFlags()
-    request = messages.StorageObjectAccessControlsGetRequest(
+    request = messages.StorageBucketAccessControlsGetRequest(
         bucket=bucket.decode('utf8'),
-        object=object.decode('utf8'),
         entity=entity.decode('utf8'),
         )
-    if FLAGS['generation'].present:
-      request.generation = int(FLAGS.generation)
-    result = client.objectAccessControls.Get(
+    result = client.bucketAccessControls.Get(
         request, global_params=global_params)
-    print apitools_base.FormatOutput(result)
+    print apitools_base_cli.FormatOutput(result)
 
 
-class ObjectAccessControlsInsert(apitools_base.NewCmd):
-  """Command wrapping objectAccessControls.Insert."""
+class BucketAccessControlsInsert(apitools_base_cli.NewCmd):
+  """Command wrapping bucketAccessControls.Insert."""
 
-  usage = """objectAccessControls_insert <bucket> <object>"""
+  usage = """bucketAccessControls_insert <bucket>"""
 
   def __init__(self, name, fv):
-    super(ObjectAccessControlsInsert, self).__init__(name, fv)
+    super(BucketAccessControlsInsert, self).__init__(name, fv)
     flags.DEFINE_string(
-        'generation',
+        'domain',
         None,
-        u'If present, selects a specific revision of this object (as opposed '
-        u'to the latest version, the default).',
+        u'The domain associated with the entity, if any.',
         flag_values=fv)
     flags.DEFINE_string(
-        'objectAccessControl',
+        'email',
         None,
-        u'A ObjectAccessControl resource to be passed as the request body.',
+        u'The email address associated with the entity, if any.',
+        flag_values=fv)
+    flags.DEFINE_string(
+        'entity',
+        None,
+        u'The entity holding the permission, in one of the following forms:  '
+        u'- user-userId  - user-email  - group-groupId  - group-email  - '
+        u'domain-domain  - project-team-projectId  - allUsers  - '
+        u'allAuthenticatedUsers Examples:  - The user liz@example.com would '
+        u'be user-liz@example.com.  - The group example@googlegroups.com '
+        u'would be group-example@googlegroups.com.  - To refer to all members'
+        u' of the Google Apps for Business domain example.com, the entity '
+        u'would be domain-example.com.',
+        flag_values=fv)
+    flags.DEFINE_string(
+        'entityId',
+        None,
+        u'The ID for the entity, if any.',
+        flag_values=fv)
+    flags.DEFINE_string(
+        'etag',
+        None,
+        u'HTTP 1.1 Entity tag for the access-control entry.',
+        flag_values=fv)
+    flags.DEFINE_string(
+        'id',
+        None,
+        u'The ID of the access-control entry.',
+        flag_values=fv)
+    flags.DEFINE_string(
+        'kind',
+        u'storage#bucketAccessControl',
+        u'The kind of item this is. For bucket access control entries, this '
+        u'is always storage#bucketAccessControl.',
+        flag_values=fv)
+    flags.DEFINE_string(
+        'projectTeam',
+        None,
+        u'The project team associated with the entity, if any.',
+        flag_values=fv)
+    flags.DEFINE_string(
+        'role',
+        None,
+        u'The access permission for the entity. Can be READER, WRITER, or '
+        u'OWNER.',
+        flag_values=fv)
+    flags.DEFINE_string(
+        'selfLink',
+        None,
+        u'The link to this access-control entry.',
         flag_values=fv)
 
-  def RunWithArgs(self, bucket, object):
-    """Creates a new ACL entry on the specified object.
+  def RunWithArgs(self, bucket):
+    """Creates a new ACL entry on the specified bucket.
 
     Args:
-      bucket: Name of a bucket.
-      object: Name of the object.
+      bucket: The name of the bucket.
 
     Flags:
-      generation: If present, selects a specific revision of this object (as
-        opposed to the latest version, the default).
-      objectAccessControl: A ObjectAccessControl resource to be passed as the
-        request body.
+      domain: The domain associated with the entity, if any.
+      email: The email address associated with the entity, if any.
+      entity: The entity holding the permission, in one of the following
+        forms:  - user-userId  - user-email  - group-groupId  - group-email  -
+        domain-domain  - project-team-projectId  - allUsers  -
+        allAuthenticatedUsers Examples:  - The user liz@example.com would be
+        user-liz@example.com.  - The group example@googlegroups.com would be
+        group-example@googlegroups.com.  - To refer to all members of the
+        Google Apps for Business domain example.com, the entity would be
+        domain-example.com.
+      entityId: The ID for the entity, if any.
+      etag: HTTP 1.1 Entity tag for the access-control entry.
+      id: The ID of the access-control entry.
+      kind: The kind of item this is. For bucket access control entries, this
+        is always storage#bucketAccessControl.
+      projectTeam: The project team associated with the entity, if any.
+      role: The access permission for the entity. Can be READER, WRITER, or
+        OWNER.
+      selfLink: The link to this access-control entry.
     """
     client = GetClientFromFlags()
     global_params = GetGlobalParamsFromFlags()
-    request = messages.StorageObjectAccessControlsInsertRequest(
+    request = messages.BucketAccessControl(
         bucket=bucket.decode('utf8'),
-        object=object.decode('utf8'),
         )
-    if FLAGS['generation'].present:
-      request.generation = int(FLAGS.generation)
-    if FLAGS['objectAccessControl'].present:
-      request.objectAccessControl = apitools_base.JsonToMessage(messages.ObjectAccessControl, FLAGS.objectAccessControl)
-    result = client.objectAccessControls.Insert(
+    if FLAGS['domain'].present:
+      request.domain = FLAGS.domain.decode('utf8')
+    if FLAGS['email'].present:
+      request.email = FLAGS.email.decode('utf8')
+    if FLAGS['entity'].present:
+      request.entity = FLAGS.entity.decode('utf8')
+    if FLAGS['entityId'].present:
+      request.entityId = FLAGS.entityId.decode('utf8')
+    if FLAGS['etag'].present:
+      request.etag = FLAGS.etag.decode('utf8')
+    if FLAGS['id'].present:
+      request.id = FLAGS.id.decode('utf8')
+    if FLAGS['kind'].present:
+      request.kind = FLAGS.kind.decode('utf8')
+    if FLAGS['projectTeam'].present:
+      request.projectTeam = apitools_base.JsonToMessage(messages.BucketAccessControl.ProjectTeamValue, FLAGS.projectTeam)
+    if FLAGS['role'].present:
+      request.role = FLAGS.role.decode('utf8')
+    if FLAGS['selfLink'].present:
+      request.selfLink = FLAGS.selfLink.decode('utf8')
+    result = client.bucketAccessControls.Insert(
         request, global_params=global_params)
-    print apitools_base.FormatOutput(result)
+    print apitools_base_cli.FormatOutput(result)
 
 
-class ObjectAccessControlsList(apitools_base.NewCmd):
-  """Command wrapping objectAccessControls.List."""
+class BucketAccessControlsList(apitools_base_cli.NewCmd):
+  """Command wrapping bucketAccessControls.List."""
 
-  usage = """objectAccessControls_list <bucket> <object>"""
+  usage = """bucketAccessControls_list <bucket>"""
 
   def __init__(self, name, fv):
-    super(ObjectAccessControlsList, self).__init__(name, fv)
-    flags.DEFINE_string(
-        'generation',
-        None,
-        u'If present, selects a specific revision of this object (as opposed '
-        u'to the latest version, the default).',
-        flag_values=fv)
+    super(BucketAccessControlsList, self).__init__(name, fv)
 
-  def RunWithArgs(self, bucket, object):
-    """Retrieves ACL entries on the specified object.
+  def RunWithArgs(self, bucket):
+    """Retrieves ACL entries on the specified bucket.
 
     Args:
       bucket: Name of a bucket.
-      object: Name of the object.
-
-    Flags:
-      generation: If present, selects a specific revision of this object (as
-        opposed to the latest version, the default).
     """
     client = GetClientFromFlags()
     global_params = GetGlobalParamsFromFlags()
-    request = messages.StorageObjectAccessControlsListRequest(
+    request = messages.StorageBucketAccessControlsListRequest(
         bucket=bucket.decode('utf8'),
-        object=object.decode('utf8'),
         )
-    if FLAGS['generation'].present:
-      request.generation = int(FLAGS.generation)
-    result = client.objectAccessControls.List(
+    result = client.bucketAccessControls.List(
         request, global_params=global_params)
-    print apitools_base.FormatOutput(result)
+    print apitools_base_cli.FormatOutput(result)
 
 
-class ObjectAccessControlsPatch(apitools_base.NewCmd):
-  """Command wrapping objectAccessControls.Patch."""
+class BucketAccessControlsPatch(apitools_base_cli.NewCmd):
+  """Command wrapping bucketAccessControls.Patch."""
 
-  usage = """objectAccessControls_patch <bucket> <object> <entity>"""
+  usage = """bucketAccessControls_patch <bucket> <entity>"""
 
   def __init__(self, name, fv):
-    super(ObjectAccessControlsPatch, self).__init__(name, fv)
+    super(BucketAccessControlsPatch, self).__init__(name, fv)
     flags.DEFINE_string(
-        'generation',
+        'domain',
         None,
-        u'If present, selects a specific revision of this object (as opposed '
-        u'to the latest version, the default).',
+        u'The domain associated with the entity, if any.',
         flag_values=fv)
     flags.DEFINE_string(
-        'objectAccessControl',
+        'email',
         None,
-        u'A ObjectAccessControl resource to be passed as the request body.',
+        u'The email address associated with the entity, if any.',
+        flag_values=fv)
+    flags.DEFINE_string(
+        'entityId',
+        None,
+        u'The ID for the entity, if any.',
+        flag_values=fv)
+    flags.DEFINE_string(
+        'etag',
+        None,
+        u'HTTP 1.1 Entity tag for the access-control entry.',
+        flag_values=fv)
+    flags.DEFINE_string(
+        'id',
+        None,
+        u'The ID of the access-control entry.',
+        flag_values=fv)
+    flags.DEFINE_string(
+        'kind',
+        u'storage#bucketAccessControl',
+        u'The kind of item this is. For bucket access control entries, this '
+        u'is always storage#bucketAccessControl.',
+        flag_values=fv)
+    flags.DEFINE_string(
+        'projectTeam',
+        None,
+        u'The project team associated with the entity, if any.',
+        flag_values=fv)
+    flags.DEFINE_string(
+        'role',
+        None,
+        u'The access permission for the entity. Can be READER, WRITER, or '
+        u'OWNER.',
+        flag_values=fv)
+    flags.DEFINE_string(
+        'selfLink',
+        None,
+        u'The link to this access-control entry.',
         flag_values=fv)
 
-  def RunWithArgs(self, bucket, object, entity):
-    """Updates an ACL entry on the specified object. This method supports
+  def RunWithArgs(self, bucket, entity):
+    """Updates an ACL entry on the specified bucket. This method supports
     patch semantics.
 
     Args:
-      bucket: Name of a bucket.
-      object: Name of the object.
-      entity: The entity holding the permission. Can be user-userId, user-
-        emailAddress, group-groupId, group-emailAddress, allUsers, or
-        allAuthenticatedUsers.
+      bucket: The name of the bucket.
+      entity: The entity holding the permission, in one of the following
+        forms:  - user-userId  - user-email  - group-groupId  - group-email  -
+        domain-domain  - project-team-projectId  - allUsers  -
+        allAuthenticatedUsers Examples:  - The user liz@example.com would be
+        user-liz@example.com.  - The group example@googlegroups.com would be
+        group-example@googlegroups.com.  - To refer to all members of the
+        Google Apps for Business domain example.com, the entity would be
+        domain-example.com.
 
     Flags:
-      generation: If present, selects a specific revision of this object (as
-        opposed to the latest version, the default).
-      objectAccessControl: A ObjectAccessControl resource to be passed as the
-        request body.
+      domain: The domain associated with the entity, if any.
+      email: The email address associated with the entity, if any.
+      entityId: The ID for the entity, if any.
+      etag: HTTP 1.1 Entity tag for the access-control entry.
+      id: The ID of the access-control entry.
+      kind: The kind of item this is. For bucket access control entries, this
+        is always storage#bucketAccessControl.
+      projectTeam: The project team associated with the entity, if any.
+      role: The access permission for the entity. Can be READER, WRITER, or
+        OWNER.
+      selfLink: The link to this access-control entry.
     """
     client = GetClientFromFlags()
     global_params = GetGlobalParamsFromFlags()
-    request = messages.StorageObjectAccessControlsPatchRequest(
+    request = messages.BucketAccessControl(
         bucket=bucket.decode('utf8'),
-        object=object.decode('utf8'),
         entity=entity.decode('utf8'),
         )
-    if FLAGS['generation'].present:
-      request.generation = int(FLAGS.generation)
-    if FLAGS['objectAccessControl'].present:
-      request.objectAccessControl = apitools_base.JsonToMessage(messages.ObjectAccessControl, FLAGS.objectAccessControl)
-    result = client.objectAccessControls.Patch(
+    if FLAGS['domain'].present:
+      request.domain = FLAGS.domain.decode('utf8')
+    if FLAGS['email'].present:
+      request.email = FLAGS.email.decode('utf8')
+    if FLAGS['entityId'].present:
+      request.entityId = FLAGS.entityId.decode('utf8')
+    if FLAGS['etag'].present:
+      request.etag = FLAGS.etag.decode('utf8')
+    if FLAGS['id'].present:
+      request.id = FLAGS.id.decode('utf8')
+    if FLAGS['kind'].present:
+      request.kind = FLAGS.kind.decode('utf8')
+    if FLAGS['projectTeam'].present:
+      request.projectTeam = apitools_base.JsonToMessage(messages.BucketAccessControl.ProjectTeamValue, FLAGS.projectTeam)
+    if FLAGS['role'].present:
+      request.role = FLAGS.role.decode('utf8')
+    if FLAGS['selfLink'].present:
+      request.selfLink = FLAGS.selfLink.decode('utf8')
+    result = client.bucketAccessControls.Patch(
         request, global_params=global_params)
-    print apitools_base.FormatOutput(result)
+    print apitools_base_cli.FormatOutput(result)
 
 
-class ObjectAccessControlsUpdate(apitools_base.NewCmd):
-  """Command wrapping objectAccessControls.Update."""
+class BucketAccessControlsUpdate(apitools_base_cli.NewCmd):
+  """Command wrapping bucketAccessControls.Update."""
 
-  usage = """objectAccessControls_update <bucket> <object> <entity>"""
+  usage = """bucketAccessControls_update <bucket> <entity>"""
 
   def __init__(self, name, fv):
-    super(ObjectAccessControlsUpdate, self).__init__(name, fv)
+    super(BucketAccessControlsUpdate, self).__init__(name, fv)
     flags.DEFINE_string(
-        'generation',
+        'domain',
         None,
-        u'If present, selects a specific revision of this object (as opposed '
-        u'to the latest version, the default).',
+        u'The domain associated with the entity, if any.',
         flag_values=fv)
     flags.DEFINE_string(
-        'objectAccessControl',
+        'email',
         None,
-        u'A ObjectAccessControl resource to be passed as the request body.',
+        u'The email address associated with the entity, if any.',
+        flag_values=fv)
+    flags.DEFINE_string(
+        'entityId',
+        None,
+        u'The ID for the entity, if any.',
+        flag_values=fv)
+    flags.DEFINE_string(
+        'etag',
+        None,
+        u'HTTP 1.1 Entity tag for the access-control entry.',
+        flag_values=fv)
+    flags.DEFINE_string(
+        'id',
+        None,
+        u'The ID of the access-control entry.',
+        flag_values=fv)
+    flags.DEFINE_string(
+        'kind',
+        u'storage#bucketAccessControl',
+        u'The kind of item this is. For bucket access control entries, this '
+        u'is always storage#bucketAccessControl.',
+        flag_values=fv)
+    flags.DEFINE_string(
+        'projectTeam',
+        None,
+        u'The project team associated with the entity, if any.',
+        flag_values=fv)
+    flags.DEFINE_string(
+        'role',
+        None,
+        u'The access permission for the entity. Can be READER, WRITER, or '
+        u'OWNER.',
+        flag_values=fv)
+    flags.DEFINE_string(
+        'selfLink',
+        None,
+        u'The link to this access-control entry.',
         flag_values=fv)
 
-  def RunWithArgs(self, bucket, object, entity):
-    """Updates an ACL entry on the specified object.
+  def RunWithArgs(self, bucket, entity):
+    """Updates an ACL entry on the specified bucket.
 
     Args:
-      bucket: Name of a bucket.
-      object: Name of the object.
-      entity: The entity holding the permission. Can be user-userId, user-
-        emailAddress, group-groupId, group-emailAddress, allUsers, or
-        allAuthenticatedUsers.
+      bucket: The name of the bucket.
+      entity: The entity holding the permission, in one of the following
+        forms:  - user-userId  - user-email  - group-groupId  - group-email  -
+        domain-domain  - project-team-projectId  - allUsers  -
+        allAuthenticatedUsers Examples:  - The user liz@example.com would be
+        user-liz@example.com.  - The group example@googlegroups.com would be
+        group-example@googlegroups.com.  - To refer to all members of the
+        Google Apps for Business domain example.com, the entity would be
+        domain-example.com.
 
     Flags:
-      generation: If present, selects a specific revision of this object (as
-        opposed to the latest version, the default).
-      objectAccessControl: A ObjectAccessControl resource to be passed as the
-        request body.
+      domain: The domain associated with the entity, if any.
+      email: The email address associated with the entity, if any.
+      entityId: The ID for the entity, if any.
+      etag: HTTP 1.1 Entity tag for the access-control entry.
+      id: The ID of the access-control entry.
+      kind: The kind of item this is. For bucket access control entries, this
+        is always storage#bucketAccessControl.
+      projectTeam: The project team associated with the entity, if any.
+      role: The access permission for the entity. Can be READER, WRITER, or
+        OWNER.
+      selfLink: The link to this access-control entry.
     """
     client = GetClientFromFlags()
     global_params = GetGlobalParamsFromFlags()
-    request = messages.StorageObjectAccessControlsUpdateRequest(
+    request = messages.BucketAccessControl(
         bucket=bucket.decode('utf8'),
-        object=object.decode('utf8'),
         entity=entity.decode('utf8'),
         )
-    if FLAGS['generation'].present:
-      request.generation = int(FLAGS.generation)
-    if FLAGS['objectAccessControl'].present:
-      request.objectAccessControl = apitools_base.JsonToMessage(messages.ObjectAccessControl, FLAGS.objectAccessControl)
-    result = client.objectAccessControls.Update(
+    if FLAGS['domain'].present:
+      request.domain = FLAGS.domain.decode('utf8')
+    if FLAGS['email'].present:
+      request.email = FLAGS.email.decode('utf8')
+    if FLAGS['entityId'].present:
+      request.entityId = FLAGS.entityId.decode('utf8')
+    if FLAGS['etag'].present:
+      request.etag = FLAGS.etag.decode('utf8')
+    if FLAGS['id'].present:
+      request.id = FLAGS.id.decode('utf8')
+    if FLAGS['kind'].present:
+      request.kind = FLAGS.kind.decode('utf8')
+    if FLAGS['projectTeam'].present:
+      request.projectTeam = apitools_base.JsonToMessage(messages.BucketAccessControl.ProjectTeamValue, FLAGS.projectTeam)
+    if FLAGS['role'].present:
+      request.role = FLAGS.role.decode('utf8')
+    if FLAGS['selfLink'].present:
+      request.selfLink = FLAGS.selfLink.decode('utf8')
+    result = client.bucketAccessControls.Update(
         request, global_params=global_params)
-    print apitools_base.FormatOutput(result)
+    print apitools_base_cli.FormatOutput(result)
 
 
-class ObjectsCompose(apitools_base.NewCmd):
+class ChannelsStop(apitools_base_cli.NewCmd):
+  """Command wrapping channels.Stop."""
+
+  usage = """channels_stop"""
+
+  def __init__(self, name, fv):
+    super(ChannelsStop, self).__init__(name, fv)
+    flags.DEFINE_string(
+        'address',
+        None,
+        u'The address where notifications are delivered for this channel.',
+        flag_values=fv)
+    flags.DEFINE_string(
+        'expiration',
+        None,
+        u'Date and time of notification channel expiration, expressed as a '
+        u'Unix timestamp, in milliseconds. Optional.',
+        flag_values=fv)
+    flags.DEFINE_string(
+        'id',
+        None,
+        u'A UUID or similar unique string that identifies this channel.',
+        flag_values=fv)
+    flags.DEFINE_string(
+        'kind',
+        u'api#channel',
+        u'Identifies this as a notification channel used to watch for changes'
+        u' to a resource. Value: the fixed string "api#channel".',
+        flag_values=fv)
+    flags.DEFINE_string(
+        'params',
+        None,
+        u'Additional parameters controlling delivery channel behavior. '
+        u'Optional.',
+        flag_values=fv)
+    flags.DEFINE_boolean(
+        'payload',
+        None,
+        u'A Boolean value to indicate whether payload is wanted. Optional.',
+        flag_values=fv)
+    flags.DEFINE_string(
+        'resourceId',
+        None,
+        u'An opaque ID that identifies the resource being watched on this '
+        u'channel. Stable across different API versions.',
+        flag_values=fv)
+    flags.DEFINE_string(
+        'resourceUri',
+        None,
+        u'A version-specific identifier for the watched resource.',
+        flag_values=fv)
+    flags.DEFINE_string(
+        'token',
+        None,
+        u'An arbitrary string delivered to the target address with each '
+        u'notification delivered over this channel. Optional.',
+        flag_values=fv)
+    flags.DEFINE_string(
+        'type',
+        None,
+        u'The type of delivery mechanism used for this channel.',
+        flag_values=fv)
+
+  def RunWithArgs(self):
+    """Stop watching resources through this channel
+
+    Flags:
+      address: The address where notifications are delivered for this channel.
+      expiration: Date and time of notification channel expiration, expressed
+        as a Unix timestamp, in milliseconds. Optional.
+      id: A UUID or similar unique string that identifies this channel.
+      kind: Identifies this as a notification channel used to watch for
+        changes to a resource. Value: the fixed string "api#channel".
+      params: Additional parameters controlling delivery channel behavior.
+        Optional.
+      payload: A Boolean value to indicate whether payload is wanted.
+        Optional.
+      resourceId: An opaque ID that identifies the resource being watched on
+        this channel. Stable across different API versions.
+      resourceUri: A version-specific identifier for the watched resource.
+      token: An arbitrary string delivered to the target address with each
+        notification delivered over this channel. Optional.
+      type: The type of delivery mechanism used for this channel.
+    """
+    client = GetClientFromFlags()
+    global_params = GetGlobalParamsFromFlags()
+    request = messages.Channel(
+        )
+    if FLAGS['address'].present:
+      request.address = FLAGS.address.decode('utf8')
+    if FLAGS['expiration'].present:
+      request.expiration = int(FLAGS.expiration)
+    if FLAGS['id'].present:
+      request.id = FLAGS.id.decode('utf8')
+    if FLAGS['kind'].present:
+      request.kind = FLAGS.kind.decode('utf8')
+    if FLAGS['params'].present:
+      request.params = apitools_base.JsonToMessage(messages.Channel.ParamsValue, FLAGS.params)
+    if FLAGS['payload'].present:
+      request.payload = FLAGS.payload
+    if FLAGS['resourceId'].present:
+      request.resourceId = FLAGS.resourceId.decode('utf8')
+    if FLAGS['resourceUri'].present:
+      request.resourceUri = FLAGS.resourceUri.decode('utf8')
+    if FLAGS['token'].present:
+      request.token = FLAGS.token.decode('utf8')
+    if FLAGS['type'].present:
+      request.type = FLAGS.type.decode('utf8')
+    result = client.channels.Stop(
+        request, global_params=global_params)
+    print apitools_base_cli.FormatOutput(result)
+
+
+class ObjectsCompose(apitools_base_cli.NewCmd):
   """Command wrapping objects.Compose."""
 
   usage = """objects_compose <destinationBucket> <destinationObject>"""
@@ -1893,10 +1268,10 @@ class ObjectsCompose(apitools_base.NewCmd):
       download = apitools_base.Download.FromFile(FLAGS.download_filename, overwrite=FLAGS.overwrite)
     result = client.objects.Compose(
         request, global_params=global_params, download=download)
-    print apitools_base.FormatOutput(result)
+    print apitools_base_cli.FormatOutput(result)
 
 
-class ObjectsCopy(apitools_base.NewCmd):
+class ObjectsCopy(apitools_base_cli.NewCmd):
   """Command wrapping objects.Copy."""
 
   usage = """objects_copy <sourceBucket> <sourceObject> <destinationBucket> <destinationObject>"""
@@ -2067,10 +1442,10 @@ class ObjectsCopy(apitools_base.NewCmd):
       download = apitools_base.Download.FromFile(FLAGS.download_filename, overwrite=FLAGS.overwrite)
     result = client.objects.Copy(
         request, global_params=global_params, download=download)
-    print apitools_base.FormatOutput(result)
+    print apitools_base_cli.FormatOutput(result)
 
 
-class ObjectsDelete(apitools_base.NewCmd):
+class ObjectsDelete(apitools_base_cli.NewCmd):
   """Command wrapping objects.Delete."""
 
   usage = """objects_delete <bucket> <object>"""
@@ -2147,10 +1522,10 @@ class ObjectsDelete(apitools_base.NewCmd):
       request.ifMetagenerationNotMatch = int(FLAGS.ifMetagenerationNotMatch)
     result = client.objects.Delete(
         request, global_params=global_params)
-    print apitools_base.FormatOutput(result)
+    print apitools_base_cli.FormatOutput(result)
 
 
-class ObjectsGet(apitools_base.NewCmd):
+class ObjectsGet(apitools_base_cli.NewCmd):
   """Command wrapping objects.Get."""
 
   usage = """objects_get <bucket> <object>"""
@@ -2249,10 +1624,10 @@ class ObjectsGet(apitools_base.NewCmd):
       download = apitools_base.Download.FromFile(FLAGS.download_filename, overwrite=FLAGS.overwrite)
     result = client.objects.Get(
         request, global_params=global_params, download=download)
-    print apitools_base.FormatOutput(result)
+    print apitools_base_cli.FormatOutput(result)
 
 
-class ObjectsInsert(apitools_base.NewCmd):
+class ObjectsInsert(apitools_base_cli.NewCmd):
   """Command wrapping objects.Insert."""
 
   usage = """objects_insert <bucket>"""
@@ -2407,10 +1782,10 @@ class ObjectsInsert(apitools_base.NewCmd):
       download = apitools_base.Download.FromFile(FLAGS.download_filename, overwrite=FLAGS.overwrite)
     result = client.objects.Insert(
         request, global_params=global_params, upload=upload, download=download)
-    print apitools_base.FormatOutput(result)
+    print apitools_base_cli.FormatOutput(result)
 
 
-class ObjectsList(apitools_base.NewCmd):
+class ObjectsList(apitools_base_cli.NewCmd):
   """Command wrapping objects.List."""
 
   usage = """objects_list <bucket>"""
@@ -2496,10 +1871,10 @@ class ObjectsList(apitools_base.NewCmd):
       request.versions = FLAGS.versions
     result = client.objects.List(
         request, global_params=global_params)
-    print apitools_base.FormatOutput(result)
+    print apitools_base_cli.FormatOutput(result)
 
 
-class ObjectsPatch(apitools_base.NewCmd):
+class ObjectsPatch(apitools_base_cli.NewCmd):
   """Command wrapping objects.Patch."""
 
   usage = """objects_patch <bucket> <object>"""
@@ -2600,10 +1975,10 @@ class ObjectsPatch(apitools_base.NewCmd):
       request.projection = messages.StorageObjectsPatchRequest.ProjectionValueValuesEnum(FLAGS.projection)
     result = client.objects.Patch(
         request, global_params=global_params)
-    print apitools_base.FormatOutput(result)
+    print apitools_base_cli.FormatOutput(result)
 
 
-class ObjectsUpdate(apitools_base.NewCmd):
+class ObjectsUpdate(apitools_base_cli.NewCmd):
   """Command wrapping objects.Update."""
 
   usage = """objects_update <bucket> <object>"""
@@ -2719,10 +2094,10 @@ class ObjectsUpdate(apitools_base.NewCmd):
       download = apitools_base.Download.FromFile(FLAGS.download_filename, overwrite=FLAGS.overwrite)
     result = client.objects.Update(
         request, global_params=global_params, download=download)
-    print apitools_base.FormatOutput(result)
+    print apitools_base_cli.FormatOutput(result)
 
 
-class ObjectsWatchAll(apitools_base.NewCmd):
+class ObjectsWatchAll(apitools_base_cli.NewCmd):
   """Command wrapping objects.WatchAll."""
 
   usage = """objects_watchAll <bucket>"""
@@ -2816,36 +2191,698 @@ class ObjectsWatchAll(apitools_base.NewCmd):
       request.versions = FLAGS.versions
     result = client.objects.WatchAll(
         request, global_params=global_params)
-    print apitools_base.FormatOutput(result)
+    print apitools_base_cli.FormatOutput(result)
+
+
+class ObjectAccessControlsDelete(apitools_base_cli.NewCmd):
+  """Command wrapping objectAccessControls.Delete."""
+
+  usage = """objectAccessControls_delete <bucket> <object> <entity>"""
+
+  def __init__(self, name, fv):
+    super(ObjectAccessControlsDelete, self).__init__(name, fv)
+    flags.DEFINE_string(
+        'generation',
+        None,
+        u'If present, selects a specific revision of this object (as opposed '
+        u'to the latest version, the default).',
+        flag_values=fv)
+
+  def RunWithArgs(self, bucket, object, entity):
+    """Permanently deletes the ACL entry for the specified entity on the
+    specified object.
+
+    Args:
+      bucket: Name of a bucket.
+      object: Name of the object.
+      entity: The entity holding the permission. Can be user-userId, user-
+        emailAddress, group-groupId, group-emailAddress, allUsers, or
+        allAuthenticatedUsers.
+
+    Flags:
+      generation: If present, selects a specific revision of this object (as
+        opposed to the latest version, the default).
+    """
+    client = GetClientFromFlags()
+    global_params = GetGlobalParamsFromFlags()
+    request = messages.StorageObjectAccessControlsDeleteRequest(
+        bucket=bucket.decode('utf8'),
+        object=object.decode('utf8'),
+        entity=entity.decode('utf8'),
+        )
+    if FLAGS['generation'].present:
+      request.generation = int(FLAGS.generation)
+    result = client.objectAccessControls.Delete(
+        request, global_params=global_params)
+    print apitools_base_cli.FormatOutput(result)
+
+
+class ObjectAccessControlsGet(apitools_base_cli.NewCmd):
+  """Command wrapping objectAccessControls.Get."""
+
+  usage = """objectAccessControls_get <bucket> <object> <entity>"""
+
+  def __init__(self, name, fv):
+    super(ObjectAccessControlsGet, self).__init__(name, fv)
+    flags.DEFINE_string(
+        'generation',
+        None,
+        u'If present, selects a specific revision of this object (as opposed '
+        u'to the latest version, the default).',
+        flag_values=fv)
+
+  def RunWithArgs(self, bucket, object, entity):
+    """Returns the ACL entry for the specified entity on the specified object.
+
+    Args:
+      bucket: Name of a bucket.
+      object: Name of the object.
+      entity: The entity holding the permission. Can be user-userId, user-
+        emailAddress, group-groupId, group-emailAddress, allUsers, or
+        allAuthenticatedUsers.
+
+    Flags:
+      generation: If present, selects a specific revision of this object (as
+        opposed to the latest version, the default).
+    """
+    client = GetClientFromFlags()
+    global_params = GetGlobalParamsFromFlags()
+    request = messages.StorageObjectAccessControlsGetRequest(
+        bucket=bucket.decode('utf8'),
+        object=object.decode('utf8'),
+        entity=entity.decode('utf8'),
+        )
+    if FLAGS['generation'].present:
+      request.generation = int(FLAGS.generation)
+    result = client.objectAccessControls.Get(
+        request, global_params=global_params)
+    print apitools_base_cli.FormatOutput(result)
+
+
+class ObjectAccessControlsInsert(apitools_base_cli.NewCmd):
+  """Command wrapping objectAccessControls.Insert."""
+
+  usage = """objectAccessControls_insert <bucket> <object>"""
+
+  def __init__(self, name, fv):
+    super(ObjectAccessControlsInsert, self).__init__(name, fv)
+    flags.DEFINE_string(
+        'generation',
+        None,
+        u'If present, selects a specific revision of this object (as opposed '
+        u'to the latest version, the default).',
+        flag_values=fv)
+    flags.DEFINE_string(
+        'objectAccessControl',
+        None,
+        u'A ObjectAccessControl resource to be passed as the request body.',
+        flag_values=fv)
+
+  def RunWithArgs(self, bucket, object):
+    """Creates a new ACL entry on the specified object.
+
+    Args:
+      bucket: Name of a bucket.
+      object: Name of the object.
+
+    Flags:
+      generation: If present, selects a specific revision of this object (as
+        opposed to the latest version, the default).
+      objectAccessControl: A ObjectAccessControl resource to be passed as the
+        request body.
+    """
+    client = GetClientFromFlags()
+    global_params = GetGlobalParamsFromFlags()
+    request = messages.StorageObjectAccessControlsInsertRequest(
+        bucket=bucket.decode('utf8'),
+        object=object.decode('utf8'),
+        )
+    if FLAGS['generation'].present:
+      request.generation = int(FLAGS.generation)
+    if FLAGS['objectAccessControl'].present:
+      request.objectAccessControl = apitools_base.JsonToMessage(messages.ObjectAccessControl, FLAGS.objectAccessControl)
+    result = client.objectAccessControls.Insert(
+        request, global_params=global_params)
+    print apitools_base_cli.FormatOutput(result)
+
+
+class ObjectAccessControlsList(apitools_base_cli.NewCmd):
+  """Command wrapping objectAccessControls.List."""
+
+  usage = """objectAccessControls_list <bucket> <object>"""
+
+  def __init__(self, name, fv):
+    super(ObjectAccessControlsList, self).__init__(name, fv)
+    flags.DEFINE_string(
+        'generation',
+        None,
+        u'If present, selects a specific revision of this object (as opposed '
+        u'to the latest version, the default).',
+        flag_values=fv)
+
+  def RunWithArgs(self, bucket, object):
+    """Retrieves ACL entries on the specified object.
+
+    Args:
+      bucket: Name of a bucket.
+      object: Name of the object.
+
+    Flags:
+      generation: If present, selects a specific revision of this object (as
+        opposed to the latest version, the default).
+    """
+    client = GetClientFromFlags()
+    global_params = GetGlobalParamsFromFlags()
+    request = messages.StorageObjectAccessControlsListRequest(
+        bucket=bucket.decode('utf8'),
+        object=object.decode('utf8'),
+        )
+    if FLAGS['generation'].present:
+      request.generation = int(FLAGS.generation)
+    result = client.objectAccessControls.List(
+        request, global_params=global_params)
+    print apitools_base_cli.FormatOutput(result)
+
+
+class ObjectAccessControlsPatch(apitools_base_cli.NewCmd):
+  """Command wrapping objectAccessControls.Patch."""
+
+  usage = """objectAccessControls_patch <bucket> <object> <entity>"""
+
+  def __init__(self, name, fv):
+    super(ObjectAccessControlsPatch, self).__init__(name, fv)
+    flags.DEFINE_string(
+        'generation',
+        None,
+        u'If present, selects a specific revision of this object (as opposed '
+        u'to the latest version, the default).',
+        flag_values=fv)
+    flags.DEFINE_string(
+        'objectAccessControl',
+        None,
+        u'A ObjectAccessControl resource to be passed as the request body.',
+        flag_values=fv)
+
+  def RunWithArgs(self, bucket, object, entity):
+    """Updates an ACL entry on the specified object. This method supports
+    patch semantics.
+
+    Args:
+      bucket: Name of a bucket.
+      object: Name of the object.
+      entity: The entity holding the permission. Can be user-userId, user-
+        emailAddress, group-groupId, group-emailAddress, allUsers, or
+        allAuthenticatedUsers.
+
+    Flags:
+      generation: If present, selects a specific revision of this object (as
+        opposed to the latest version, the default).
+      objectAccessControl: A ObjectAccessControl resource to be passed as the
+        request body.
+    """
+    client = GetClientFromFlags()
+    global_params = GetGlobalParamsFromFlags()
+    request = messages.StorageObjectAccessControlsPatchRequest(
+        bucket=bucket.decode('utf8'),
+        object=object.decode('utf8'),
+        entity=entity.decode('utf8'),
+        )
+    if FLAGS['generation'].present:
+      request.generation = int(FLAGS.generation)
+    if FLAGS['objectAccessControl'].present:
+      request.objectAccessControl = apitools_base.JsonToMessage(messages.ObjectAccessControl, FLAGS.objectAccessControl)
+    result = client.objectAccessControls.Patch(
+        request, global_params=global_params)
+    print apitools_base_cli.FormatOutput(result)
+
+
+class ObjectAccessControlsUpdate(apitools_base_cli.NewCmd):
+  """Command wrapping objectAccessControls.Update."""
+
+  usage = """objectAccessControls_update <bucket> <object> <entity>"""
+
+  def __init__(self, name, fv):
+    super(ObjectAccessControlsUpdate, self).__init__(name, fv)
+    flags.DEFINE_string(
+        'generation',
+        None,
+        u'If present, selects a specific revision of this object (as opposed '
+        u'to the latest version, the default).',
+        flag_values=fv)
+    flags.DEFINE_string(
+        'objectAccessControl',
+        None,
+        u'A ObjectAccessControl resource to be passed as the request body.',
+        flag_values=fv)
+
+  def RunWithArgs(self, bucket, object, entity):
+    """Updates an ACL entry on the specified object.
+
+    Args:
+      bucket: Name of a bucket.
+      object: Name of the object.
+      entity: The entity holding the permission. Can be user-userId, user-
+        emailAddress, group-groupId, group-emailAddress, allUsers, or
+        allAuthenticatedUsers.
+
+    Flags:
+      generation: If present, selects a specific revision of this object (as
+        opposed to the latest version, the default).
+      objectAccessControl: A ObjectAccessControl resource to be passed as the
+        request body.
+    """
+    client = GetClientFromFlags()
+    global_params = GetGlobalParamsFromFlags()
+    request = messages.StorageObjectAccessControlsUpdateRequest(
+        bucket=bucket.decode('utf8'),
+        object=object.decode('utf8'),
+        entity=entity.decode('utf8'),
+        )
+    if FLAGS['generation'].present:
+      request.generation = int(FLAGS.generation)
+    if FLAGS['objectAccessControl'].present:
+      request.objectAccessControl = apitools_base.JsonToMessage(messages.ObjectAccessControl, FLAGS.objectAccessControl)
+    result = client.objectAccessControls.Update(
+        request, global_params=global_params)
+    print apitools_base_cli.FormatOutput(result)
+
+
+class BucketsDelete(apitools_base_cli.NewCmd):
+  """Command wrapping buckets.Delete."""
+
+  usage = """buckets_delete <bucket>"""
+
+  def __init__(self, name, fv):
+    super(BucketsDelete, self).__init__(name, fv)
+    flags.DEFINE_string(
+        'ifMetagenerationMatch',
+        None,
+        u'If set, only deletes the bucket if its metageneration matches this '
+        u'value.',
+        flag_values=fv)
+    flags.DEFINE_string(
+        'ifMetagenerationNotMatch',
+        None,
+        u'If set, only deletes the bucket if its metageneration does not '
+        u'match this value.',
+        flag_values=fv)
+
+  def RunWithArgs(self, bucket):
+    """Permanently deletes an empty bucket.
+
+    Args:
+      bucket: Name of a bucket.
+
+    Flags:
+      ifMetagenerationMatch: If set, only deletes the bucket if its
+        metageneration matches this value.
+      ifMetagenerationNotMatch: If set, only deletes the bucket if its
+        metageneration does not match this value.
+    """
+    client = GetClientFromFlags()
+    global_params = GetGlobalParamsFromFlags()
+    request = messages.StorageBucketsDeleteRequest(
+        bucket=bucket.decode('utf8'),
+        )
+    if FLAGS['ifMetagenerationMatch'].present:
+      request.ifMetagenerationMatch = int(FLAGS.ifMetagenerationMatch)
+    if FLAGS['ifMetagenerationNotMatch'].present:
+      request.ifMetagenerationNotMatch = int(FLAGS.ifMetagenerationNotMatch)
+    result = client.buckets.Delete(
+        request, global_params=global_params)
+    print apitools_base_cli.FormatOutput(result)
+
+
+class BucketsGet(apitools_base_cli.NewCmd):
+  """Command wrapping buckets.Get."""
+
+  usage = """buckets_get <bucket>"""
+
+  def __init__(self, name, fv):
+    super(BucketsGet, self).__init__(name, fv)
+    flags.DEFINE_string(
+        'ifMetagenerationMatch',
+        None,
+        u'Makes the return of the bucket metadata conditional on whether the '
+        u"bucket's current metageneration matches the given value.",
+        flag_values=fv)
+    flags.DEFINE_string(
+        'ifMetagenerationNotMatch',
+        None,
+        u'Makes the return of the bucket metadata conditional on whether the '
+        u"bucket's current metageneration does not match the given value.",
+        flag_values=fv)
+    flags.DEFINE_enum(
+        'projection',
+        u'full',
+        [u'full', u'noAcl'],
+        u'Set of properties to return. Defaults to noAcl.',
+        flag_values=fv)
+
+  def RunWithArgs(self, bucket):
+    """Returns metadata for the specified bucket.
+
+    Args:
+      bucket: Name of a bucket.
+
+    Flags:
+      ifMetagenerationMatch: Makes the return of the bucket metadata
+        conditional on whether the bucket's current metageneration matches the
+        given value.
+      ifMetagenerationNotMatch: Makes the return of the bucket metadata
+        conditional on whether the bucket's current metageneration does not
+        match the given value.
+      projection: Set of properties to return. Defaults to noAcl.
+    """
+    client = GetClientFromFlags()
+    global_params = GetGlobalParamsFromFlags()
+    request = messages.StorageBucketsGetRequest(
+        bucket=bucket.decode('utf8'),
+        )
+    if FLAGS['ifMetagenerationMatch'].present:
+      request.ifMetagenerationMatch = int(FLAGS.ifMetagenerationMatch)
+    if FLAGS['ifMetagenerationNotMatch'].present:
+      request.ifMetagenerationNotMatch = int(FLAGS.ifMetagenerationNotMatch)
+    if FLAGS['projection'].present:
+      request.projection = messages.StorageBucketsGetRequest.ProjectionValueValuesEnum(FLAGS.projection)
+    result = client.buckets.Get(
+        request, global_params=global_params)
+    print apitools_base_cli.FormatOutput(result)
+
+
+class BucketsInsert(apitools_base_cli.NewCmd):
+  """Command wrapping buckets.Insert."""
+
+  usage = """buckets_insert <project>"""
+
+  def __init__(self, name, fv):
+    super(BucketsInsert, self).__init__(name, fv)
+    flags.DEFINE_string(
+        'bucket',
+        None,
+        u'A Bucket resource to be passed as the request body.',
+        flag_values=fv)
+    flags.DEFINE_enum(
+        'predefinedAcl',
+        u'authenticatedRead',
+        [u'authenticatedRead', u'private', u'projectPrivate', u'publicRead', u'publicReadWrite'],
+        u'Apply a predefined set of access controls to this bucket.',
+        flag_values=fv)
+    flags.DEFINE_enum(
+        'predefinedDefaultObjectAcl',
+        u'authenticatedRead',
+        [u'authenticatedRead', u'bucketOwnerFullControl', u'bucketOwnerRead', u'private', u'projectPrivate', u'publicRead'],
+        u'Apply a predefined set of default object access controls to this '
+        u'bucket.',
+        flag_values=fv)
+    flags.DEFINE_enum(
+        'projection',
+        u'full',
+        [u'full', u'noAcl'],
+        u'Set of properties to return. Defaults to noAcl, unless the bucket '
+        u'resource specifies acl or defaultObjectAcl properties, when it '
+        u'defaults to full.',
+        flag_values=fv)
+
+  def RunWithArgs(self, project):
+    """Creates a new bucket.
+
+    Args:
+      project: A valid API project identifier.
+
+    Flags:
+      bucket: A Bucket resource to be passed as the request body.
+      predefinedAcl: Apply a predefined set of access controls to this bucket.
+      predefinedDefaultObjectAcl: Apply a predefined set of default object
+        access controls to this bucket.
+      projection: Set of properties to return. Defaults to noAcl, unless the
+        bucket resource specifies acl or defaultObjectAcl properties, when it
+        defaults to full.
+    """
+    client = GetClientFromFlags()
+    global_params = GetGlobalParamsFromFlags()
+    request = messages.StorageBucketsInsertRequest(
+        project=project.decode('utf8'),
+        )
+    if FLAGS['bucket'].present:
+      request.bucket = apitools_base.JsonToMessage(messages.Bucket, FLAGS.bucket)
+    if FLAGS['predefinedAcl'].present:
+      request.predefinedAcl = messages.StorageBucketsInsertRequest.PredefinedAclValueValuesEnum(FLAGS.predefinedAcl)
+    if FLAGS['predefinedDefaultObjectAcl'].present:
+      request.predefinedDefaultObjectAcl = messages.StorageBucketsInsertRequest.PredefinedDefaultObjectAclValueValuesEnum(FLAGS.predefinedDefaultObjectAcl)
+    if FLAGS['projection'].present:
+      request.projection = messages.StorageBucketsInsertRequest.ProjectionValueValuesEnum(FLAGS.projection)
+    result = client.buckets.Insert(
+        request, global_params=global_params)
+    print apitools_base_cli.FormatOutput(result)
+
+
+class BucketsList(apitools_base_cli.NewCmd):
+  """Command wrapping buckets.List."""
+
+  usage = """buckets_list <project>"""
+
+  def __init__(self, name, fv):
+    super(BucketsList, self).__init__(name, fv)
+    flags.DEFINE_integer(
+        'maxResults',
+        None,
+        u'Maximum number of buckets to return.',
+        flag_values=fv)
+    flags.DEFINE_string(
+        'pageToken',
+        None,
+        u'A previously-returned page token representing part of the larger '
+        u'set of results to view.',
+        flag_values=fv)
+    flags.DEFINE_string(
+        'prefix',
+        None,
+        u'Filter results to buckets whose names begin with this prefix.',
+        flag_values=fv)
+    flags.DEFINE_enum(
+        'projection',
+        u'full',
+        [u'full', u'noAcl'],
+        u'Set of properties to return. Defaults to noAcl.',
+        flag_values=fv)
+
+  def RunWithArgs(self, project):
+    """Retrieves a list of buckets for a given project.
+
+    Args:
+      project: A valid API project identifier.
+
+    Flags:
+      maxResults: Maximum number of buckets to return.
+      pageToken: A previously-returned page token representing part of the
+        larger set of results to view.
+      prefix: Filter results to buckets whose names begin with this prefix.
+      projection: Set of properties to return. Defaults to noAcl.
+    """
+    client = GetClientFromFlags()
+    global_params = GetGlobalParamsFromFlags()
+    request = messages.StorageBucketsListRequest(
+        project=project.decode('utf8'),
+        )
+    if FLAGS['maxResults'].present:
+      request.maxResults = FLAGS.maxResults
+    if FLAGS['pageToken'].present:
+      request.pageToken = FLAGS.pageToken.decode('utf8')
+    if FLAGS['prefix'].present:
+      request.prefix = FLAGS.prefix.decode('utf8')
+    if FLAGS['projection'].present:
+      request.projection = messages.StorageBucketsListRequest.ProjectionValueValuesEnum(FLAGS.projection)
+    result = client.buckets.List(
+        request, global_params=global_params)
+    print apitools_base_cli.FormatOutput(result)
+
+
+class BucketsPatch(apitools_base_cli.NewCmd):
+  """Command wrapping buckets.Patch."""
+
+  usage = """buckets_patch <bucket>"""
+
+  def __init__(self, name, fv):
+    super(BucketsPatch, self).__init__(name, fv)
+    flags.DEFINE_string(
+        'bucketResource',
+        None,
+        u'A Bucket resource to be passed as the request body.',
+        flag_values=fv)
+    flags.DEFINE_string(
+        'ifMetagenerationMatch',
+        None,
+        u'Makes the return of the bucket metadata conditional on whether the '
+        u"bucket's current metageneration matches the given value.",
+        flag_values=fv)
+    flags.DEFINE_string(
+        'ifMetagenerationNotMatch',
+        None,
+        u'Makes the return of the bucket metadata conditional on whether the '
+        u"bucket's current metageneration does not match the given value.",
+        flag_values=fv)
+    flags.DEFINE_enum(
+        'predefinedAcl',
+        u'authenticatedRead',
+        [u'authenticatedRead', u'private', u'projectPrivate', u'publicRead', u'publicReadWrite'],
+        u'Apply a predefined set of access controls to this bucket.',
+        flag_values=fv)
+    flags.DEFINE_enum(
+        'predefinedDefaultObjectAcl',
+        u'authenticatedRead',
+        [u'authenticatedRead', u'bucketOwnerFullControl', u'bucketOwnerRead', u'private', u'projectPrivate', u'publicRead'],
+        u'Apply a predefined set of default object access controls to this '
+        u'bucket.',
+        flag_values=fv)
+    flags.DEFINE_enum(
+        'projection',
+        u'full',
+        [u'full', u'noAcl'],
+        u'Set of properties to return. Defaults to full.',
+        flag_values=fv)
+
+  def RunWithArgs(self, bucket):
+    """Updates a bucket. This method supports patch semantics.
+
+    Args:
+      bucket: Name of a bucket.
+
+    Flags:
+      bucketResource: A Bucket resource to be passed as the request body.
+      ifMetagenerationMatch: Makes the return of the bucket metadata
+        conditional on whether the bucket's current metageneration matches the
+        given value.
+      ifMetagenerationNotMatch: Makes the return of the bucket metadata
+        conditional on whether the bucket's current metageneration does not
+        match the given value.
+      predefinedAcl: Apply a predefined set of access controls to this bucket.
+      predefinedDefaultObjectAcl: Apply a predefined set of default object
+        access controls to this bucket.
+      projection: Set of properties to return. Defaults to full.
+    """
+    client = GetClientFromFlags()
+    global_params = GetGlobalParamsFromFlags()
+    request = messages.StorageBucketsPatchRequest(
+        bucket=bucket.decode('utf8'),
+        )
+    if FLAGS['bucketResource'].present:
+      request.bucketResource = apitools_base.JsonToMessage(messages.Bucket, FLAGS.bucketResource)
+    if FLAGS['ifMetagenerationMatch'].present:
+      request.ifMetagenerationMatch = int(FLAGS.ifMetagenerationMatch)
+    if FLAGS['ifMetagenerationNotMatch'].present:
+      request.ifMetagenerationNotMatch = int(FLAGS.ifMetagenerationNotMatch)
+    if FLAGS['predefinedAcl'].present:
+      request.predefinedAcl = messages.StorageBucketsPatchRequest.PredefinedAclValueValuesEnum(FLAGS.predefinedAcl)
+    if FLAGS['predefinedDefaultObjectAcl'].present:
+      request.predefinedDefaultObjectAcl = messages.StorageBucketsPatchRequest.PredefinedDefaultObjectAclValueValuesEnum(FLAGS.predefinedDefaultObjectAcl)
+    if FLAGS['projection'].present:
+      request.projection = messages.StorageBucketsPatchRequest.ProjectionValueValuesEnum(FLAGS.projection)
+    result = client.buckets.Patch(
+        request, global_params=global_params)
+    print apitools_base_cli.FormatOutput(result)
+
+
+class BucketsUpdate(apitools_base_cli.NewCmd):
+  """Command wrapping buckets.Update."""
+
+  usage = """buckets_update <bucket>"""
+
+  def __init__(self, name, fv):
+    super(BucketsUpdate, self).__init__(name, fv)
+    flags.DEFINE_string(
+        'bucketResource',
+        None,
+        u'A Bucket resource to be passed as the request body.',
+        flag_values=fv)
+    flags.DEFINE_string(
+        'ifMetagenerationMatch',
+        None,
+        u'Makes the return of the bucket metadata conditional on whether the '
+        u"bucket's current metageneration matches the given value.",
+        flag_values=fv)
+    flags.DEFINE_string(
+        'ifMetagenerationNotMatch',
+        None,
+        u'Makes the return of the bucket metadata conditional on whether the '
+        u"bucket's current metageneration does not match the given value.",
+        flag_values=fv)
+    flags.DEFINE_enum(
+        'predefinedAcl',
+        u'authenticatedRead',
+        [u'authenticatedRead', u'private', u'projectPrivate', u'publicRead', u'publicReadWrite'],
+        u'Apply a predefined set of access controls to this bucket.',
+        flag_values=fv)
+    flags.DEFINE_enum(
+        'predefinedDefaultObjectAcl',
+        u'authenticatedRead',
+        [u'authenticatedRead', u'bucketOwnerFullControl', u'bucketOwnerRead', u'private', u'projectPrivate', u'publicRead'],
+        u'Apply a predefined set of default object access controls to this '
+        u'bucket.',
+        flag_values=fv)
+    flags.DEFINE_enum(
+        'projection',
+        u'full',
+        [u'full', u'noAcl'],
+        u'Set of properties to return. Defaults to full.',
+        flag_values=fv)
+
+  def RunWithArgs(self, bucket):
+    """Updates a bucket.
+
+    Args:
+      bucket: Name of a bucket.
+
+    Flags:
+      bucketResource: A Bucket resource to be passed as the request body.
+      ifMetagenerationMatch: Makes the return of the bucket metadata
+        conditional on whether the bucket's current metageneration matches the
+        given value.
+      ifMetagenerationNotMatch: Makes the return of the bucket metadata
+        conditional on whether the bucket's current metageneration does not
+        match the given value.
+      predefinedAcl: Apply a predefined set of access controls to this bucket.
+      predefinedDefaultObjectAcl: Apply a predefined set of default object
+        access controls to this bucket.
+      projection: Set of properties to return. Defaults to full.
+    """
+    client = GetClientFromFlags()
+    global_params = GetGlobalParamsFromFlags()
+    request = messages.StorageBucketsUpdateRequest(
+        bucket=bucket.decode('utf8'),
+        )
+    if FLAGS['bucketResource'].present:
+      request.bucketResource = apitools_base.JsonToMessage(messages.Bucket, FLAGS.bucketResource)
+    if FLAGS['ifMetagenerationMatch'].present:
+      request.ifMetagenerationMatch = int(FLAGS.ifMetagenerationMatch)
+    if FLAGS['ifMetagenerationNotMatch'].present:
+      request.ifMetagenerationNotMatch = int(FLAGS.ifMetagenerationNotMatch)
+    if FLAGS['predefinedAcl'].present:
+      request.predefinedAcl = messages.StorageBucketsUpdateRequest.PredefinedAclValueValuesEnum(FLAGS.predefinedAcl)
+    if FLAGS['predefinedDefaultObjectAcl'].present:
+      request.predefinedDefaultObjectAcl = messages.StorageBucketsUpdateRequest.PredefinedDefaultObjectAclValueValuesEnum(FLAGS.predefinedDefaultObjectAcl)
+    if FLAGS['projection'].present:
+      request.projection = messages.StorageBucketsUpdateRequest.ProjectionValueValuesEnum(FLAGS.projection)
+    result = client.buckets.Update(
+        request, global_params=global_params)
+    print apitools_base_cli.FormatOutput(result)
 
 
 def main(_):
   appcommands.AddCmd('pyshell', PyShell)
-  appcommands.AddCmd('bucketAccessControls_delete', BucketAccessControlsDelete)
-  appcommands.AddCmd('bucketAccessControls_get', BucketAccessControlsGet)
-  appcommands.AddCmd('bucketAccessControls_insert', BucketAccessControlsInsert)
-  appcommands.AddCmd('bucketAccessControls_list', BucketAccessControlsList)
-  appcommands.AddCmd('bucketAccessControls_patch', BucketAccessControlsPatch)
-  appcommands.AddCmd('bucketAccessControls_update', BucketAccessControlsUpdate)
-  appcommands.AddCmd('buckets_delete', BucketsDelete)
-  appcommands.AddCmd('buckets_get', BucketsGet)
-  appcommands.AddCmd('buckets_insert', BucketsInsert)
-  appcommands.AddCmd('buckets_list', BucketsList)
-  appcommands.AddCmd('buckets_patch', BucketsPatch)
-  appcommands.AddCmd('buckets_update', BucketsUpdate)
-  appcommands.AddCmd('channels_stop', ChannelsStop)
   appcommands.AddCmd('defaultObjectAccessControls_delete', DefaultObjectAccessControlsDelete)
   appcommands.AddCmd('defaultObjectAccessControls_get', DefaultObjectAccessControlsGet)
   appcommands.AddCmd('defaultObjectAccessControls_insert', DefaultObjectAccessControlsInsert)
   appcommands.AddCmd('defaultObjectAccessControls_list', DefaultObjectAccessControlsList)
   appcommands.AddCmd('defaultObjectAccessControls_patch', DefaultObjectAccessControlsPatch)
   appcommands.AddCmd('defaultObjectAccessControls_update', DefaultObjectAccessControlsUpdate)
-  appcommands.AddCmd('objectAccessControls_delete', ObjectAccessControlsDelete)
-  appcommands.AddCmd('objectAccessControls_get', ObjectAccessControlsGet)
-  appcommands.AddCmd('objectAccessControls_insert', ObjectAccessControlsInsert)
-  appcommands.AddCmd('objectAccessControls_list', ObjectAccessControlsList)
-  appcommands.AddCmd('objectAccessControls_patch', ObjectAccessControlsPatch)
-  appcommands.AddCmd('objectAccessControls_update', ObjectAccessControlsUpdate)
+  appcommands.AddCmd('bucketAccessControls_delete', BucketAccessControlsDelete)
+  appcommands.AddCmd('bucketAccessControls_get', BucketAccessControlsGet)
+  appcommands.AddCmd('bucketAccessControls_insert', BucketAccessControlsInsert)
+  appcommands.AddCmd('bucketAccessControls_list', BucketAccessControlsList)
+  appcommands.AddCmd('bucketAccessControls_patch', BucketAccessControlsPatch)
+  appcommands.AddCmd('bucketAccessControls_update', BucketAccessControlsUpdate)
+  appcommands.AddCmd('channels_stop', ChannelsStop)
   appcommands.AddCmd('objects_compose', ObjectsCompose)
   appcommands.AddCmd('objects_copy', ObjectsCopy)
   appcommands.AddCmd('objects_delete', ObjectsDelete)
@@ -2855,13 +2892,25 @@ def main(_):
   appcommands.AddCmd('objects_patch', ObjectsPatch)
   appcommands.AddCmd('objects_update', ObjectsUpdate)
   appcommands.AddCmd('objects_watchAll', ObjectsWatchAll)
+  appcommands.AddCmd('objectAccessControls_delete', ObjectAccessControlsDelete)
+  appcommands.AddCmd('objectAccessControls_get', ObjectAccessControlsGet)
+  appcommands.AddCmd('objectAccessControls_insert', ObjectAccessControlsInsert)
+  appcommands.AddCmd('objectAccessControls_list', ObjectAccessControlsList)
+  appcommands.AddCmd('objectAccessControls_patch', ObjectAccessControlsPatch)
+  appcommands.AddCmd('objectAccessControls_update', ObjectAccessControlsUpdate)
+  appcommands.AddCmd('buckets_delete', BucketsDelete)
+  appcommands.AddCmd('buckets_get', BucketsGet)
+  appcommands.AddCmd('buckets_insert', BucketsInsert)
+  appcommands.AddCmd('buckets_list', BucketsList)
+  appcommands.AddCmd('buckets_patch', BucketsPatch)
+  appcommands.AddCmd('buckets_update', BucketsUpdate)
 
-  apitools_base.SetupLogger()
+  apitools_base_cli.SetupLogger()
   if hasattr(appcommands, 'SetDefaultCommand'):
     appcommands.SetDefaultCommand('pyshell')
 
 
-run_main = apitools_base.run_main
+run_main = apitools_base_cli.run_main
 
 if __name__ == '__main__':
   appcommands.Run()

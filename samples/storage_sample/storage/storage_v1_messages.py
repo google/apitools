@@ -4,6 +4,7 @@ Lets you store and retrieve potentially-large, immutable data objects.
 """
 
 from apitools.base.py import encoding
+from apitools.base.py import extra_types
 from protorpc import message_types
 from protorpc import messages
 
@@ -129,7 +130,7 @@ class Bucket(messages.Message):
         """
 
         age = messages.IntegerField(1, variant=messages.Variant.INT32)
-        createdBefore = message_types.DateTimeField(2)
+        createdBefore = extra_types.DateField(2)
         isLive = messages.BooleanField(3)
         numNewerVersions = messages.IntegerField(4, variant=messages.Variant.INT32)
 
@@ -733,6 +734,8 @@ class StorageBucketsInsertRequest(messages.Message):
   Enums:
     PredefinedAclValueValuesEnum: Apply a predefined set of access controls to
       this bucket.
+    PredefinedDefaultObjectAclValueValuesEnum: Apply a predefined set of
+      default object access controls to this bucket.
     ProjectionValueValuesEnum: Set of properties to return. Defaults to noAcl,
       unless the bucket resource specifies acl or defaultObjectAcl properties,
       when it defaults to full.
@@ -740,6 +743,8 @@ class StorageBucketsInsertRequest(messages.Message):
   Fields:
     bucket: A Bucket resource to be passed as the request body.
     predefinedAcl: Apply a predefined set of access controls to this bucket.
+    predefinedDefaultObjectAcl: Apply a predefined set of default object
+      access controls to this bucket.
     project: A valid API project identifier.
     projection: Set of properties to return. Defaults to noAcl, unless the
       bucket resource specifies acl or defaultObjectAcl properties, when it
@@ -766,6 +771,30 @@ class StorageBucketsInsertRequest(messages.Message):
     publicRead = 3
     publicReadWrite = 4
 
+  class PredefinedDefaultObjectAclValueValuesEnum(messages.Enum):
+    """Apply a predefined set of default object access controls to this
+    bucket.
+
+    Values:
+      authenticatedRead: Object owner gets OWNER access, and
+        allAuthenticatedUsers get READER access.
+      bucketOwnerFullControl: Object owner gets OWNER access, and project team
+        owners get OWNER access.
+      bucketOwnerRead: Object owner gets OWNER access, and project team owners
+        get READER access.
+      private: Object owner gets OWNER access.
+      projectPrivate: Object owner gets OWNER access, and project team members
+        get access according to their roles.
+      publicRead: Object owner gets OWNER access, and allUsers get READER
+        access.
+    """
+    authenticatedRead = 0
+    bucketOwnerFullControl = 1
+    bucketOwnerRead = 2
+    private = 3
+    projectPrivate = 4
+    publicRead = 5
+
   class ProjectionValueValuesEnum(messages.Enum):
     """Set of properties to return. Defaults to noAcl, unless the bucket
     resource specifies acl or defaultObjectAcl properties, when it defaults to
@@ -780,8 +809,9 @@ class StorageBucketsInsertRequest(messages.Message):
 
   bucket = messages.MessageField('Bucket', 1)
   predefinedAcl = messages.EnumField('PredefinedAclValueValuesEnum', 2)
-  project = messages.StringField(3, required=True)
-  projection = messages.EnumField('ProjectionValueValuesEnum', 4)
+  predefinedDefaultObjectAcl = messages.EnumField('PredefinedDefaultObjectAclValueValuesEnum', 3)
+  project = messages.StringField(4, required=True)
+  projection = messages.EnumField('ProjectionValueValuesEnum', 5)
 
 
 class StorageBucketsListRequest(messages.Message):
@@ -794,6 +824,7 @@ class StorageBucketsListRequest(messages.Message):
     maxResults: Maximum number of buckets to return.
     pageToken: A previously-returned page token representing part of the
       larger set of results to view.
+    prefix: Filter results to buckets whose names begin with this prefix.
     project: A valid API project identifier.
     projection: Set of properties to return. Defaults to noAcl.
   """
@@ -810,8 +841,9 @@ class StorageBucketsListRequest(messages.Message):
 
   maxResults = messages.IntegerField(1, variant=messages.Variant.UINT32)
   pageToken = messages.StringField(2)
-  project = messages.StringField(3, required=True)
-  projection = messages.EnumField('ProjectionValueValuesEnum', 4)
+  prefix = messages.StringField(3)
+  project = messages.StringField(4, required=True)
+  projection = messages.EnumField('ProjectionValueValuesEnum', 5)
 
 
 class StorageBucketsPatchRequest(messages.Message):
@@ -820,6 +852,8 @@ class StorageBucketsPatchRequest(messages.Message):
   Enums:
     PredefinedAclValueValuesEnum: Apply a predefined set of access controls to
       this bucket.
+    PredefinedDefaultObjectAclValueValuesEnum: Apply a predefined set of
+      default object access controls to this bucket.
     ProjectionValueValuesEnum: Set of properties to return. Defaults to full.
 
   Fields:
@@ -831,6 +865,8 @@ class StorageBucketsPatchRequest(messages.Message):
       conditional on whether the bucket's current metageneration does not
       match the given value.
     predefinedAcl: Apply a predefined set of access controls to this bucket.
+    predefinedDefaultObjectAcl: Apply a predefined set of default object
+      access controls to this bucket.
     projection: Set of properties to return. Defaults to full.
   """
 
@@ -854,6 +890,30 @@ class StorageBucketsPatchRequest(messages.Message):
     publicRead = 3
     publicReadWrite = 4
 
+  class PredefinedDefaultObjectAclValueValuesEnum(messages.Enum):
+    """Apply a predefined set of default object access controls to this
+    bucket.
+
+    Values:
+      authenticatedRead: Object owner gets OWNER access, and
+        allAuthenticatedUsers get READER access.
+      bucketOwnerFullControl: Object owner gets OWNER access, and project team
+        owners get OWNER access.
+      bucketOwnerRead: Object owner gets OWNER access, and project team owners
+        get READER access.
+      private: Object owner gets OWNER access.
+      projectPrivate: Object owner gets OWNER access, and project team members
+        get access according to their roles.
+      publicRead: Object owner gets OWNER access, and allUsers get READER
+        access.
+    """
+    authenticatedRead = 0
+    bucketOwnerFullControl = 1
+    bucketOwnerRead = 2
+    private = 3
+    projectPrivate = 4
+    publicRead = 5
+
   class ProjectionValueValuesEnum(messages.Enum):
     """Set of properties to return. Defaults to full.
 
@@ -869,7 +929,8 @@ class StorageBucketsPatchRequest(messages.Message):
   ifMetagenerationMatch = messages.IntegerField(3)
   ifMetagenerationNotMatch = messages.IntegerField(4)
   predefinedAcl = messages.EnumField('PredefinedAclValueValuesEnum', 5)
-  projection = messages.EnumField('ProjectionValueValuesEnum', 6)
+  predefinedDefaultObjectAcl = messages.EnumField('PredefinedDefaultObjectAclValueValuesEnum', 6)
+  projection = messages.EnumField('ProjectionValueValuesEnum', 7)
 
 
 class StorageBucketsUpdateRequest(messages.Message):
@@ -878,6 +939,8 @@ class StorageBucketsUpdateRequest(messages.Message):
   Enums:
     PredefinedAclValueValuesEnum: Apply a predefined set of access controls to
       this bucket.
+    PredefinedDefaultObjectAclValueValuesEnum: Apply a predefined set of
+      default object access controls to this bucket.
     ProjectionValueValuesEnum: Set of properties to return. Defaults to full.
 
   Fields:
@@ -889,6 +952,8 @@ class StorageBucketsUpdateRequest(messages.Message):
       conditional on whether the bucket's current metageneration does not
       match the given value.
     predefinedAcl: Apply a predefined set of access controls to this bucket.
+    predefinedDefaultObjectAcl: Apply a predefined set of default object
+      access controls to this bucket.
     projection: Set of properties to return. Defaults to full.
   """
 
@@ -912,6 +977,30 @@ class StorageBucketsUpdateRequest(messages.Message):
     publicRead = 3
     publicReadWrite = 4
 
+  class PredefinedDefaultObjectAclValueValuesEnum(messages.Enum):
+    """Apply a predefined set of default object access controls to this
+    bucket.
+
+    Values:
+      authenticatedRead: Object owner gets OWNER access, and
+        allAuthenticatedUsers get READER access.
+      bucketOwnerFullControl: Object owner gets OWNER access, and project team
+        owners get OWNER access.
+      bucketOwnerRead: Object owner gets OWNER access, and project team owners
+        get READER access.
+      private: Object owner gets OWNER access.
+      projectPrivate: Object owner gets OWNER access, and project team members
+        get access according to their roles.
+      publicRead: Object owner gets OWNER access, and allUsers get READER
+        access.
+    """
+    authenticatedRead = 0
+    bucketOwnerFullControl = 1
+    bucketOwnerRead = 2
+    private = 3
+    projectPrivate = 4
+    publicRead = 5
+
   class ProjectionValueValuesEnum(messages.Enum):
     """Set of properties to return. Defaults to full.
 
@@ -927,7 +1016,8 @@ class StorageBucketsUpdateRequest(messages.Message):
   ifMetagenerationMatch = messages.IntegerField(3)
   ifMetagenerationNotMatch = messages.IntegerField(4)
   predefinedAcl = messages.EnumField('PredefinedAclValueValuesEnum', 5)
-  projection = messages.EnumField('ProjectionValueValuesEnum', 6)
+  predefinedDefaultObjectAcl = messages.EnumField('PredefinedDefaultObjectAclValueValuesEnum', 6)
+  projection = messages.EnumField('ProjectionValueValuesEnum', 7)
 
 
 class StorageChannelsStopResponse(messages.Message):

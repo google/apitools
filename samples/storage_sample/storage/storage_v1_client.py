@@ -9,19 +9,20 @@ class StorageV1(base_api.BaseApiClient):
   MESSAGES_MODULE = messages
 
   _PACKAGE = u'storage'
-  _SCOPES = [u'https://www.googleapis.com/auth/devstorage.full_control', u'https://www.googleapis.com/auth/devstorage.read_only', u'https://www.googleapis.com/auth/devstorage.read_write']
+  _SCOPES = [u'https://www.googleapis.com/auth/cloud-platform', u'https://www.googleapis.com/auth/devstorage.full_control', u'https://www.googleapis.com/auth/devstorage.read_only', u'https://www.googleapis.com/auth/devstorage.read_write']
   _VERSION = u'v1'
   _CLIENT_ID = '1042881264118.apps.googleusercontent.com'
   _CLIENT_SECRET = 'x_Tw5K8nnjoRAqULM9PFAC2b'
   _USER_AGENT = ''
   _CLIENT_CLASS_NAME = u'StorageV1'
   _URL_VERSION = u'v1'
-  _API_KEY = 'AIzaSyCBivqENU2RLBuz8XWfAjQiT5SAFCHHg6U'
+  _API_KEY = None
 
   def __init__(self, url='', credentials=None,
                get_credentials=True, http=None, model=None,
                log_request=False, log_response=False,
-               credentials_args=None, default_global_params=None):
+               credentials_args=None, default_global_params=None,
+               additional_http_headers=None):
     """Create a new storage handle."""
     url = url or u'https://www.googleapis.com/storage/v1/'
     super(StorageV1, self).__init__(
@@ -29,396 +30,23 @@ class StorageV1(base_api.BaseApiClient):
         get_credentials=get_credentials, http=http, model=model,
         log_request=log_request, log_response=log_response,
         credentials_args=credentials_args,
-        default_global_params=default_global_params)
-    self.bucketAccessControls = self.BucketAccessControlsService(self)
-    self.buckets = self.BucketsService(self)
-    self.channels = self.ChannelsService(self)
+        default_global_params=default_global_params,
+        additional_http_headers=additional_http_headers)
     self.defaultObjectAccessControls = self.DefaultObjectAccessControlsService(self)
-    self.objectAccessControls = self.ObjectAccessControlsService(self)
+    self.bucketAccessControls = self.BucketAccessControlsService(self)
+    self.channels = self.ChannelsService(self)
     self.objects = self.ObjectsService(self)
-
-  class BucketAccessControlsService(base_api.BaseApiService):
-    """Service class for the bucketAccessControls resource."""
-
-    def __init__(self, client):
-      super(StorageV1.BucketAccessControlsService, self).__init__(client)
-      self.__configs = {
-          'Delete': base_api.ApiMethodInfo(
-              http_method=u'DELETE',
-              method_id=u'storage.bucketAccessControls.delete',
-              ordered_params=[u'bucket', u'entity'],
-              path_params=[u'bucket', u'entity'],
-              query_params=[],
-              relative_path=u'b/{bucket}/acl/{entity}',
-              request_field='',
-              request_type_name=u'StorageBucketAccessControlsDeleteRequest',
-              response_type_name=u'StorageBucketAccessControlsDeleteResponse',
-              supports_download=False,
-          ),
-          'Get': base_api.ApiMethodInfo(
-              http_method=u'GET',
-              method_id=u'storage.bucketAccessControls.get',
-              ordered_params=[u'bucket', u'entity'],
-              path_params=[u'bucket', u'entity'],
-              query_params=[],
-              relative_path=u'b/{bucket}/acl/{entity}',
-              request_field='',
-              request_type_name=u'StorageBucketAccessControlsGetRequest',
-              response_type_name=u'BucketAccessControl',
-              supports_download=False,
-          ),
-          'Insert': base_api.ApiMethodInfo(
-              http_method=u'POST',
-              method_id=u'storage.bucketAccessControls.insert',
-              ordered_params=[u'bucket'],
-              path_params=[u'bucket'],
-              query_params=[],
-              relative_path=u'b/{bucket}/acl',
-              request_field='<request>',
-              request_type_name=u'BucketAccessControl',
-              response_type_name=u'BucketAccessControl',
-              supports_download=False,
-          ),
-          'List': base_api.ApiMethodInfo(
-              http_method=u'GET',
-              method_id=u'storage.bucketAccessControls.list',
-              ordered_params=[u'bucket'],
-              path_params=[u'bucket'],
-              query_params=[],
-              relative_path=u'b/{bucket}/acl',
-              request_field='',
-              request_type_name=u'StorageBucketAccessControlsListRequest',
-              response_type_name=u'BucketAccessControls',
-              supports_download=False,
-          ),
-          'Patch': base_api.ApiMethodInfo(
-              http_method=u'PATCH',
-              method_id=u'storage.bucketAccessControls.patch',
-              ordered_params=[u'bucket', u'entity'],
-              path_params=[u'bucket', u'entity'],
-              query_params=[],
-              relative_path=u'b/{bucket}/acl/{entity}',
-              request_field='<request>',
-              request_type_name=u'BucketAccessControl',
-              response_type_name=u'BucketAccessControl',
-              supports_download=False,
-          ),
-          'Update': base_api.ApiMethodInfo(
-              http_method=u'PUT',
-              method_id=u'storage.bucketAccessControls.update',
-              ordered_params=[u'bucket', u'entity'],
-              path_params=[u'bucket', u'entity'],
-              query_params=[],
-              relative_path=u'b/{bucket}/acl/{entity}',
-              request_field='<request>',
-              request_type_name=u'BucketAccessControl',
-              response_type_name=u'BucketAccessControl',
-              supports_download=False,
-          ),
-          }
-
-      self.__upload_configs = {
-          }
-
-    def GetMethodConfig(self, method):
-      return self.__configs.get(method)
-
-    def GetMethodUploadConfig(self, method):
-      return self.__upload_configs.get(method)
-
-    def Delete(self, request, global_params=None):
-      """Permanently deletes the ACL entry for the specified entity on the specified bucket.
-
-      Args:
-        request: (StorageBucketAccessControlsDeleteRequest) input message
-        global_params: (StandardQueryParameters, default: None) global arguments
-      Returns:
-        (StorageBucketAccessControlsDeleteResponse) The response message.
-      """
-      config = self.GetMethodConfig('Delete')
-      return self._RunMethod(
-          config, request, global_params=global_params)
-
-    def Get(self, request, global_params=None):
-      """Returns the ACL entry for the specified entity on the specified bucket.
-
-      Args:
-        request: (StorageBucketAccessControlsGetRequest) input message
-        global_params: (StandardQueryParameters, default: None) global arguments
-      Returns:
-        (BucketAccessControl) The response message.
-      """
-      config = self.GetMethodConfig('Get')
-      return self._RunMethod(
-          config, request, global_params=global_params)
-
-    def Insert(self, request, global_params=None):
-      """Creates a new ACL entry on the specified bucket.
-
-      Args:
-        request: (BucketAccessControl) input message
-        global_params: (StandardQueryParameters, default: None) global arguments
-      Returns:
-        (BucketAccessControl) The response message.
-      """
-      config = self.GetMethodConfig('Insert')
-      return self._RunMethod(
-          config, request, global_params=global_params)
-
-    def List(self, request, global_params=None):
-      """Retrieves ACL entries on the specified bucket.
-
-      Args:
-        request: (StorageBucketAccessControlsListRequest) input message
-        global_params: (StandardQueryParameters, default: None) global arguments
-      Returns:
-        (BucketAccessControls) The response message.
-      """
-      config = self.GetMethodConfig('List')
-      return self._RunMethod(
-          config, request, global_params=global_params)
-
-    def Patch(self, request, global_params=None):
-      """Updates an ACL entry on the specified bucket. This method supports patch semantics.
-
-      Args:
-        request: (BucketAccessControl) input message
-        global_params: (StandardQueryParameters, default: None) global arguments
-      Returns:
-        (BucketAccessControl) The response message.
-      """
-      config = self.GetMethodConfig('Patch')
-      return self._RunMethod(
-          config, request, global_params=global_params)
-
-    def Update(self, request, global_params=None):
-      """Updates an ACL entry on the specified bucket.
-
-      Args:
-        request: (BucketAccessControl) input message
-        global_params: (StandardQueryParameters, default: None) global arguments
-      Returns:
-        (BucketAccessControl) The response message.
-      """
-      config = self.GetMethodConfig('Update')
-      return self._RunMethod(
-          config, request, global_params=global_params)
-
-  class BucketsService(base_api.BaseApiService):
-    """Service class for the buckets resource."""
-
-    def __init__(self, client):
-      super(StorageV1.BucketsService, self).__init__(client)
-      self.__configs = {
-          'Delete': base_api.ApiMethodInfo(
-              http_method=u'DELETE',
-              method_id=u'storage.buckets.delete',
-              ordered_params=[u'bucket'],
-              path_params=[u'bucket'],
-              query_params=[u'ifMetagenerationMatch', u'ifMetagenerationNotMatch'],
-              relative_path=u'b/{bucket}',
-              request_field='',
-              request_type_name=u'StorageBucketsDeleteRequest',
-              response_type_name=u'StorageBucketsDeleteResponse',
-              supports_download=False,
-          ),
-          'Get': base_api.ApiMethodInfo(
-              http_method=u'GET',
-              method_id=u'storage.buckets.get',
-              ordered_params=[u'bucket'],
-              path_params=[u'bucket'],
-              query_params=[u'ifMetagenerationMatch', u'ifMetagenerationNotMatch', u'projection'],
-              relative_path=u'b/{bucket}',
-              request_field='',
-              request_type_name=u'StorageBucketsGetRequest',
-              response_type_name=u'Bucket',
-              supports_download=False,
-          ),
-          'Insert': base_api.ApiMethodInfo(
-              http_method=u'POST',
-              method_id=u'storage.buckets.insert',
-              ordered_params=[u'project'],
-              path_params=[],
-              query_params=[u'predefinedAcl', u'project', u'projection'],
-              relative_path=u'b',
-              request_field=u'bucket',
-              request_type_name=u'StorageBucketsInsertRequest',
-              response_type_name=u'Bucket',
-              supports_download=False,
-          ),
-          'List': base_api.ApiMethodInfo(
-              http_method=u'GET',
-              method_id=u'storage.buckets.list',
-              ordered_params=[u'project'],
-              path_params=[],
-              query_params=[u'maxResults', u'pageToken', u'project', u'projection'],
-              relative_path=u'b',
-              request_field='',
-              request_type_name=u'StorageBucketsListRequest',
-              response_type_name=u'Buckets',
-              supports_download=False,
-          ),
-          'Patch': base_api.ApiMethodInfo(
-              http_method=u'PATCH',
-              method_id=u'storage.buckets.patch',
-              ordered_params=[u'bucket'],
-              path_params=[u'bucket'],
-              query_params=[u'ifMetagenerationMatch', u'ifMetagenerationNotMatch', u'predefinedAcl', u'projection'],
-              relative_path=u'b/{bucket}',
-              request_field=u'bucketResource',
-              request_type_name=u'StorageBucketsPatchRequest',
-              response_type_name=u'Bucket',
-              supports_download=False,
-          ),
-          'Update': base_api.ApiMethodInfo(
-              http_method=u'PUT',
-              method_id=u'storage.buckets.update',
-              ordered_params=[u'bucket'],
-              path_params=[u'bucket'],
-              query_params=[u'ifMetagenerationMatch', u'ifMetagenerationNotMatch', u'predefinedAcl', u'projection'],
-              relative_path=u'b/{bucket}',
-              request_field=u'bucketResource',
-              request_type_name=u'StorageBucketsUpdateRequest',
-              response_type_name=u'Bucket',
-              supports_download=False,
-          ),
-          }
-
-      self.__upload_configs = {
-          }
-
-    def GetMethodConfig(self, method):
-      return self.__configs.get(method)
-
-    def GetMethodUploadConfig(self, method):
-      return self.__upload_configs.get(method)
-
-    def Delete(self, request, global_params=None):
-      """Permanently deletes an empty bucket.
-
-      Args:
-        request: (StorageBucketsDeleteRequest) input message
-        global_params: (StandardQueryParameters, default: None) global arguments
-      Returns:
-        (StorageBucketsDeleteResponse) The response message.
-      """
-      config = self.GetMethodConfig('Delete')
-      return self._RunMethod(
-          config, request, global_params=global_params)
-
-    def Get(self, request, global_params=None):
-      """Returns metadata for the specified bucket.
-
-      Args:
-        request: (StorageBucketsGetRequest) input message
-        global_params: (StandardQueryParameters, default: None) global arguments
-      Returns:
-        (Bucket) The response message.
-      """
-      config = self.GetMethodConfig('Get')
-      return self._RunMethod(
-          config, request, global_params=global_params)
-
-    def Insert(self, request, global_params=None):
-      """Creates a new bucket.
-
-      Args:
-        request: (StorageBucketsInsertRequest) input message
-        global_params: (StandardQueryParameters, default: None) global arguments
-      Returns:
-        (Bucket) The response message.
-      """
-      config = self.GetMethodConfig('Insert')
-      return self._RunMethod(
-          config, request, global_params=global_params)
-
-    def List(self, request, global_params=None):
-      """Retrieves a list of buckets for a given project.
-
-      Args:
-        request: (StorageBucketsListRequest) input message
-        global_params: (StandardQueryParameters, default: None) global arguments
-      Returns:
-        (Buckets) The response message.
-      """
-      config = self.GetMethodConfig('List')
-      return self._RunMethod(
-          config, request, global_params=global_params)
-
-    def Patch(self, request, global_params=None):
-      """Updates a bucket. This method supports patch semantics.
-
-      Args:
-        request: (StorageBucketsPatchRequest) input message
-        global_params: (StandardQueryParameters, default: None) global arguments
-      Returns:
-        (Bucket) The response message.
-      """
-      config = self.GetMethodConfig('Patch')
-      return self._RunMethod(
-          config, request, global_params=global_params)
-
-    def Update(self, request, global_params=None):
-      """Updates a bucket.
-
-      Args:
-        request: (StorageBucketsUpdateRequest) input message
-        global_params: (StandardQueryParameters, default: None) global arguments
-      Returns:
-        (Bucket) The response message.
-      """
-      config = self.GetMethodConfig('Update')
-      return self._RunMethod(
-          config, request, global_params=global_params)
-
-  class ChannelsService(base_api.BaseApiService):
-    """Service class for the channels resource."""
-
-    def __init__(self, client):
-      super(StorageV1.ChannelsService, self).__init__(client)
-      self.__configs = {
-          'Stop': base_api.ApiMethodInfo(
-              http_method=u'POST',
-              method_id=u'storage.channels.stop',
-              ordered_params=[],
-              path_params=[],
-              query_params=[],
-              relative_path=u'channels/stop',
-              request_field='<request>',
-              request_type_name=u'Channel',
-              response_type_name=u'StorageChannelsStopResponse',
-              supports_download=False,
-          ),
-          }
-
-      self.__upload_configs = {
-          }
-
-    def GetMethodConfig(self, method):
-      return self.__configs.get(method)
-
-    def GetMethodUploadConfig(self, method):
-      return self.__upload_configs.get(method)
-
-    def Stop(self, request, global_params=None):
-      """Stop watching resources through this channel.
-
-      Args:
-        request: (Channel) input message
-        global_params: (StandardQueryParameters, default: None) global arguments
-      Returns:
-        (StorageChannelsStopResponse) The response message.
-      """
-      config = self.GetMethodConfig('Stop')
-      return self._RunMethod(
-          config, request, global_params=global_params)
+    self.objectAccessControls = self.ObjectAccessControlsService(self)
+    self.buckets = self.BucketsService(self)
 
   class DefaultObjectAccessControlsService(base_api.BaseApiService):
     """Service class for the defaultObjectAccessControls resource."""
 
+    _NAME = u'defaultObjectAccessControls'
+
     def __init__(self, client):
       super(StorageV1.DefaultObjectAccessControlsService, self).__init__(client)
-      self.__configs = {
+      self._method_configs = {
           'Delete': base_api.ApiMethodInfo(
               http_method=u'DELETE',
               method_id=u'storage.defaultObjectAccessControls.delete',
@@ -493,14 +121,8 @@ class StorageV1(base_api.BaseApiClient):
           ),
           }
 
-      self.__upload_configs = {
+      self._upload_configs = {
           }
-
-    def GetMethodConfig(self, method):
-      return self.__configs.get(method)
-
-    def GetMethodUploadConfig(self, method):
-      return self.__upload_configs.get(method)
 
     def Delete(self, request, global_params=None):
       """Permanently deletes the default object ACL entry for the specified entity on the specified bucket.
@@ -580,179 +202,215 @@ class StorageV1(base_api.BaseApiClient):
       return self._RunMethod(
           config, request, global_params=global_params)
 
-  class ObjectAccessControlsService(base_api.BaseApiService):
-    """Service class for the objectAccessControls resource."""
+  class BucketAccessControlsService(base_api.BaseApiService):
+    """Service class for the bucketAccessControls resource."""
+
+    _NAME = u'bucketAccessControls'
 
     def __init__(self, client):
-      super(StorageV1.ObjectAccessControlsService, self).__init__(client)
-      self.__configs = {
+      super(StorageV1.BucketAccessControlsService, self).__init__(client)
+      self._method_configs = {
           'Delete': base_api.ApiMethodInfo(
               http_method=u'DELETE',
-              method_id=u'storage.objectAccessControls.delete',
-              ordered_params=[u'bucket', u'object', u'entity'],
-              path_params=[u'bucket', u'entity', u'object'],
-              query_params=[u'generation'],
-              relative_path=u'b/{bucket}/o/{object}/acl/{entity}',
+              method_id=u'storage.bucketAccessControls.delete',
+              ordered_params=[u'bucket', u'entity'],
+              path_params=[u'bucket', u'entity'],
+              query_params=[],
+              relative_path=u'b/{bucket}/acl/{entity}',
               request_field='',
-              request_type_name=u'StorageObjectAccessControlsDeleteRequest',
-              response_type_name=u'StorageObjectAccessControlsDeleteResponse',
+              request_type_name=u'StorageBucketAccessControlsDeleteRequest',
+              response_type_name=u'StorageBucketAccessControlsDeleteResponse',
               supports_download=False,
           ),
           'Get': base_api.ApiMethodInfo(
               http_method=u'GET',
-              method_id=u'storage.objectAccessControls.get',
-              ordered_params=[u'bucket', u'object', u'entity'],
-              path_params=[u'bucket', u'entity', u'object'],
-              query_params=[u'generation'],
-              relative_path=u'b/{bucket}/o/{object}/acl/{entity}',
+              method_id=u'storage.bucketAccessControls.get',
+              ordered_params=[u'bucket', u'entity'],
+              path_params=[u'bucket', u'entity'],
+              query_params=[],
+              relative_path=u'b/{bucket}/acl/{entity}',
               request_field='',
-              request_type_name=u'StorageObjectAccessControlsGetRequest',
-              response_type_name=u'ObjectAccessControl',
+              request_type_name=u'StorageBucketAccessControlsGetRequest',
+              response_type_name=u'BucketAccessControl',
               supports_download=False,
           ),
           'Insert': base_api.ApiMethodInfo(
               http_method=u'POST',
-              method_id=u'storage.objectAccessControls.insert',
-              ordered_params=[u'bucket', u'object'],
-              path_params=[u'bucket', u'object'],
-              query_params=[u'generation'],
-              relative_path=u'b/{bucket}/o/{object}/acl',
-              request_field=u'objectAccessControl',
-              request_type_name=u'StorageObjectAccessControlsInsertRequest',
-              response_type_name=u'ObjectAccessControl',
+              method_id=u'storage.bucketAccessControls.insert',
+              ordered_params=[u'bucket'],
+              path_params=[u'bucket'],
+              query_params=[],
+              relative_path=u'b/{bucket}/acl',
+              request_field='<request>',
+              request_type_name=u'BucketAccessControl',
+              response_type_name=u'BucketAccessControl',
               supports_download=False,
           ),
           'List': base_api.ApiMethodInfo(
               http_method=u'GET',
-              method_id=u'storage.objectAccessControls.list',
-              ordered_params=[u'bucket', u'object'],
-              path_params=[u'bucket', u'object'],
-              query_params=[u'generation'],
-              relative_path=u'b/{bucket}/o/{object}/acl',
+              method_id=u'storage.bucketAccessControls.list',
+              ordered_params=[u'bucket'],
+              path_params=[u'bucket'],
+              query_params=[],
+              relative_path=u'b/{bucket}/acl',
               request_field='',
-              request_type_name=u'StorageObjectAccessControlsListRequest',
-              response_type_name=u'ObjectAccessControls',
+              request_type_name=u'StorageBucketAccessControlsListRequest',
+              response_type_name=u'BucketAccessControls',
               supports_download=False,
           ),
           'Patch': base_api.ApiMethodInfo(
               http_method=u'PATCH',
-              method_id=u'storage.objectAccessControls.patch',
-              ordered_params=[u'bucket', u'object', u'entity'],
-              path_params=[u'bucket', u'entity', u'object'],
-              query_params=[u'generation'],
-              relative_path=u'b/{bucket}/o/{object}/acl/{entity}',
-              request_field=u'objectAccessControl',
-              request_type_name=u'StorageObjectAccessControlsPatchRequest',
-              response_type_name=u'ObjectAccessControl',
+              method_id=u'storage.bucketAccessControls.patch',
+              ordered_params=[u'bucket', u'entity'],
+              path_params=[u'bucket', u'entity'],
+              query_params=[],
+              relative_path=u'b/{bucket}/acl/{entity}',
+              request_field='<request>',
+              request_type_name=u'BucketAccessControl',
+              response_type_name=u'BucketAccessControl',
               supports_download=False,
           ),
           'Update': base_api.ApiMethodInfo(
               http_method=u'PUT',
-              method_id=u'storage.objectAccessControls.update',
-              ordered_params=[u'bucket', u'object', u'entity'],
-              path_params=[u'bucket', u'entity', u'object'],
-              query_params=[u'generation'],
-              relative_path=u'b/{bucket}/o/{object}/acl/{entity}',
-              request_field=u'objectAccessControl',
-              request_type_name=u'StorageObjectAccessControlsUpdateRequest',
-              response_type_name=u'ObjectAccessControl',
+              method_id=u'storage.bucketAccessControls.update',
+              ordered_params=[u'bucket', u'entity'],
+              path_params=[u'bucket', u'entity'],
+              query_params=[],
+              relative_path=u'b/{bucket}/acl/{entity}',
+              request_field='<request>',
+              request_type_name=u'BucketAccessControl',
+              response_type_name=u'BucketAccessControl',
               supports_download=False,
           ),
           }
 
-      self.__upload_configs = {
+      self._upload_configs = {
           }
 
-    def GetMethodConfig(self, method):
-      return self.__configs.get(method)
-
-    def GetMethodUploadConfig(self, method):
-      return self.__upload_configs.get(method)
-
     def Delete(self, request, global_params=None):
-      """Permanently deletes the ACL entry for the specified entity on the specified object.
+      """Permanently deletes the ACL entry for the specified entity on the specified bucket.
 
       Args:
-        request: (StorageObjectAccessControlsDeleteRequest) input message
+        request: (StorageBucketAccessControlsDeleteRequest) input message
         global_params: (StandardQueryParameters, default: None) global arguments
       Returns:
-        (StorageObjectAccessControlsDeleteResponse) The response message.
+        (StorageBucketAccessControlsDeleteResponse) The response message.
       """
       config = self.GetMethodConfig('Delete')
       return self._RunMethod(
           config, request, global_params=global_params)
 
     def Get(self, request, global_params=None):
-      """Returns the ACL entry for the specified entity on the specified object.
+      """Returns the ACL entry for the specified entity on the specified bucket.
 
       Args:
-        request: (StorageObjectAccessControlsGetRequest) input message
+        request: (StorageBucketAccessControlsGetRequest) input message
         global_params: (StandardQueryParameters, default: None) global arguments
       Returns:
-        (ObjectAccessControl) The response message.
+        (BucketAccessControl) The response message.
       """
       config = self.GetMethodConfig('Get')
       return self._RunMethod(
           config, request, global_params=global_params)
 
     def Insert(self, request, global_params=None):
-      """Creates a new ACL entry on the specified object.
+      """Creates a new ACL entry on the specified bucket.
 
       Args:
-        request: (StorageObjectAccessControlsInsertRequest) input message
+        request: (BucketAccessControl) input message
         global_params: (StandardQueryParameters, default: None) global arguments
       Returns:
-        (ObjectAccessControl) The response message.
+        (BucketAccessControl) The response message.
       """
       config = self.GetMethodConfig('Insert')
       return self._RunMethod(
           config, request, global_params=global_params)
 
     def List(self, request, global_params=None):
-      """Retrieves ACL entries on the specified object.
+      """Retrieves ACL entries on the specified bucket.
 
       Args:
-        request: (StorageObjectAccessControlsListRequest) input message
+        request: (StorageBucketAccessControlsListRequest) input message
         global_params: (StandardQueryParameters, default: None) global arguments
       Returns:
-        (ObjectAccessControls) The response message.
+        (BucketAccessControls) The response message.
       """
       config = self.GetMethodConfig('List')
       return self._RunMethod(
           config, request, global_params=global_params)
 
     def Patch(self, request, global_params=None):
-      """Updates an ACL entry on the specified object. This method supports patch semantics.
+      """Updates an ACL entry on the specified bucket. This method supports patch semantics.
 
       Args:
-        request: (StorageObjectAccessControlsPatchRequest) input message
+        request: (BucketAccessControl) input message
         global_params: (StandardQueryParameters, default: None) global arguments
       Returns:
-        (ObjectAccessControl) The response message.
+        (BucketAccessControl) The response message.
       """
       config = self.GetMethodConfig('Patch')
       return self._RunMethod(
           config, request, global_params=global_params)
 
     def Update(self, request, global_params=None):
-      """Updates an ACL entry on the specified object.
+      """Updates an ACL entry on the specified bucket.
 
       Args:
-        request: (StorageObjectAccessControlsUpdateRequest) input message
+        request: (BucketAccessControl) input message
         global_params: (StandardQueryParameters, default: None) global arguments
       Returns:
-        (ObjectAccessControl) The response message.
+        (BucketAccessControl) The response message.
       """
       config = self.GetMethodConfig('Update')
+      return self._RunMethod(
+          config, request, global_params=global_params)
+
+  class ChannelsService(base_api.BaseApiService):
+    """Service class for the channels resource."""
+
+    _NAME = u'channels'
+
+    def __init__(self, client):
+      super(StorageV1.ChannelsService, self).__init__(client)
+      self._method_configs = {
+          'Stop': base_api.ApiMethodInfo(
+              http_method=u'POST',
+              method_id=u'storage.channels.stop',
+              ordered_params=[],
+              path_params=[],
+              query_params=[],
+              relative_path=u'channels/stop',
+              request_field='<request>',
+              request_type_name=u'Channel',
+              response_type_name=u'StorageChannelsStopResponse',
+              supports_download=False,
+          ),
+          }
+
+      self._upload_configs = {
+          }
+
+    def Stop(self, request, global_params=None):
+      """Stop watching resources through this channel.
+
+      Args:
+        request: (Channel) input message
+        global_params: (StandardQueryParameters, default: None) global arguments
+      Returns:
+        (StorageChannelsStopResponse) The response message.
+      """
+      config = self.GetMethodConfig('Stop')
       return self._RunMethod(
           config, request, global_params=global_params)
 
   class ObjectsService(base_api.BaseApiService):
     """Service class for the objects resource."""
 
+    _NAME = u'objects'
+
     def __init__(self, client):
       super(StorageV1.ObjectsService, self).__init__(client)
-      self.__configs = {
+      self._method_configs = {
           'Compose': base_api.ApiMethodInfo(
               http_method=u'POST',
               method_id=u'storage.objects.compose',
@@ -863,7 +521,7 @@ class StorageV1(base_api.BaseApiClient):
           ),
           }
 
-      self.__upload_configs = {
+      self._upload_configs = {
           'Insert': base_api.ApiUploadInfo(
               accept=['*/*'],
               max_size=None,
@@ -873,12 +531,6 @@ class StorageV1(base_api.BaseApiClient):
               simple_path=u'/upload/storage/v1/b/{bucket}/o',
           ),
           }
-
-    def GetMethodConfig(self, method):
-      return self.__configs.get(method)
-
-    def GetMethodUploadConfig(self, method):
-      return self.__upload_configs.get(method)
 
     def Compose(self, request, global_params=None, download=None):
       """Concatenates a list of existing objects into a new object in the same bucket.
@@ -955,7 +607,7 @@ class StorageV1(base_api.BaseApiClient):
         (Object) The response message.
       """
       config = self.GetMethodConfig('Insert')
-      upload_config = self.GetMethodUploadConfig('Insert')
+      upload_config = self.GetUploadConfig('Insert')
       return self._RunMethod(
           config, request, global_params=global_params,
           upload=upload, upload_config=upload_config,
@@ -1013,5 +665,331 @@ class StorageV1(base_api.BaseApiClient):
         (Channel) The response message.
       """
       config = self.GetMethodConfig('WatchAll')
+      return self._RunMethod(
+          config, request, global_params=global_params)
+
+  class ObjectAccessControlsService(base_api.BaseApiService):
+    """Service class for the objectAccessControls resource."""
+
+    _NAME = u'objectAccessControls'
+
+    def __init__(self, client):
+      super(StorageV1.ObjectAccessControlsService, self).__init__(client)
+      self._method_configs = {
+          'Delete': base_api.ApiMethodInfo(
+              http_method=u'DELETE',
+              method_id=u'storage.objectAccessControls.delete',
+              ordered_params=[u'bucket', u'object', u'entity'],
+              path_params=[u'bucket', u'entity', u'object'],
+              query_params=[u'generation'],
+              relative_path=u'b/{bucket}/o/{object}/acl/{entity}',
+              request_field='',
+              request_type_name=u'StorageObjectAccessControlsDeleteRequest',
+              response_type_name=u'StorageObjectAccessControlsDeleteResponse',
+              supports_download=False,
+          ),
+          'Get': base_api.ApiMethodInfo(
+              http_method=u'GET',
+              method_id=u'storage.objectAccessControls.get',
+              ordered_params=[u'bucket', u'object', u'entity'],
+              path_params=[u'bucket', u'entity', u'object'],
+              query_params=[u'generation'],
+              relative_path=u'b/{bucket}/o/{object}/acl/{entity}',
+              request_field='',
+              request_type_name=u'StorageObjectAccessControlsGetRequest',
+              response_type_name=u'ObjectAccessControl',
+              supports_download=False,
+          ),
+          'Insert': base_api.ApiMethodInfo(
+              http_method=u'POST',
+              method_id=u'storage.objectAccessControls.insert',
+              ordered_params=[u'bucket', u'object'],
+              path_params=[u'bucket', u'object'],
+              query_params=[u'generation'],
+              relative_path=u'b/{bucket}/o/{object}/acl',
+              request_field=u'objectAccessControl',
+              request_type_name=u'StorageObjectAccessControlsInsertRequest',
+              response_type_name=u'ObjectAccessControl',
+              supports_download=False,
+          ),
+          'List': base_api.ApiMethodInfo(
+              http_method=u'GET',
+              method_id=u'storage.objectAccessControls.list',
+              ordered_params=[u'bucket', u'object'],
+              path_params=[u'bucket', u'object'],
+              query_params=[u'generation'],
+              relative_path=u'b/{bucket}/o/{object}/acl',
+              request_field='',
+              request_type_name=u'StorageObjectAccessControlsListRequest',
+              response_type_name=u'ObjectAccessControls',
+              supports_download=False,
+          ),
+          'Patch': base_api.ApiMethodInfo(
+              http_method=u'PATCH',
+              method_id=u'storage.objectAccessControls.patch',
+              ordered_params=[u'bucket', u'object', u'entity'],
+              path_params=[u'bucket', u'entity', u'object'],
+              query_params=[u'generation'],
+              relative_path=u'b/{bucket}/o/{object}/acl/{entity}',
+              request_field=u'objectAccessControl',
+              request_type_name=u'StorageObjectAccessControlsPatchRequest',
+              response_type_name=u'ObjectAccessControl',
+              supports_download=False,
+          ),
+          'Update': base_api.ApiMethodInfo(
+              http_method=u'PUT',
+              method_id=u'storage.objectAccessControls.update',
+              ordered_params=[u'bucket', u'object', u'entity'],
+              path_params=[u'bucket', u'entity', u'object'],
+              query_params=[u'generation'],
+              relative_path=u'b/{bucket}/o/{object}/acl/{entity}',
+              request_field=u'objectAccessControl',
+              request_type_name=u'StorageObjectAccessControlsUpdateRequest',
+              response_type_name=u'ObjectAccessControl',
+              supports_download=False,
+          ),
+          }
+
+      self._upload_configs = {
+          }
+
+    def Delete(self, request, global_params=None):
+      """Permanently deletes the ACL entry for the specified entity on the specified object.
+
+      Args:
+        request: (StorageObjectAccessControlsDeleteRequest) input message
+        global_params: (StandardQueryParameters, default: None) global arguments
+      Returns:
+        (StorageObjectAccessControlsDeleteResponse) The response message.
+      """
+      config = self.GetMethodConfig('Delete')
+      return self._RunMethod(
+          config, request, global_params=global_params)
+
+    def Get(self, request, global_params=None):
+      """Returns the ACL entry for the specified entity on the specified object.
+
+      Args:
+        request: (StorageObjectAccessControlsGetRequest) input message
+        global_params: (StandardQueryParameters, default: None) global arguments
+      Returns:
+        (ObjectAccessControl) The response message.
+      """
+      config = self.GetMethodConfig('Get')
+      return self._RunMethod(
+          config, request, global_params=global_params)
+
+    def Insert(self, request, global_params=None):
+      """Creates a new ACL entry on the specified object.
+
+      Args:
+        request: (StorageObjectAccessControlsInsertRequest) input message
+        global_params: (StandardQueryParameters, default: None) global arguments
+      Returns:
+        (ObjectAccessControl) The response message.
+      """
+      config = self.GetMethodConfig('Insert')
+      return self._RunMethod(
+          config, request, global_params=global_params)
+
+    def List(self, request, global_params=None):
+      """Retrieves ACL entries on the specified object.
+
+      Args:
+        request: (StorageObjectAccessControlsListRequest) input message
+        global_params: (StandardQueryParameters, default: None) global arguments
+      Returns:
+        (ObjectAccessControls) The response message.
+      """
+      config = self.GetMethodConfig('List')
+      return self._RunMethod(
+          config, request, global_params=global_params)
+
+    def Patch(self, request, global_params=None):
+      """Updates an ACL entry on the specified object. This method supports patch semantics.
+
+      Args:
+        request: (StorageObjectAccessControlsPatchRequest) input message
+        global_params: (StandardQueryParameters, default: None) global arguments
+      Returns:
+        (ObjectAccessControl) The response message.
+      """
+      config = self.GetMethodConfig('Patch')
+      return self._RunMethod(
+          config, request, global_params=global_params)
+
+    def Update(self, request, global_params=None):
+      """Updates an ACL entry on the specified object.
+
+      Args:
+        request: (StorageObjectAccessControlsUpdateRequest) input message
+        global_params: (StandardQueryParameters, default: None) global arguments
+      Returns:
+        (ObjectAccessControl) The response message.
+      """
+      config = self.GetMethodConfig('Update')
+      return self._RunMethod(
+          config, request, global_params=global_params)
+
+  class BucketsService(base_api.BaseApiService):
+    """Service class for the buckets resource."""
+
+    _NAME = u'buckets'
+
+    def __init__(self, client):
+      super(StorageV1.BucketsService, self).__init__(client)
+      self._method_configs = {
+          'Delete': base_api.ApiMethodInfo(
+              http_method=u'DELETE',
+              method_id=u'storage.buckets.delete',
+              ordered_params=[u'bucket'],
+              path_params=[u'bucket'],
+              query_params=[u'ifMetagenerationMatch', u'ifMetagenerationNotMatch'],
+              relative_path=u'b/{bucket}',
+              request_field='',
+              request_type_name=u'StorageBucketsDeleteRequest',
+              response_type_name=u'StorageBucketsDeleteResponse',
+              supports_download=False,
+          ),
+          'Get': base_api.ApiMethodInfo(
+              http_method=u'GET',
+              method_id=u'storage.buckets.get',
+              ordered_params=[u'bucket'],
+              path_params=[u'bucket'],
+              query_params=[u'ifMetagenerationMatch', u'ifMetagenerationNotMatch', u'projection'],
+              relative_path=u'b/{bucket}',
+              request_field='',
+              request_type_name=u'StorageBucketsGetRequest',
+              response_type_name=u'Bucket',
+              supports_download=False,
+          ),
+          'Insert': base_api.ApiMethodInfo(
+              http_method=u'POST',
+              method_id=u'storage.buckets.insert',
+              ordered_params=[u'project'],
+              path_params=[],
+              query_params=[u'predefinedAcl', u'predefinedDefaultObjectAcl', u'project', u'projection'],
+              relative_path=u'b',
+              request_field=u'bucket',
+              request_type_name=u'StorageBucketsInsertRequest',
+              response_type_name=u'Bucket',
+              supports_download=False,
+          ),
+          'List': base_api.ApiMethodInfo(
+              http_method=u'GET',
+              method_id=u'storage.buckets.list',
+              ordered_params=[u'project'],
+              path_params=[],
+              query_params=[u'maxResults', u'pageToken', u'prefix', u'project', u'projection'],
+              relative_path=u'b',
+              request_field='',
+              request_type_name=u'StorageBucketsListRequest',
+              response_type_name=u'Buckets',
+              supports_download=False,
+          ),
+          'Patch': base_api.ApiMethodInfo(
+              http_method=u'PATCH',
+              method_id=u'storage.buckets.patch',
+              ordered_params=[u'bucket'],
+              path_params=[u'bucket'],
+              query_params=[u'ifMetagenerationMatch', u'ifMetagenerationNotMatch', u'predefinedAcl', u'predefinedDefaultObjectAcl', u'projection'],
+              relative_path=u'b/{bucket}',
+              request_field=u'bucketResource',
+              request_type_name=u'StorageBucketsPatchRequest',
+              response_type_name=u'Bucket',
+              supports_download=False,
+          ),
+          'Update': base_api.ApiMethodInfo(
+              http_method=u'PUT',
+              method_id=u'storage.buckets.update',
+              ordered_params=[u'bucket'],
+              path_params=[u'bucket'],
+              query_params=[u'ifMetagenerationMatch', u'ifMetagenerationNotMatch', u'predefinedAcl', u'predefinedDefaultObjectAcl', u'projection'],
+              relative_path=u'b/{bucket}',
+              request_field=u'bucketResource',
+              request_type_name=u'StorageBucketsUpdateRequest',
+              response_type_name=u'Bucket',
+              supports_download=False,
+          ),
+          }
+
+      self._upload_configs = {
+          }
+
+    def Delete(self, request, global_params=None):
+      """Permanently deletes an empty bucket.
+
+      Args:
+        request: (StorageBucketsDeleteRequest) input message
+        global_params: (StandardQueryParameters, default: None) global arguments
+      Returns:
+        (StorageBucketsDeleteResponse) The response message.
+      """
+      config = self.GetMethodConfig('Delete')
+      return self._RunMethod(
+          config, request, global_params=global_params)
+
+    def Get(self, request, global_params=None):
+      """Returns metadata for the specified bucket.
+
+      Args:
+        request: (StorageBucketsGetRequest) input message
+        global_params: (StandardQueryParameters, default: None) global arguments
+      Returns:
+        (Bucket) The response message.
+      """
+      config = self.GetMethodConfig('Get')
+      return self._RunMethod(
+          config, request, global_params=global_params)
+
+    def Insert(self, request, global_params=None):
+      """Creates a new bucket.
+
+      Args:
+        request: (StorageBucketsInsertRequest) input message
+        global_params: (StandardQueryParameters, default: None) global arguments
+      Returns:
+        (Bucket) The response message.
+      """
+      config = self.GetMethodConfig('Insert')
+      return self._RunMethod(
+          config, request, global_params=global_params)
+
+    def List(self, request, global_params=None):
+      """Retrieves a list of buckets for a given project.
+
+      Args:
+        request: (StorageBucketsListRequest) input message
+        global_params: (StandardQueryParameters, default: None) global arguments
+      Returns:
+        (Buckets) The response message.
+      """
+      config = self.GetMethodConfig('List')
+      return self._RunMethod(
+          config, request, global_params=global_params)
+
+    def Patch(self, request, global_params=None):
+      """Updates a bucket. This method supports patch semantics.
+
+      Args:
+        request: (StorageBucketsPatchRequest) input message
+        global_params: (StandardQueryParameters, default: None) global arguments
+      Returns:
+        (Bucket) The response message.
+      """
+      config = self.GetMethodConfig('Patch')
+      return self._RunMethod(
+          config, request, global_params=global_params)
+
+    def Update(self, request, global_params=None):
+      """Updates a bucket.
+
+      Args:
+        request: (StorageBucketsUpdateRequest) input message
+        global_params: (StandardQueryParameters, default: None) global arguments
+      Returns:
+        (Bucket) The response message.
+      """
+      config = self.GetMethodConfig('Update')
       return self._RunMethod(
           config, request, global_params=global_params)
