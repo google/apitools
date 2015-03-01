@@ -8,10 +8,12 @@ import pprint
 import urllib
 import urlparse
 
+
 from protorpc import message_types
 from protorpc import messages
 import six
 from six.moves import http_client
+
 
 from apitools.base.py import credentials_lib
 from apitools.base.py import encoding
@@ -351,7 +353,8 @@ class BaseApiClient(object):
       if http_request.body:
         # TODO(craigcitro): Make this safe to print in the case of
         # non-printable body characters.
-        logging.info('Body:\n%s', http_request.body)
+        logging.info('Body:\n%s',
+                     http_request.loggable_body or http_request.body)
       else:
         logging.info('Body: (none)')
     return http_request
@@ -430,21 +433,32 @@ class BaseApiService(object):
         setattr(result, field.name, value)
     return result
 
-  def __ConstructQueryParams(self, query_params, request, global_params):
-    """Construct a dictionary of query parameters for this request."""
-    global_params = self.__CombineGlobalParams(
-        global_params, self.__client.global_params)
-    query_info = dict((field.name, getattr(global_params, field.name))
-                      for field in self.__client.params_type.all_fields())
-    query_info.update(
-        (param, getattr(request, param, None)) for param in query_params)
-    query_info = dict((k, v) for k, v in query_info.items()
-                      if v is not None)
+  def __EncodePrettyPrint(self, query_info):
     # The prettyPrint flag needs custom encoding: it should be encoded
     # as 0 if False, and ignored otherwise (True is the default).
     if not query_info.pop('prettyPrint', True):
       query_info['prettyPrint'] = 0
-    for k, v in query_info.items():
+    return query_info
+
+  def __ConstructQueryParams(self, query_params, request, global_params):
+    """Construct a dictionary of query parameters for this request."""
+    # First, handle the global params.
+    global_params = self.__CombineGlobalParams(
+        global_params, self.__client.global_params)
+    global_param_names = util.MapParamNames(
+        [x.name for x in self.__client.params_type.all_fields()],
+        self.__client.params_type)
+    query_info = dict((param, getattr(global_params, param))
+                      for param in global_param_names)
+    # Next, add the query params.
+    query_param_names = util.MapParamNames(query_params, type(request))
+    query_info.update(
+        (param, getattr(request, param, None)) for param in query_param_names)
+    query_info = dict((k, v) for k, v in six.iteritems(query_info)
+                      if v is not None)
+    query_info = self.__EncodePrettyPrint(query_info)
+    query_info = util.MapRequestParams(query_info, type(request))
+    for k, v in six.iteritems(query_info):
       if isinstance(v, six.text_type):
         query_info[k] = v.encode('utf8')
       elif isinstance(v, str):
@@ -455,8 +469,11 @@ class BaseApiService(object):
 
   def __ConstructRelativePath(self, method_config, request, relative_path=None):
     """Determine the relative path for request."""
+    python_param_names = util.MapParamNames(
+        method_config.path_params, type(request))
     params = dict([(param, getattr(request, param, None))
-                   for param in method_config.path_params])
+                   for param in python_param_names])
+    params = util.MapRequestParams(params, type(request))
     return util.ExpandRelativePath(method_config, params,
                                    relative_path=relative_path)
 
@@ -577,8 +594,11 @@ class BaseApiService(object):
     if upload is not None:
       http_response = upload.InitializeUpload(http_request, client=self.client)
     if http_response is None:
+      http = self.__client.http
+      if upload and upload.bytes_http:
+        http = upload.bytes_http
       http_response = http_wrapper.MakeRequest(
-          self.__client.http, http_request, retries=self.__client.num_retries)
+          http, http_request, retries=self.__client.num_retries)
 
     return self.ProcessHttpResponse(method_config, http_response)
 

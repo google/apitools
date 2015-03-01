@@ -10,10 +10,11 @@ import sys
 import traceback
 import types
 
+import six
+
 from google.apputils import app
 from google.apputils import appcommands
 import gflags as flags
-import six
 
 __all__ = [
     'NewCmd',
@@ -134,7 +135,8 @@ class NewCmd(appcommands.Cmd):
 
   def _HandleError(self, e):
     message = self._FormatError(e)
-    print('Exception raised in %s operation: %s' % (self._command_name, message))
+    print('Exception raised in %s operation: %s' % (
+        self._command_name, message))
     return 1
 
   def _IsDebuggableException(self, e):

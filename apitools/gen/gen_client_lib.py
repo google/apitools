@@ -5,8 +5,10 @@ Relevant links:
   https://developers.google.com/discovery/v1/reference/apis#resource
 """
 
-import logging
+import json
 import urlparse
+
+import six
 
 from apitools.base.py import base_cli
 from apitools.gen import command_registry
@@ -37,8 +39,6 @@ def _ComputePaths(package, version, discovery_doc):
       discovery_doc['rootUrl'], discovery_doc['servicePath'])
   api_path_component = '/'.join((package, version, ''))
   if api_path_component not in full_path:
-    logging.warning('Could not find path "%s" in API path "%s"',
-                    api_path_component, full_path)
     return full_path, ''
   prefix, _, suffix = full_path.rpartition(api_path_component)
   return prefix + api_path_component, suffix
@@ -48,12 +48,14 @@ class DescriptorGenerator(object):
   """Code generator for a given discovery document."""
 
   def __init__(self, discovery_doc, client_info, names, root_package, outdir,
-               base_package, generate_cli=False, use_proto2=False):
+               base_package, generate_cli=False, use_proto2=False,
+               unelidable_request_methods=None):
     self.__discovery_doc = discovery_doc
     self.__client_info = client_info
     self.__outdir = outdir
     self.__use_proto2 = use_proto2
-    self.__description = self.__discovery_doc.get('description', '')
+    self.__description = util.CleanDescription(
+        self.__discovery_doc.get('description', ''))
     self.__package = self.__client_info.package
     self.__version = self.__client_info.version
     self.__generate_cli = generate_cli
@@ -71,7 +73,7 @@ class DescriptorGenerator(object):
         self.__client_info, self.__names, self.__description,
         self.__root_package, self.__base_files_package)
     schemas = self.__discovery_doc.get('schemas', {})
-    for schema_name, schema in schemas.items():
+    for schema_name, schema in six.iteritems(schemas):
       self.__message_registry.AddDescriptorFromSchema(schema_name, schema)
 
     # We need to add one more message type for the global parameters.
@@ -79,6 +81,10 @@ class DescriptorGenerator(object):
         self.__discovery_doc)
     self.__message_registry.AddDescriptorFromSchema(
         standard_query_schema['id'], standard_query_schema)
+
+    # Now that we know all the messages, we need to correct some
+    # fields from MessageFields to EnumFields.
+    self.__message_registry.FixupMessageFields()
 
     self.__command_registry = command_registry.CommandRegistry(
         self.__package, self.__version, self.__client_info,
@@ -96,9 +102,10 @@ class DescriptorGenerator(object):
         self.__base_path,
         self.__names,
         self.__root_package,
-        self.__base_files_package)
+        self.__base_files_package,
+        unelidable_request_methods or [])
     services = self.__discovery_doc.get('resources', {})
-    for service_name, methods in services.items():
+    for service_name, methods in sorted(six.iteritems(services)):
       self.__services_registry.AddServiceFromResource(service_name, methods)
     # We might also have top-level methods.
     api_methods = self.__discovery_doc.get('methods', [])

@@ -10,8 +10,9 @@ import logging
 import os
 import re
 import urllib2
+import urlparse
 
-from six.moves import range
+import six
 
 
 
@@ -70,8 +71,12 @@ class Names(object):
     name = re.sub('[^_A-Za-z0-9]', '_', name)
     if name[0].isdigit():
       name = '_%s' % name
-    while name in keyword.kwlist:
+    while keyword.iskeyword(name):
       name = '%s_' % name
+    # If we end up with __ as a prefix, we'll run afoul of python
+    # field renaming, so we manually correct for it.
+    if name.startswith('__'):
+      name = 'f%s' % name
     return name
 
   @staticmethod
@@ -89,8 +94,8 @@ class Names(object):
 
   def NormalizeEnumName(self, enum_name):
     if self.__capitalize_enums:
-      return enum_name.upper()
-    return enum_name
+      enum_name = enum_name.upper()
+    return self.CleanName(enum_name)
 
   def ClassName(self, name, separator='_'):
     """Generate a valid class name from name."""
@@ -165,9 +170,9 @@ class ClientInfo(collections.namedtuple('ClientInfo', (
         'user_agent': user_agent,
         'api_key': api_key,
     }
-    client_info['client_class_name'] = '%s%s' % (
-        names.ClassName(client_info['package']),
-        names.ClassName(client_info['version']))
+    client_class_name = ''.join(
+        map(names.ClassName, (client_info['package'], client_info['version'])))
+    client_info['client_class_name'] = client_class_name
     return cls(**client_info)
 
   @property
@@ -214,6 +219,13 @@ class ClientInfo(collections.namedtuple('ClientInfo', (
 def GetPackage(path):
   path_components = path.split(os.path.sep)
   return '.'.join(path_components)
+
+
+def CleanDescription(description):
+  """Return a version of description safe for printing in a docstring."""
+  if not isinstance(description, six.string_types):
+    return description
+  return description.replace('"""', '" " "')
 
 
 class SimplePrettyPrinter(object):

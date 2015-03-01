@@ -10,6 +10,7 @@ from protorpc import messages
 import six
 
 from apitools.gen import extended_descriptor
+from apitools.gen import util
 
 TypeInfo = collections.namedtuple('TypeInfo', ('type_name', 'variant'))
 
@@ -63,7 +64,7 @@ class MessageRegistry(object):
     self.__names = names
     self.__client_info = client_info
     self.__package = client_info.package
-    self.__description = description
+    self.__description = util.CleanDescription(description)
     self.__root_package_dir = root_package_dir
     self.__base_files_package = base_files_package
     self.__file_descriptor = extended_descriptor.ExtendedFileDescriptor(
@@ -110,7 +111,7 @@ class MessageRegistry(object):
       raise ValueError('Malformed MessageRegistry: %s' % mysteries)
 
   def __ComputeFullName(self, name):
-    return '.'.join([six.text_type(x) for x in self.__current_path + [name]])
+    return '.'.join(map(six.text_type, self.__current_path[:] + [name]))
 
   def __AddImport(self, new_import):
     if new_import not in self.__file_descriptor.additional_imports:
@@ -176,14 +177,20 @@ class MessageRegistry(object):
     """Add a new EnumDescriptor named name with the given enum values."""
     message = extended_descriptor.ExtendedEnumDescriptor()
     message.name = self.__names.ClassName(name)
-    message.description = description
+    message.description = util.CleanDescription(description)
     self.__DeclareDescriptor(message.name)
     for index, (enum_name, enum_description) in enumerate(
         zip(enum_values, enum_descriptions)):
       enum_value = extended_descriptor.ExtendedEnumValueDescriptor()
       enum_value.name = self.__names.NormalizeEnumName(enum_name)
+      if enum_value.name != enum_name:
+        message.enum_mappings.append(
+            extended_descriptor.ExtendedEnumDescriptor.JsonEnumMapping(
+                python_name=enum_value.name, json_name=enum_name))
+        self.__AddImport('from %s import encoding' % self.__base_files_package)
       enum_value.number = index
-      enum_value.description = enum_description or '<no description>'
+      enum_value.description = util.CleanDescription(
+          enum_description or '<no description>')
       message.values.append(enum_value)
     self.__RegisterDescriptor(message)
 
@@ -202,7 +209,8 @@ class MessageRegistry(object):
     additional_properties_info = schema['additionalProperties']
     entries_type_name = self.__AddAdditionalPropertyType(
         message.name, additional_properties_info)
-    description = additional_properties_info.get('description')
+    description = util.CleanDescription(
+        additional_properties_info.get('description'))
     if description is None:
       description = 'Additional properties of type %s' % message.name
     attrs = {
@@ -235,14 +243,20 @@ class MessageRegistry(object):
           'Cannot create message descriptors for type %s', schema.get('type'))
     message = extended_descriptor.ExtendedMessageDescriptor()
     message.name = self.__names.ClassName(schema['id'])
-    message.description = schema.get(
-        'description', 'A %s object.' % message.name)
+    message.description = util.CleanDescription(schema.get(
+        'description', 'A %s object.' % message.name))
     self.__DeclareDescriptor(message.name)
     with self.__DescriptorEnv(message):
       properties = schema.get('properties', {})
-      for index, (name, attrs) in enumerate(sorted(properties.items())):
+      for index, (name, attrs) in enumerate(sorted(six.iteritems(properties))):
         field = self.__FieldDescriptorFromProperties(name, index + 1, attrs)
         message.fields.append(field)
+        if field.name != name:
+          message.field_mappings.append(
+              extended_descriptor.ExtendedMessageDescriptor.JsonFieldMapping(
+                  python_name=field.name, json_name=name))
+          self.__AddImport(
+              'from %s import encoding' % self.__base_files_package)
       if 'additionalProperties' in schema:
         self.__AddAdditionalProperties(message, schema, properties)
     self.__RegisterDescriptor(message)
@@ -309,8 +323,8 @@ class MessageRegistry(object):
       field.default_value = default
     extended_field = extended_descriptor.ExtendedFieldDescriptor()
     extended_field.name = field.name
-    extended_field.description = attrs.get('description', 'A %s attribute.' % (
-        field.type_name,))
+    extended_field.description = util.CleanDescription(
+        attrs.get('description', 'A %s attribute.' % field.type_name))
     extended_field.field_descriptor = field
     return extended_field
 
@@ -325,17 +339,19 @@ class MessageRegistry(object):
     return descriptor.FieldDescriptor.Label.OPTIONAL
 
   def __DeclareEnum(self, enum_name, attrs):
-    description = attrs.get('description', '')
+    description = util.CleanDescription(attrs.get('description', ''))
+    enum_values = attrs['enum']
+    enum_descriptions = attrs.get('enumDescriptions', [''] * len(enum_values))
     self.AddEnumDescriptor(enum_name, description,
-                           attrs['enum'], attrs['enumDescriptions'])
+                           enum_values, enum_descriptions)
     self.__AddIfUnknown(enum_name)
     return TypeInfo(type_name=enum_name, variant=messages.Variant.ENUM)
 
   def __AddIfUnknown(self, type_name):
     type_name = self.__names.ClassName(type_name)
     full_type_name = self.__ComputeFullName(type_name)
-    if (full_type_name not in self.__message_registry.keys() and
-        type_name not in self.__message_registry.keys()):
+    if (full_type_name not in six.iterkeys(self.__message_registry) and
+        type_name not in six.iterkeys(self.__message_registry)):
       self.__unknown_types.add(type_name)
 
   def __GetTypeInfo(self, attrs, name_hint):
@@ -348,6 +364,9 @@ class MessageRegistry(object):
 
     if type_ref:
       self.__AddIfUnknown(type_ref)
+      # We don't actually know this is a message -- it might be an
+      # enum. However, we can't check that until we've created all the
+      # types, so we come back and fix this up later.
       return TypeInfo(type_name=type_ref, variant=messages.Variant.MESSAGE)
 
     if 'enum' in attrs:
@@ -356,15 +375,19 @@ class MessageRegistry(object):
 
     if 'format' in attrs:
       type_info = self.PRIMITIVE_FORMAT_MAP.get(attrs['format'])
+      if type_info is None:
+        # If we don't recognize the format, the spec says we fall back
+        # to just using the type name.
+        if type_name in self.PRIMITIVE_TYPE_INFO_MAP:
+          return self.PRIMITIVE_TYPE_INFO_MAP[type_name]
+        raise ValueError('Unknown type/format "%s"/"%s"' % (
+            attrs['format'], type_name))
       if (type_info.type_name.startswith('protorpc.message_types.') or
           type_info.type_name.startswith('message_types.')):
         self.__AddImport('from protorpc import message_types')
       if type_info.type_name.startswith('extra_types.'):
         self.__AddImport(
             'from %s import extra_types' % self.__base_files_package)
-      if type_info is None:
-        raise ValueError('Unknown format %s for type %s' % (
-            attrs['format'], type_name))
       return type_info
 
     if type_name in self.PRIMITIVE_TYPE_INFO_MAP:
@@ -400,3 +423,18 @@ class MessageRegistry(object):
       return TypeInfo(type_name=name_hint, variant=messages.Variant.MESSAGE)
 
     raise ValueError('Unknown type: %s' % type_name)
+
+  def FixupMessageFields(self):
+    for message_type in self.file_descriptor.message_types:
+      self._FixupMessage(message_type)
+
+  def _FixupMessage(self, message_type):
+    with self.__DescriptorEnv(message_type):
+      for field in message_type.fields:
+        if field.field_descriptor.variant == messages.Variant.MESSAGE:
+          field_type_name = field.field_descriptor.type_name
+          field_type = self.LookupDescriptor(field_type_name)
+          if isinstance(field_type, extended_descriptor.ExtendedEnumDescriptor):
+            field.field_descriptor.variant = messages.Variant.ENUM
+      for submessage_type in message_type.message_types:
+        self._FixupMessage(submessage_type)

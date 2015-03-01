@@ -8,7 +8,9 @@ import shutil
 import subprocess
 import sys
 import tempfile
-import unittest
+
+
+import unittest2
 
 _API_LIST = [
     'drive.v2',
@@ -30,7 +32,7 @@ def TempDir():
     shutil.rmtree(path)
 
 
-class ClientGenerationTest(unittest.TestCase):
+class ClientGenerationTest(unittest2.TestCase):
 
   def setUp(self):
     super(ClientGenerationTest, self).setUp()
@@ -73,4 +75,4 @@ class ClientGenerationTest(unittest.TestCase):
 
 
 if __name__ == '__main__':
-  unittest.main()
+  unittest2.main()

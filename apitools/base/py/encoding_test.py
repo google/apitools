@@ -11,6 +11,7 @@ from protorpc import util
 import unittest2
 
 from apitools.base.py import encoding
+from apitools.base.py import exceptions
 
 
 class SimpleMessage(messages.Message):
@@ -74,6 +75,29 @@ class ExtraNestedMessage(messages.Message):
   nested = messages.MessageField(HasNestedMessage, 1)
 
 
+class MessageWithRemappings(messages.Message):
+
+  class SomeEnum(messages.Enum):
+    enum_value = 1
+    second_value = 2
+
+  enum_field = messages.EnumField(SomeEnum, 1)
+  double_encoding = messages.EnumField(SomeEnum, 2)
+  another_field = messages.StringField(3)
+  repeated_enum = messages.EnumField(SomeEnum, 4, repeated=True)
+  repeated_field = messages.StringField(5, repeated=True)
+
+
+encoding.AddCustomJsonEnumMapping(MessageWithRemappings.SomeEnum,
+                                  'enum_value', 'wire_name')
+encoding.AddCustomJsonFieldMapping(MessageWithRemappings,
+                                   'double_encoding', 'doubleEncoding')
+encoding.AddCustomJsonFieldMapping(MessageWithRemappings,
+                                   'another_field', 'anotherField')
+encoding.AddCustomJsonFieldMapping(MessageWithRemappings,
+                                   'repeated_field', 'repeatedField')
+
+
 class EncodingTest(unittest2.TestCase):
 
   def testCopyProtoMessage(self):
@@ -94,9 +118,7 @@ class EncodingTest(unittest2.TestCase):
     self.assertEqual(msg, encoding.JsonToMessage(BytesMessage, b64_msg))
     self.assertEqual(urlsafe_b64_msg, encoding.MessageToJson(msg))
 
-    enc_rep_msg = '{"repfield": ["%(b)s", "%(b)s"]}' % {
-        'b': urlsafe_b64_str,
-    }
+    enc_rep_msg = '{"repfield": ["%(b)s", "%(b)s"]}' % {'b': urlsafe_b64_str}
     rep_msg = BytesMessage(repfield=[data, data])
     self.assertEqual(rep_msg, encoding.JsonToMessage(BytesMessage, enc_rep_msg))
     self.assertEqual(enc_rep_msg, encoding.MessageToJson(rep_msg))
@@ -230,6 +252,66 @@ class EncodingTest(unittest2.TestCase):
     self.assertEqual(
         '{"timefield": "2014-07-02T23:33:25.541000+00:00"}',
         encoding.MessageToJson(msg))
+
+  def testEnumRemapping(self):
+    msg = MessageWithRemappings(
+        enum_field=MessageWithRemappings.SomeEnum.enum_value)
+    json_message = encoding.MessageToJson(msg)
+    self.assertEqual('{"enum_field": "wire_name"}', json_message)
+    self.assertEqual(
+        msg, encoding.JsonToMessage(MessageWithRemappings, json_message))
+
+  def testRepeatedEnumRemapping(self):
+    msg = MessageWithRemappings(
+        repeated_enum=[
+            MessageWithRemappings.SomeEnum.enum_value,
+            MessageWithRemappings.SomeEnum.second_value,
+        ])
+    json_message = encoding.MessageToJson(msg)
+    self.assertEqual('{"repeated_enum": ["wire_name", "second_value"]}',
+                     json_message)
+    self.assertEqual(
+        msg, encoding.JsonToMessage(MessageWithRemappings, json_message))
+
+  def testFieldRemapping(self):
+    msg = MessageWithRemappings(another_field='abc')
+    json_message = encoding.MessageToJson(msg)
+    self.assertEqual('{"anotherField": "abc"}', json_message)
+    self.assertEqual(
+        msg, encoding.JsonToMessage(MessageWithRemappings, json_message))
+
+  def testRepeatedFieldRemapping(self):
+    msg = MessageWithRemappings(repeated_field=['abc', 'def'])
+    json_message = encoding.MessageToJson(msg)
+    self.assertEqual('{"repeatedField": ["abc", "def"]}', json_message)
+    self.assertEqual(
+        msg, encoding.JsonToMessage(MessageWithRemappings, json_message))
+
+  def testMultipleRemapping(self):
+    msg = MessageWithRemappings(
+        double_encoding=MessageWithRemappings.SomeEnum.enum_value)
+    json_message = encoding.MessageToJson(msg)
+    self.assertEqual('{"doubleEncoding": "wire_name"}', json_message)
+    self.assertEqual(
+        msg, encoding.JsonToMessage(MessageWithRemappings, json_message))
+
+  def testNoRepeatedRemapping(self):
+    self.assertRaises(
+        exceptions.InvalidDataError,
+        encoding.AddCustomJsonFieldMapping,
+        MessageWithRemappings, 'double_encoding', 'something_else')
+    self.assertRaises(
+        exceptions.InvalidDataError,
+        encoding.AddCustomJsonFieldMapping,
+        MessageWithRemappings, 'enum_field', 'anotherField')
+    self.assertRaises(
+        exceptions.InvalidDataError,
+        encoding.AddCustomJsonEnumMapping,
+        MessageWithRemappings.SomeEnum, 'enum_value', 'another_name')
+    self.assertRaises(
+        exceptions.InvalidDataError,
+        encoding.AddCustomJsonEnumMapping,
+        MessageWithRemappings.SomeEnum, 'second_value', 'wire_name')
 
   def testMessageToRepr(self):
     # pylint:disable=bad-whitespace, Using the same string returned by

@@ -122,11 +122,11 @@ def _PythonValueToJsonObject(py_value):
   return JsonObject(
       properties=[
           JsonObject.Property(key=key, value=_PythonValueToJsonValue(value))
-          for key, value in py_value.items()])
+          for key, value in six.iteritems(py_value)])
 
 
 def _PythonValueToJsonArray(py_value):
-  return JsonArray(entries=[_PythonValueToJsonValue(val) for val in py_value])
+  return JsonArray(entries=list(map(_PythonValueToJsonValue, py_value)))
 
 
 class JsonValue(messages.Message):

@@ -67,6 +67,10 @@ flags.DEFINE_string(
     'User agent for the generated client. Defaults to <api>-generated/0.1.')
 flags.DEFINE_boolean(
     'generate_cli', True, 'If True, a CLI is also generated.')
+flags.DEFINE_list(
+    'unelidable_request_methods', [],
+    'Full method IDs of methods for which we should NOT try to elide '
+    'the request type. (Should be a comma-separated list.)')
 
 flags.DEFINE_boolean(
     'experimental_capitalize_enums', False,
@@ -129,9 +133,11 @@ def _GetCodegenFromFlags():
 
   if not client_id:
     logging.warning('No client ID supplied')
+    client_id = ''
 
   if not client_secret:
     logging.warning('No client secret supplied')
+    client_secret = ''
 
   client_info = util.ClientInfo.Create(
       discovery_doc, FLAGS.scope, client_id, client_secret,
@@ -141,12 +147,14 @@ def _GetCodegenFromFlags():
     raise exceptions.ConfigurationValueError(
         'Output directory exists, pass --overwrite to replace '
         'the existing files.')
-  root_package = FLAGS.root_package or util.GetPackage(outdir)
+
+  root_package = FLAGS.root_package or util.GetPackage(outdir)  # pylint: disable=line-too-long
   return gen_client_lib.DescriptorGenerator(
       discovery_doc, client_info, names, root_package, outdir,
       base_package=FLAGS.base_package,
       generate_cli=FLAGS.generate_cli,
-      use_proto2=FLAGS.experimental_proto2_output)
+      use_proto2=FLAGS.experimental_proto2_output,
+      unelidable_request_methods=FLAGS.unelidable_request_methods)
 
 
 # TODO(craigcitro): Delete this if we don't need this functionality.
@@ -178,7 +186,7 @@ def _WriteGeneratedFiles(codegen):
     if FLAGS.generate_cli:
       with open(codegen.client_info.cli_file_name, 'w') as out:
         codegen.WriteCli(out)
-      os.chmod(codegen.client_info.cli_file_name, 0o755)
+      os.chmod(codegen.client_info.cli_file_name, 0755)
 
 
 def _WriteInit(codegen):

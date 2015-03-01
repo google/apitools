@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
+
 import re
 import StringIO
-import urllib2
 
 import mock
 from six.moves import http_client
@@ -34,15 +34,29 @@ class CredentialsLibTest(unittest2.TestCase):
     if service_account_name is not None:
       kwargs['service_account_name'] = service_account_name
     service_account_name = service_account_name or 'default'
-    with mock.patch.object(urllib2, 'urlopen', autospec=True) as urllib_mock:
-      urllib_mock.return_value = StringIO.StringIO(''.join(scopes))
-      with mock.patch.object(util, 'DetectGce', autospec=True) as mock_util:
-        mock_util.return_value = True
+
+    def MockMetadataCalls(request):
+      request_url = request.get_full_url()
+      if request_url.endswith('scopes'):
+        return StringIO.StringIO(''.join(scopes))
+      elif request_url.endswith('service-accounts'):
+        return StringIO.StringIO(service_account_name)
+      elif request_url.endswith(
+          '/service-accounts/%s/token' % service_account_name):
+        return StringIO.StringIO('{"access_token": "token"}')
+      self.fail('Unexpected HTTP request to %s' % request_url)
+
+    with mock.patch.object(credentials_lib, '_OpenNoProxy',
+                           side_effect=MockMetadataCalls,
+                           autospec=True) as opener_mock:
+      with mock.patch.object(util, 'DetectGce', autospec=True) as mock_detect:
+        mock_detect.return_value = True
         validator = CreateUriValidator(
             re.compile(r'.*/%s/.*' % service_account_name),
             content='{"access_token": "token"}')
         credentials = credentials_lib.GceAssertionCredentials(scopes, **kwargs)
         self.assertIsNone(credentials._refresh(validator))
+      self.assertEqual(3, opener_mock.call_count)
 
   def testGceServiceAccounts(self):
     self._GetServiceCreds()

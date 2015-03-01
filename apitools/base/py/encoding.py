@@ -7,6 +7,7 @@ import datetime
 import json
 import logging
 
+
 from protorpc import message_types
 from protorpc import messages
 from protorpc import protojson
@@ -23,6 +24,10 @@ __all__ = [
     'PyValueToMessage',
     'MessageToPyValue',
     'MessageToRepr',
+    'GetCustomJsonFieldMapping',
+    'AddCustomJsonFieldMapping',
+    'GetCustomJsonEnumMapping',
+    'AddCustomJsonEnumMapping',
 ]
 
 
@@ -255,8 +260,9 @@ class _ProtoJsonApiTools(protojson.ProtoJson):
     # remove this later.
     old_level = logging.getLogger().level
     logging.getLogger().setLevel(logging.ERROR)
+    result = _DecodeCustomFieldNames(message_type, encoded_message)
     result = super(_ProtoJsonApiTools, self).decode_message(
-        message_type, encoded_message)
+        message_type, result)
     logging.getLogger().setLevel(old_level)
     result = _ProcessUnknownEnums(result, encoded_message)
     result = _ProcessUnknownMessages(result, encoded_message)
@@ -280,6 +286,7 @@ class _ProtoJsonApiTools(protojson.ProtoJson):
     if isinstance(field, messages.MessageField):
       field_value = self.decode_message(field.message_type, json.dumps(value))
     elif isinstance(field, messages.EnumField):
+      value = GetCustomJsonEnumMapping(field.type, json_name=value) or value
       try:
         field_value = super(_ProtoJsonApiTools, self).decode_field(field, value)
       except messages.DecodeError:
@@ -296,7 +303,8 @@ class _ProtoJsonApiTools(protojson.ProtoJson):
     if type(message) in _CUSTOM_MESSAGE_CODECS:
       return _CUSTOM_MESSAGE_CODECS[type(message)].encoder(message)
     message = _EncodeUnknownFields(message)
-    return super(_ProtoJsonApiTools, self).encode_message(message)
+    result = super(_ProtoJsonApiTools, self).encode_message(message)
+    return _EncodeCustomFieldNames(message, result)
 
   def encode_field(self, field, value):
     """Encode the given value as JSON.
@@ -313,6 +321,15 @@ class _ProtoJsonApiTools(protojson.ProtoJson):
       value = result.value
       if result.complete:
         return value
+    if isinstance(field, messages.EnumField):
+      if field.repeated:
+        remapped_value = [GetCustomJsonEnumMapping(
+            field.type, python_name=e.name) or e.name for e in value]
+      else:
+        remapped_value = GetCustomJsonEnumMapping(
+            field.type, python_name=value.name)
+      if remapped_value:
+        return remapped_value
     if (isinstance(field, messages.MessageField) and
         not isinstance(field, message_types.DateTimeField)):
       value = json.loads(self.encode_message(value))
@@ -350,7 +367,7 @@ def _DecodeUnknownMessages(message, encoded_message, pair_type):
   field_type = pair_type.value.type
   new_values = []
   all_field_names = [x.name for x in message.all_fields()]
-  for name, value_dict in encoded_message.items():
+  for name, value_dict in six.iteritems(encoded_message):
     if name in all_field_names:
       continue
     value = PyValueToMessage(field_type, value_dict)
@@ -475,7 +492,7 @@ def _ProcessUnknownMessages(message, encoded_message):
   decoded_message = json.loads(encoded_message)
   message_fields = [x.name for x in message.all_fields()] + list(
       message.all_unrecognized_fields())
-  missing_fields = [x for x in decoded_message.keys()
+  missing_fields = [x for x in six.iterkeys(decoded_message)
                     if x not in message_fields]
   for field_name in missing_fields:
     message.set_unrecognized_field(field_name, decoded_message[field_name],
@@ -484,3 +501,136 @@ def _ProcessUnknownMessages(message, encoded_message):
 
 
 RegisterFieldTypeCodec(_SafeEncodeBytes, _SafeDecodeBytes)(messages.BytesField)
+
+
+# Note that these could share a dictionary, since they're keyed by
+# distinct types, but it's not really worth it.
+_JSON_ENUM_MAPPINGS = {}
+_JSON_FIELD_MAPPINGS = {}
+
+
+def AddCustomJsonEnumMapping(enum_type, python_name, json_name):
+  """Add a custom wire encoding for a given enum value.
+
+  This is primarily used in generated code, to handle enum values
+  which happen to be Python keywords.
+
+  Args:
+    enum_type: (messages.Enum) An enum type
+    python_name: (basestring) Python name for this value.
+    json_name: (basestring) JSON name to be used on the wire.
+  """
+  if not issubclass(enum_type, messages.Enum):
+    raise exceptions.TypecheckError(
+        'Cannot set JSON enum mapping for non-enum "%s"' % enum_type)
+  enum_name = enum_type.definition_name()
+  if python_name not in enum_type.names():
+    raise exceptions.InvalidDataError(
+        'Enum value %s not a value for type %s' % (python_name, enum_type))
+  field_mappings = _JSON_ENUM_MAPPINGS.setdefault(enum_name, {})
+  _CheckForExistingMappings('enum', enum_type, python_name, json_name)
+  field_mappings[python_name] = json_name
+
+
+def AddCustomJsonFieldMapping(message_type, python_name, json_name):
+  """Add a custom wire encoding for a given message field.
+
+  This is primarily used in generated code, to handle enum values
+  which happen to be Python keywords.
+
+  Args:
+    message_type: (messages.Message) A message type
+    python_name: (basestring) Python name for this value.
+    json_name: (basestring) JSON name to be used on the wire.
+  """
+  if not issubclass(message_type, messages.Message):
+    raise exceptions.TypecheckError(
+        'Cannot set JSON field mapping for non-message "%s"' % message_type)
+  message_name = message_type.definition_name()
+  try:
+    _ = message_type.field_by_name(python_name)
+  except KeyError:
+    raise exceptions.InvalidDataError(
+        'Field %s not recognized for type %s' % (python_name, message_type))
+  field_mappings = _JSON_FIELD_MAPPINGS.setdefault(message_name, {})
+  _CheckForExistingMappings('field', message_type, python_name, json_name)
+  field_mappings[python_name] = json_name
+
+
+def GetCustomJsonEnumMapping(enum_type, python_name=None, json_name=None):
+  """Return the appropriate remapping for the given enum, or None."""
+  return _FetchRemapping(enum_type.definition_name(), 'enum',
+                         python_name=python_name, json_name=json_name,
+                         mappings=_JSON_ENUM_MAPPINGS)
+
+
+def GetCustomJsonFieldMapping(message_type, python_name=None, json_name=None):
+  """Return the appropriate remapping for the given field, or None."""
+  return _FetchRemapping(message_type.definition_name(), 'field',
+                         python_name=python_name, json_name=json_name,
+                         mappings=_JSON_FIELD_MAPPINGS)
+
+
+def _FetchRemapping(type_name, mapping_type, python_name=None, json_name=None,
+                    mappings=None):
+  """Common code for fetching a key or value from a remapping dict."""
+  if python_name and json_name:
+    raise exceptions.InvalidDataError(
+        'Cannot specify both python_name and json_name for %s remapping' % (
+            mapping_type,))
+  if not (python_name or json_name):
+    raise exceptions.InvalidDataError(
+        'Must specify either python_name or json_name for %s remapping' % (
+            mapping_type,))
+  field_remappings = mappings.get(type_name, {})
+  if field_remappings:
+    if python_name:
+      return field_remappings.get(python_name)
+    elif json_name:
+      if json_name in list(field_remappings.values()):
+        return [k for k in field_remappings
+                if field_remappings[k] == json_name][0]
+  return None
+
+
+def _CheckForExistingMappings(mapping_type, message_type,
+                              python_name, json_name):
+  """Validate that no mappings exist for the given values."""
+  if mapping_type == 'field':
+    getter = GetCustomJsonFieldMapping
+  elif mapping_type == 'enum':
+    getter = GetCustomJsonEnumMapping
+  remapping = getter(message_type, python_name=python_name)
+  if remapping is not None:
+    raise exceptions.InvalidDataError(
+        'Cannot add mapping for %s "%s", already mapped to "%s"' % (
+            mapping_type, python_name, remapping))
+  remapping = getter(message_type, json_name=json_name)
+  if remapping is not None:
+    raise exceptions.InvalidDataError(
+        'Cannot add mapping for %s "%s", already mapped to "%s"' % (
+            mapping_type, json_name, remapping))
+
+
+def _EncodeCustomFieldNames(message, encoded_value):
+  message_name = type(message).definition_name()
+  field_remappings = list(_JSON_FIELD_MAPPINGS.get(message_name, {}).items())
+  if field_remappings:
+    decoded_value = json.loads(encoded_value)
+    for python_name, json_name in field_remappings:
+      if python_name in encoded_value:
+        decoded_value[json_name] = decoded_value.pop(python_name)
+    encoded_value = json.dumps(decoded_value)
+  return encoded_value
+
+
+def _DecodeCustomFieldNames(message_type, encoded_message):
+  message_name = message_type.definition_name()
+  field_remappings = _JSON_FIELD_MAPPINGS.get(message_name, {})
+  if field_remappings:
+    decoded_message = json.loads(encoded_message)
+    for python_name, json_name in list(field_remappings.items()):
+      if json_name in decoded_message:
+        decoded_message[python_name] = decoded_message.pop(json_name)
+    encoded_message = json.dumps(decoded_message)
+  return encoded_message

@@ -4,13 +4,14 @@
 import datetime
 import sys
 import urllib
+import urlparse
 
 from protorpc import message_types
 from protorpc import messages
-
 import unittest2
 
 from apitools.base.py import base_api
+from apitools.base.py import encoding
 from apitools.base.py import http_wrapper
 
 
@@ -20,6 +21,22 @@ class SimpleMessage(messages.Message):
 
 class MessageWithTime(messages.Message):
   timestamp = message_types.DateTimeField(1)
+
+
+class MessageWithRemappings(messages.Message):
+
+  class AnEnum(messages.Enum):
+    value_one = 1
+    value_two = 2
+
+  str_field = messages.StringField(1)
+  enum_field = messages.EnumField('AnEnum', 2)
+
+
+encoding.AddCustomJsonFieldMapping(
+    MessageWithRemappings, 'str_field', 'remapped_field')
+encoding.AddCustomJsonEnumMapping(
+    MessageWithRemappings.AnEnum, 'value_one', 'ONE/TWO')
 
 
 class StandardQueryParameters(messages.Message):
@@ -103,7 +120,7 @@ class BaseApiTest(unittest2.TestCase):
         request_type_name='MessageWithTime', query_params=['timestamp'])
     service = FakeService()
     request = MessageWithTime(
-        timestamp=datetime.datetime(2014, 10, 7, 12, 53, 13))
+        timestamp=datetime.datetime(2014, 10, 0o7, 12, 53, 13))
     http_request = service.PrepareHttpRequest(method_config, request)
 
     url_timestamp = urllib.quote(request.timestamp.isoformat())
@@ -111,10 +128,10 @@ class BaseApiTest(unittest2.TestCase):
 
   def testPrettyPrintEncoding(self):
     method_config = base_api.ApiMethodInfo(
-      request_type_name='MessageWithTime', query_params=['timestamp'])
+        request_type_name='MessageWithTime', query_params=['timestamp'])
     service = FakeService()
     request = MessageWithTime(
-      timestamp=datetime.datetime(2014, 10, 07, 12, 53, 13))
+        timestamp=datetime.datetime(2014, 10, 0o7, 12, 53, 13))
 
     global_params = StandardQueryParameters()
     http_request = service.PrepareHttpRequest(method_config, request,
@@ -125,6 +142,36 @@ class BaseApiTest(unittest2.TestCase):
     http_request = service.PrepareHttpRequest(method_config, request,
                                               global_params=global_params)
     self.assertTrue('prettyPrint=0' in http_request.url)
+
+  def testQueryRemapping(self):
+    method_config = base_api.ApiMethodInfo(
+        request_type_name='MessageWithRemappings',
+        query_params=['remapped_field', 'enum_field'])
+    request = MessageWithRemappings(
+        str_field='foo', enum_field=MessageWithRemappings.AnEnum.value_one)
+    http_request = FakeService().PrepareHttpRequest(method_config, request)
+    result_params = urlparse.parse_qs(
+        urlparse.urlparse(http_request.url).query)
+    expected_params = {'enum_field': 'ONE%2FTWO', 'remapped_field': 'foo'}
+    self.assertTrue(expected_params, result_params)
+
+  def testPathRemapping(self):
+    method_config = base_api.ApiMethodInfo(
+        relative_path='parameters/{remapped_field}/remap/{enum_field}',
+        request_type_name='MessageWithRemappings',
+        path_params=['remapped_field', 'enum_field'])
+    request = MessageWithRemappings(
+        str_field='gonna', enum_field=MessageWithRemappings.AnEnum.value_one)
+    service = FakeService()
+    expected_url = service.client.url + 'parameters/gonna/remap/ONE%2FTWO'
+    http_request = service.PrepareHttpRequest(method_config, request)
+    self.assertEqual(expected_url, http_request.url)
+
+    method_config.relative_path = (
+        'parameters/{+remapped_field}/remap/{+enum_field}')
+    expected_url = service.client.url + 'parameters/gonna/remap/ONE/TWO'
+    http_request = service.PrepareHttpRequest(method_config, request)
+    self.assertEqual(expected_url, http_request.url)
 
 
 if __name__ == '__main__':

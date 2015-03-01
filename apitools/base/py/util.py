@@ -5,12 +5,14 @@ import collections
 import os
 import random
 
+from protorpc import messages
 import six
 from six.moves import http_client
-from six.moves.urllib.error import URLError
-from six.moves.urllib.parse import quote
-from six.moves.urllib.request import urlopen
+import six.moves.urllib.error as urllib_error
+import six.moves.urllib.parse as urllib_parse
+import six.moves.urllib.request as urllib_request
 
+from apitools.base.py import encoding
 from apitools.base.py import exceptions
 
 __all__ = [
@@ -45,8 +47,9 @@ def DetectGce():
     True iff we're running on a GCE instance.
   """
   try:
-    o = urlopen('http://metadata.google.internal')
-  except URLError:
+    o = urllib_request.build_opener(urllib_request.ProxyHandler({})).open(
+        urllib_request.Request('http://metadata.google.internal'))
+  except urllib_error.URLError:
     return False
   return (o.getcode() == http_client.OK and
           o.headers.get('metadata-flavor') == 'Google')
@@ -104,7 +107,8 @@ def ExpandRelativePath(method_config, params, relative_path=None):
       if not isinstance(value, six.string_types):
         value = str(value)
       path = path.replace(param_template,
-                          quote(value.encode('utf_8'), reserved_chars))
+                          urllib_parse.quote(value.encode('utf_8'),
+                                             reserved_chars))
     except TypeError as e:
       raise exceptions.InvalidUserInputError(
           'Error setting required parameter %s to value %s: %s' % (
@@ -165,3 +169,40 @@ def AcceptableMimeType(accept_patterns, mime_type):
                in zip(pattern.split('/'), mime_type.split('/')))
 
   return any(MimeTypeMatches(pattern, mime_type) for pattern in accept_patterns)
+
+
+def MapParamNames(params, request_type):
+  """Reverse parameter remappings for URL construction."""
+  return [encoding.GetCustomJsonFieldMapping(request_type, json_name=p) or p
+          for p in params]
+
+
+def MapRequestParams(params, request_type):
+  """Perform any renames/remappings needed for URL construction.
+
+  Currently, we have several ways to customize JSON encoding, in
+  particular of field names and enums. This works fine for JSON
+  bodies, but also needs to be applied for path and query parameters
+  in the URL.
+
+  This function takes a dictionary from param names to values, and
+  performs any registered mappings. We also need the request type (to
+  look up the mappings).
+
+  Args:
+    params: (dict) Map from param names to values
+    request_type: (protorpc.messages.Message) request type for this API call
+
+  Returns:
+    A new dict of the same size, with all registered mappings applied.
+  """
+  new_params = dict(params)
+  for param_name, value in params.items():
+    field_remapping = encoding.GetCustomJsonFieldMapping(
+        request_type, python_name=param_name)
+    if field_remapping is not None:
+      new_params[field_remapping] = new_params.pop(param_name)
+    if isinstance(value, messages.Enum):
+      new_params[param_name] = encoding.GetCustomJsonEnumMapping(
+          type(value), python_name=str(value)) or str(value)
+  return new_params

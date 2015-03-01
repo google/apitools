@@ -10,7 +10,9 @@ __all__ = [
 
 def YieldFromList(
     service, request, limit=None, batch_size=100,
-    method='List', field='items', predicate=None):
+    method='List', field='items', predicate=None,
+    current_token_attribute='pageToken',
+    next_token_attribute='nextPageToken'):
   """Make a series of List requests, keeping track of page tokens.
 
   Args:
@@ -24,6 +26,10 @@ def YieldFromList(
     method: str, The name of the method used to fetch resources.
     field: str, The field in the response that will be a list of items.
     predicate: lambda, A function that returns true for items to be yielded.
+    current_token_attribute: str, The name of the attribute in a request message
+        holding the page token for the page being requested.
+    next_token_attribute: str, The name of the attribute in a response message
+        holding the page token for the next page.
 
   Yields:
     protorpc.message.Message, The resources listed by the service.
@@ -36,7 +42,7 @@ def YieldFromList(
     response = getattr(service, method)(request)
     items = getattr(response, field)
     if predicate:
-      items = [item for item in items if predicate(item)]
+      items = list(filter(predicate, items))
     for item in items:
       yield item
       if limit is None:
@@ -44,6 +50,7 @@ def YieldFromList(
       limit -= 1
       if not limit:
         return
-    request.pageToken = response.nextPageToken
-    if not request.pageToken:
+    token = getattr(response, next_token_attribute)
+    if not token:
       return
+    setattr(request, current_token_attribute, token)

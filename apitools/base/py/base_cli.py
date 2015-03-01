@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 """Base script for generated CLI."""
 
-
 import atexit
 import code
 import logging

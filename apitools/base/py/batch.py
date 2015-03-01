@@ -13,7 +13,6 @@ import urllib
 import urlparse
 import uuid
 
-from six.moves import range
 from six.moves import http_client
 
 from apitools.base.py import exceptions
@@ -281,7 +280,7 @@ class BatchHttpRequest(object):
     msg = mime_nonmultipart.MIMENonMultipart(major, minor)
 
     # MIMENonMultipart adds its own Content-Type header.
-    # Keep all of the other headers in headers.
+    # Keep all of the other headers in `request.headers`.
     for key, value in request.headers.items():
       if key == 'content-type':
         continue
