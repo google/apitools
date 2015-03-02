@@ -39,7 +39,7 @@ class ClientGenerationTest(unittest2.TestCase):
     self.gen_client_binary = 'gen_client'
 
   def testGeneration(self):
-    if sys.version < (2, 7):
+    if sys.version_info < (2, 7):
       # TODO(craigcitro): Make apitools codegen support python 2.6.
       # Maybe.
       #

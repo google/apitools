@@ -5,8 +5,6 @@ from __future__ import print_function
 import datetime
 import json
 import os
-import urllib
-import urllib2
 
 import httplib2
 import oauth2client
@@ -16,6 +14,7 @@ import oauth2client.locked_file
 import oauth2client.multistore_file
 import oauth2client.tools  # for flag declarations
 from six.moves import http_client
+from six.moves import urllib
 
 import logging
 
@@ -103,7 +102,7 @@ def _EnsureFileExists(filename):
 
 def _OpenNoProxy(request):
   """Wrapper around urllib2.open that ignores proxies."""
-  opener = urllib2.build_opener(urllib2.ProxyHandler({}))
+  opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
   return opener.open(request)
 
 
@@ -229,10 +228,10 @@ class GceAssertionCredentials(oauth2client.gce.AppAssertionCredentials):
         'http://metadata.google.internal/computeMetadata/'
         'v1/instance/service-accounts')
     additional_headers = {'X-Google-Metadata-Request': 'True'}
-    request = urllib2.Request(account_uri, headers=additional_headers)
+    request = urllib.request.Request(account_uri, headers=additional_headers)
     try:
       response = _OpenNoProxy(request)
-    except urllib2.URLError as e:
+    except urllib.error.URLError as e:
       raise exceptions.CommunicationError(
           'Could not reach metadata service: %s' % e.reason)
     response_lines = [line.rstrip('/\n\r') for line in response.readlines()]
@@ -245,10 +244,10 @@ class GceAssertionCredentials(oauth2client.gce.AppAssertionCredentials):
         'http://metadata.google.internal/computeMetadata/v1/instance/'
         'service-accounts/%s/scopes') % self.__service_account_name
     additional_headers = {'X-Google-Metadata-Request': 'True'}
-    request = urllib2.Request(scopes_uri, headers=additional_headers)
+    request = urllib.request.Request(scopes_uri, headers=additional_headers)
     try:
       response = _OpenNoProxy(request)
-    except urllib2.URLError as e:
+    except urllib.error.URLError as e:
       raise exceptions.CommunicationError(
           'Could not reach metadata service: %s' % e.reason)
     return util.NormalizeScopes(scope.strip() for scope in response.readlines())
@@ -276,10 +275,10 @@ class GceAssertionCredentials(oauth2client.gce.AppAssertionCredentials):
         'http://metadata.google.internal/computeMetadata/v1/instance/'
         'service-accounts/%s/token') % self.__service_account_name
     extra_headers = {'X-Google-Metadata-Request': 'True'}
-    request = urllib2.Request(token_uri, headers=extra_headers)
+    request = urllib.request.Request(token_uri, headers=extra_headers)
     try:
       content = _OpenNoProxy(request).read()
-    except urllib2.URLError as e:
+    except urllib.error.URLError as e:
       self.invalid = True
       if self.store:
         self.store.locked_put(self)
@@ -409,7 +408,7 @@ def GetUserinfo(credentials, http=None):  # pylint: disable=invalid-name
   http = http or httplib2.Http()
   url_root = 'https://www.googleapis.com/oauth2/v2/tokeninfo'
   query_args = {'access_token': credentials.access_token}
-  url = '?'.join((url_root, urllib.urlencode(query_args)))
+  url = '?'.join((url_root, urllib.parse.urlencode(query_args)))
   # We ignore communication woes here (i.e. SSL errors, socket
   # timeout), as handling these should be done in a common location.
   response, content = http.request(url)

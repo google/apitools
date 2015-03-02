@@ -122,7 +122,7 @@ def _PythonValueToJsonObject(py_value):
   return JsonObject(
       properties=[
           JsonObject.Property(key=key, value=_PythonValueToJsonValue(value))
-          for key, value in six.iteritems(py_value)])
+          for key, value in py_value.items()])
 
 
 def _PythonValueToJsonArray(py_value):

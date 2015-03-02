@@ -8,8 +8,6 @@ Relevant links:
 import json
 import urlparse
 
-import six
-
 from apitools.base.py import base_cli
 from apitools.gen import command_registry
 from apitools.gen import message_registry
@@ -73,7 +71,7 @@ class DescriptorGenerator(object):
         self.__client_info, self.__names, self.__description,
         self.__root_package, self.__base_files_package)
     schemas = self.__discovery_doc.get('schemas', {})
-    for schema_name, schema in six.iteritems(schemas):
+    for schema_name, schema in schemas.items():
       self.__message_registry.AddDescriptorFromSchema(schema_name, schema)
 
     # We need to add one more message type for the global parameters.
@@ -105,7 +103,7 @@ class DescriptorGenerator(object):
         self.__base_files_package,
         unelidable_request_methods or [])
     services = self.__discovery_doc.get('resources', {})
-    for service_name, methods in sorted(six.iteritems(services)):
+    for service_name, methods in sorted(services.items()):
       self.__services_registry.AddServiceFromResource(service_name, methods)
     # We might also have top-level methods.
     api_methods = self.__discovery_doc.get('methods', [])

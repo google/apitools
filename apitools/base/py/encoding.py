@@ -367,7 +367,7 @@ def _DecodeUnknownMessages(message, encoded_message, pair_type):
   field_type = pair_type.value.type
   new_values = []
   all_field_names = [x.name for x in message.all_fields()]
-  for name, value_dict in six.iteritems(encoded_message):
+  for name, value_dict in encoded_message.items():
     if name in all_field_names:
       continue
     value = PyValueToMessage(field_type, value_dict)
@@ -492,7 +492,7 @@ def _ProcessUnknownMessages(message, encoded_message):
   decoded_message = json.loads(encoded_message)
   message_fields = [x.name for x in message.all_fields()] + list(
       message.all_unrecognized_fields())
-  missing_fields = [x for x in six.iterkeys(decoded_message)
+  missing_fields = [x for x in decoded_message.keys()
                     if x not in message_fields]
   for field_name in missing_fields:
     message.set_unrecognized_field(field_name, decoded_message[field_name],

@@ -5,14 +5,13 @@ import contextlib
 import datetime
 import logging
 import pprint
-import urllib
-import urlparse
 
 
 from protorpc import message_types
 from protorpc import messages
 import six
 from six.moves import http_client
+from six.moves import urllib
 
 
 from apitools.base.py import credentials_lib
@@ -129,12 +128,12 @@ class _UrlBuilder(object):
   """Convenient container for url data."""
 
   def __init__(self, base_url, relative_path=None, query_params=None):
-    components = urlparse.urlsplit(urlparse.urljoin(
+    components = urllib.parse.urlsplit(urllib.parse.urljoin(
         base_url, relative_path or ''))
     if components.fragment:
       raise exceptions.ConfigurationValueError(
           'Unexpected url fragment: %s' % components.fragment)
-    self.query_params = urlparse.parse_qs(components.query or '')
+    self.query_params = urllib.parse.parse_qs(components.query or '')
     if query_params is not None:
       self.query_params.update(query_params)
     self.__scheme = components.scheme
@@ -143,20 +142,20 @@ class _UrlBuilder(object):
 
   @classmethod
   def FromUrl(cls, url):
-    urlparts = urlparse.urlsplit(url)
-    query_params = urlparse.parse_qs(urlparts.query)
-    base_url = urlparse.urlunsplit((
+    urlparts = urllib.parse.urlsplit(url)
+    query_params = urllib.parse.parse_qs(urlparts.query)
+    base_url = urllib.parse.urlunsplit((
         urlparts.scheme, urlparts.netloc, '', None, None))
     relative_path = urlparts.path or ''
     return cls(base_url, relative_path=relative_path, query_params=query_params)
 
   @property
   def base_url(self):
-    return urlparse.urlunsplit((self.__scheme, self.__netloc, '', '', ''))
+    return urllib.parse.urlunsplit((self.__scheme, self.__netloc, '', '', ''))
 
   @base_url.setter
   def base_url(self, value):
-    components = urlparse.urlsplit(value)
+    components = urllib.parse.urlsplit(value)
     if components.path or components.query or components.fragment:
       raise exceptions.ConfigurationValueError('Invalid base url: %s' % value)
     self.__scheme = components.scheme
@@ -168,14 +167,14 @@ class _UrlBuilder(object):
     # non-ASCII, we may silently fail to encode correctly. We should
     # figure out who is responsible for owning the object -> str
     # conversion.
-    return urllib.urlencode(self.query_params, doseq=True)
+    return urllib.parse.urlencode(self.query_params, doseq=True)
 
   @property
   def url(self):
     if '{' in self.relative_path or '}' in self.relative_path:
       raise exceptions.ConfigurationValueError(
           'Cannot create url with relative path %s' % self.relative_path)
-    return urlparse.urlunsplit((
+    return urllib.parse.urlunsplit((
         self.__scheme, self.__netloc, self.relative_path, self.query, ''))
 
 
@@ -454,11 +453,11 @@ class BaseApiService(object):
     query_param_names = util.MapParamNames(query_params, type(request))
     query_info.update(
         (param, getattr(request, param, None)) for param in query_param_names)
-    query_info = dict((k, v) for k, v in six.iteritems(query_info)
+    query_info = dict((k, v) for k, v in query_info.items()
                       if v is not None)
     query_info = self.__EncodePrettyPrint(query_info)
     query_info = util.MapRequestParams(query_info, type(request))
-    for k, v in six.iteritems(query_info):
+    for k, v in query_info.items():
       if isinstance(v, six.text_type):
         query_info[k] = v.encode('utf8')
       elif isinstance(v, str):

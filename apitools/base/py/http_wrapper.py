@@ -77,7 +77,7 @@ def _Httplib2Debuglevel(http_request, level, http=None):
   http_levels = {}
   httplib2.debuglevel = level
   if http is not None:
-    for connection_key, connection in six.iteritems(http.connections):
+    for connection_key, connection in http.connections.items():
       # httplib2 stores two kinds of values in this dict, connection
       # classes and instances. Since the connection types are all
       # old-style classes, we can't easily distinguish by connection
@@ -89,7 +89,7 @@ def _Httplib2Debuglevel(http_request, level, http=None):
   yield
   httplib2.debuglevel = old_level
   if http is not None:
-    for connection_key, old_level in six.iteritems(http_levels):
+    for connection_key, old_level in http_levels.items():
       if connection_key in http.connections:
         http.connections[connection_key].set_debuglevel(old_level)
 
