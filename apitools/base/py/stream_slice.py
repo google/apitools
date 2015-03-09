@@ -19,6 +19,16 @@ class StreamSlice(object):
   def __len__(self):
     return self.__max_bytes
 
+  def __nonzero__(self):
+    # For 32-bit python2.x, len() cannot exceed a 32-bit number; avoid
+    # accidental len() calls from httplib in the form of "if this_object:".
+    return self.__max_bytes
+
+  @property
+  def length(self):
+    # For 32-bit python2.x, len() cannot exceed a 32-bit number.
+    return self.__max_bytes
+
   def read(self, size=None):  # pylint: disable=missing-docstring
     """Read at most size bytes from this slice.
 
