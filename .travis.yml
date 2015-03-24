@@ -2,6 +2,7 @@ language: python
 env:
   - TOX_ENV=py27
   - TOX_ENV=pypy
+  - TOX_ENV=py34
 install:
   - pip install tox
   - pip install . --allow-external argparse
