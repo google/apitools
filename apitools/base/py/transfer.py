@@ -629,9 +629,11 @@ class Upload(_Transfer):
     msg.set_payload(self.stream.read())
     msg_root.attach(msg)
 
-    # encode the body: note that we can't use `as_string`, because
-    # it plays games with `From ` lines.
-    fp = six.StringIO()  # email: cStringIO in Py2 / io.StringIO in Py3.
+    # NOTE: We encode the body, but can't use `email.message.Message.as_string`
+    #       because it prepends `> ` to `From ` lines.
+    # NOTE: We must use six.StringIO() instead of io.StringIO() since the
+    #       `email` library uses cStringIO in Py2 and io.StringIO in Py3.
+    fp = six.StringIO()
     g = email_generator.Generator(fp, mangle_from_=False)
     g.flatten(msg_root, unixfrom=False)
     http_request.body = fp.getvalue()
