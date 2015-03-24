@@ -247,6 +247,8 @@ def HandleExceptionsAndRebuildHttpConnections(retry_args):
     logging.debug('Caught socket error, retrying: %s', retry_args.exc)
   elif isinstance(retry_args.exc, socket.gaierror):
     logging.debug('Caught socket address error, retrying: %s', retry_args.exc)
+  elif isinstance(retry_args.exc, socket.timeout):
+    logging.debug('Caught socket timeout error, retrying: %s', retry_args.exc)
   elif isinstance(retry_args.exc, httplib2.ServerNotFoundError):
     logging.debug('Caught server not found error, retrying: %s', retry_args.exc)
   elif isinstance(retry_args.exc, ValueError):
