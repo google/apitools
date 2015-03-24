@@ -4,7 +4,8 @@
 import datetime
 import sys
 import urllib
-import urlparse
+
+from six.moves import urllib_parse
 
 from protorpc import message_types
 from protorpc import messages
@@ -150,8 +151,8 @@ class BaseApiTest(unittest2.TestCase):
     request = MessageWithRemappings(
         str_field='foo', enum_field=MessageWithRemappings.AnEnum.value_one)
     http_request = FakeService().PrepareHttpRequest(method_config, request)
-    result_params = urlparse.parse_qs(
-        urlparse.urlparse(http_request.url).query)
+    result_params = urllib_parse.parse_qs(
+        urllib_parse.urlparse(http_request.url).query)
     expected_params = {'enum_field': 'ONE%2FTWO', 'remapped_field': 'foo'}
     self.assertTrue(expected_params, result_params)
 

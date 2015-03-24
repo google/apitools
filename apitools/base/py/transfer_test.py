@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 
-import StringIO
+import io
 
 import unittest2
 
@@ -36,7 +36,7 @@ class TransferTest(unittest2.TestCase):
     # Test multipart: having a body argument in http_request forces
     # multipart here.
     upload = transfer.Upload.FromStream(
-        StringIO.StringIO(upload_contents),
+        io.BytesIO(upload_contents),
         'text/plain',
         total_size=len(upload_contents))
     http_request = http_wrapper.Request(
@@ -52,7 +52,7 @@ class TransferTest(unittest2.TestCase):
     # Test non-multipart (aka media): no body argument means this is
     # sent as media.
     upload = transfer.Upload.FromStream(
-        StringIO.StringIO(upload_contents),
+        io.BytesIO(upload_contents),
         'text/plain',
         total_size=len(upload_contents))
     http_request = http_wrapper.Request(

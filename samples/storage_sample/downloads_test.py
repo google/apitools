@@ -4,10 +4,10 @@ These tests exercise most of the corner cases for upload/download of
 files in apitools, via GCS. There are no performance tests here yet.
 """
 
+import io
 import json
 import os
 import pkgutil
-import StringIO
 import unittest
 
 import apitools.base.py as apitools_base
@@ -29,7 +29,7 @@ class DownloadsTest(unittest.TestCase):
     self.__ResetDownload()
 
   def __ResetDownload(self, auto_transfer=False):
-    self.__buffer = StringIO.StringIO()
+    self.__buffer = io.StringIO()
     self.__download = storage.Download.FromStream(
         self.__buffer, auto_transfer=auto_transfer)
 
@@ -157,7 +157,7 @@ class DownloadsTest(unittest.TestCase):
     request = storage.StorageObjectsGetRequest(
         bucket=self._DEFAULT_BUCKET, object=object_name)
     response = self.__client.objects.Get(request)
-    self.__buffer = StringIO.StringIO()
+    self.__buffer = io.StringIO()
     download_data = json.dumps({
         'auto_transfer': False,
         'progress': 0,

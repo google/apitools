@@ -7,13 +7,13 @@ import email.mime.multipart as mime_multipart
 import email.mime.nonmultipart as mime_nonmultipart
 import email.parser as email_parser
 import itertools
-import StringIO
+import io
 import time
 import urllib
-import urlparse
 import uuid
 
 from six.moves import http_client
+from six.moves import urllib_parse
 
 from apitools.base.py import exceptions
 from apitools.base.py import http_wrapper
@@ -271,8 +271,8 @@ class BatchHttpRequest(object):
       The request as a string in application/http format.
     """
     # Construct status line
-    parsed = urlparse.urlsplit(request.url)
-    request_line = urlparse.urlunsplit(
+    parsed = urllib_parse.urlsplit(request.url)
+    request_line = urllib_parse.urlunsplit(
         (None, None, parsed.path, parsed.query, None))
     status_line = request.http_method + ' ' + request_line + ' HTTP/1.1\n'
     major, minor = request.headers.get(
@@ -293,7 +293,7 @@ class BatchHttpRequest(object):
       msg.set_payload(request.body)
 
     # Serialize the mime message.
-    str_io = StringIO.StringIO()
+    str_io = io.StringIO()
     # maxheaderlen=0 means don't line wrap headers.
     gen = generator.Generator(str_io, maxheaderlen=0)
     gen.flatten(msg, unixfrom=False)
