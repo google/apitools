@@ -9,7 +9,6 @@ import email.parser as email_parser
 import itertools
 import io
 import time
-import urllib
 import uuid
 
 from six.moves import http_client
@@ -235,7 +234,7 @@ class BatchHttpRequest(object):
       the value because Content-ID headers are supposed to be universally
       unique.
     """
-    return '<%s+%s>' % (self.__base_id, urllib.quote(request_id))
+    return '<%s+%s>' % (self.__base_id, urllib_parse.quote(request_id))
 
   @staticmethod
   def _ConvertHeaderToId(header):
@@ -259,7 +258,7 @@ class BatchHttpRequest(object):
       raise exceptions.BatchError('Invalid value for Content-ID: %s' % header)
     _, request_id = header[1:-1].rsplit('+', 1)
 
-    return urllib.unquote(request_id)
+    return urllib_parse.unquote(request_id)
 
   def _SerializeRequest(self, request):
     """Convert a http_wrapper.Request object into a string.

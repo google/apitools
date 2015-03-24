@@ -3,7 +3,6 @@
 
 import datetime
 import sys
-import urllib
 
 from six.moves import urllib_parse
 
@@ -124,7 +123,7 @@ class BaseApiTest(unittest2.TestCase):
         timestamp=datetime.datetime(2014, 10, 0o7, 12, 53, 13))
     http_request = service.PrepareHttpRequest(method_config, request)
 
-    url_timestamp = urllib.quote(request.timestamp.isoformat())
+    url_timestamp = urllib_parse.quote(request.timestamp.isoformat())
     self.assertTrue(http_request.url.endswith(url_timestamp))
 
   def testPrettyPrintEncoding(self):
