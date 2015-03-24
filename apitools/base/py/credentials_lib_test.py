@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 
-import io
 import re
+import six
 
 import mock
 from six.moves import http_client
@@ -38,12 +38,12 @@ class CredentialsLibTest(unittest2.TestCase):
     def MockMetadataCalls(request):
       request_url = request.get_full_url()
       if request_url.endswith('scopes'):
-        return io.BytesIO(''.join(scopes))
+        return six.StringIO(''.join(scopes))
       elif request_url.endswith('service-accounts'):
-        return io.BytesIO(service_account_name)
+        return six.StringIO(service_account_name)
       elif request_url.endswith(
           '/service-accounts/%s/token' % service_account_name):
-        return io.BytesIO('{"access_token": "token"}')
+        return six.StringIO('{"access_token": "token"}')
       self.fail('Unexpected HTTP request to %s' % request_url)
 
     with mock.patch.object(credentials_lib, '_OpenNoProxy',

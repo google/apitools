@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """Tests for stream_slice."""
 
-import io
+import six
 import string
 
 import unittest2
@@ -13,7 +13,7 @@ from apitools.base.py import exceptions
 class BufferedStreamTest(unittest2.TestCase):
 
   def setUp(self):
-    self.stream = io.BytesIO(string.ascii_letters)
+    self.stream = six.StringIO(string.ascii_letters)
     self.value = self.stream.getvalue()
     self.stream.seek(0)
 
