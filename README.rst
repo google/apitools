@@ -1,7 +1,7 @@
 google-apitools
 ===============
 
-|pypi| |build|
+|pypi| |build| |coverage|
 
 ``google-apitools`` is a collection of utilities to make it easier to build
 client-side tools, especially those that talk to Google APIs.
@@ -43,3 +43,5 @@ Then run the tests::
    :target: https://travis-ci.org/google/apitools
 .. |pypi| image:: https://img.shields.io/pypi/v/google-apitools.svg
    :target: https://pypi.python.org/pypi/google-apitools
+.. |coverage| image:: https://coveralls.io/repos/google/apitools/badge.png?branch=master
+   :target: https://coveralls.io/r/google/apitools?branch=master
