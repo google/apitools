@@ -4,5 +4,9 @@
 build/
 dist/
 distribute-*
+
 # Test files
 .tox/
+.coverage
+coverage.xml
+nosetests.xml

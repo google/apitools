@@ -7,3 +7,5 @@ install:
   - pip install tox
   - pip install . --allow-external argparse
 script: tox -e $TOX_ENV
+after_success:
+  - tox -e coveralls
