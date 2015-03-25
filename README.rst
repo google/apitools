@@ -1,8 +1,7 @@
 google-apitools
 ===============
 
-.. image:: https://travis-ci.org/craigcitro/apitools.png?branch=master
-        :target: https://travis-ci.org/craigcitro/apitools
+|pypi| |build|
 
 ``google-apitools`` is a collection of utilities to make it easier to build
 client-side tools, especially those that talk to Google APIs.
@@ -39,3 +38,8 @@ and the ``nose`` testrunner::
 Then run the tests::
 
    $ nosetests
+
+.. |build| image:: https://travis-ci.org/google/apitools.svg?branch=master
+   :target: https://travis-ci.org/google/apitools
+.. |pypi| image:: https://img.shields.io/pypi/v/google-apitools.svg
+   :target: https://pypi.python.org/pypi/google-apitools
