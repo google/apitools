@@ -131,7 +131,7 @@ class Request(object):
     else:
       self.headers.pop('content-length', None)
     # This line ensures we don't try to print large requests.
-    if not isinstance(value, basestring):
+    if not isinstance(value, six.string_types):
       self.loggable_body = '<media body>'
 
 

@@ -517,8 +517,8 @@ def AddCustomJsonEnumMapping(enum_type, python_name, json_name):
 
   Args:
     enum_type: (messages.Enum) An enum type
-    python_name: (basestring) Python name for this value.
-    json_name: (basestring) JSON name to be used on the wire.
+    python_name: (string) Python name for this value.
+    json_name: (string) JSON name to be used on the wire.
   """
   if not issubclass(enum_type, messages.Enum):
     raise exceptions.TypecheckError(
@@ -540,8 +540,8 @@ def AddCustomJsonFieldMapping(message_type, python_name, json_name):
 
   Args:
     message_type: (messages.Message) A message type
-    python_name: (basestring) Python name for this value.
-    json_name: (basestring) JSON name to be used on the wire.
+    python_name: (string) Python name for this value.
+    json_name: (string) JSON name to be used on the wire.
   """
   if not issubclass(message_type, messages.Message):
     raise exceptions.TypecheckError(

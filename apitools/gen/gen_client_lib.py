@@ -6,7 +6,7 @@ Relevant links:
 """
 
 import json
-import urlparse
+from six.moves import urllib_parse
 
 from apitools.base.py import base_cli
 from apitools.gen import command_registry
@@ -33,7 +33,7 @@ def _StandardQueryParametersSchema(discovery_doc):
 
 
 def _ComputePaths(package, version, discovery_doc):
-  full_path = urlparse.urljoin(
+  full_path = urllib_parse.urljoin(
       discovery_doc['rootUrl'], discovery_doc['servicePath'])
   api_path_component = '/'.join((package, version, ''))
   if api_path_component not in full_path:

@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 """Tests for stream_slice."""
 
+import six
 import string
-import StringIO
 
 import unittest2
 
@@ -13,7 +13,7 @@ from apitools.base.py import stream_slice
 class StreamSliceTest(unittest2.TestCase):
 
   def setUp(self):
-    self.stream = StringIO.StringIO(string.letters)
+    self.stream = six.StringIO(string.ascii_letters)
     self.value = self.stream.getvalue()
     self.stream.seek(0)
 

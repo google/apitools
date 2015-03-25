@@ -2,7 +2,7 @@
 
 
 import re
-import StringIO
+import six
 
 import mock
 from six.moves import http_client
@@ -38,12 +38,12 @@ class CredentialsLibTest(unittest2.TestCase):
     def MockMetadataCalls(request):
       request_url = request.get_full_url()
       if request_url.endswith('scopes'):
-        return StringIO.StringIO(''.join(scopes))
+        return six.StringIO(''.join(scopes))
       elif request_url.endswith('service-accounts'):
-        return StringIO.StringIO(service_account_name)
+        return six.StringIO(service_account_name)
       elif request_url.endswith(
           '/service-accounts/%s/token' % service_account_name):
-        return StringIO.StringIO('{"access_token": "token"}')
+        return six.StringIO('{"access_token": "token"}')
       self.fail('Unexpected HTTP request to %s' % request_url)
 
     with mock.patch.object(credentials_lib, '_OpenNoProxy',

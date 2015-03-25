@@ -38,13 +38,14 @@ class ClientGenerationTest(unittest2.TestCase):
     super(ClientGenerationTest, self).setUp()
     self.gen_client_binary = 'gen_client'
 
+  # TODO(craigcitro): Make apitools codegen support python 2.6.
+  # Maybe.
+  #
+  # unittest in 2.6 doesn't have skipIf.
+  @unittest2.skipUnless(sys.version_info[0] == 2 and
+                        sys.version_info[1] == 7,
+                        'Only runs in Python 2.7')
   def testGeneration(self):
-    if sys.version_info < (2, 7):
-      # TODO(craigcitro): Make apitools codegen support python 2.6.
-      # Maybe.
-      #
-      # unittest in 2.6 doesn't have skipIf.
-      return
     for api in _API_LIST:
       with TempDir():
         args = [
