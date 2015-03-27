@@ -48,6 +48,10 @@ def GetCredentials(package_name, scopes, client_id, client_secret, user_agent,
                    api_key=None, client=None):
   """Attempt to get credentials, using an oauth dance as the last resort."""
   scopes = util.NormalizeScopes(scopes)
+  if ((service_account_name and not service_account_keyfile) or
+      (service_account_keyfile and not service_account_name)):
+    raise exceptions.CredentialsError(
+        'Service account name or keyfile provided without the other')
   # TODO(craigcitro): Error checking.
   client_info = {
       'client_id': client_id,
@@ -55,7 +59,7 @@ def GetCredentials(package_name, scopes, client_id, client_secret, user_agent,
       'scope': ' '.join(sorted(util.NormalizeScopes(scopes))),
       'user_agent': user_agent or '%s-generated/0.1' % package_name,
   }
-  if service_account_name is not None:
+  if service_account_name:
     credentials = ServiceAccountCredentialsFromFile(
         service_account_name, service_account_keyfile, scopes)
     if credentials is not None:
