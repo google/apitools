@@ -12,6 +12,7 @@ import oauth2client.client
 import oauth2client.gce
 import oauth2client.locked_file
 import oauth2client.multistore_file
+import oauth2client.service_account
 import oauth2client.tools  # for flag declarations
 from six.moves import http_client
 from six.moves import urllib
@@ -45,6 +46,7 @@ __all__ = [
 def GetCredentials(package_name, scopes, client_id, client_secret, user_agent,
                    credentials_filename=None,
                    service_account_name=None, service_account_keyfile=None,
+                   service_account_json_keyfile=None,
                    api_key=None, client=None):
   """Attempt to get credentials, using an oauth dance as the last resort."""
   scopes = util.NormalizeScopes(scopes)
@@ -59,9 +61,28 @@ def GetCredentials(package_name, scopes, client_id, client_secret, user_agent,
       'scope': ' '.join(sorted(util.NormalizeScopes(scopes))),
       'user_agent': user_agent or '%s-generated/0.1' % package_name,
   }
-  if service_account_name:
+  service_account_kwargs = {
+      'user_agent': client_info['user_agent'],
+  }
+  if service_account_json_keyfile:
+    with open(service_account_json_keyfile) as keyfile:
+      service_account_info = json.load(keyfile)
+    if service_account_info.get('type') != oauth2client.client.SERVICE_ACCOUNT:
+      raise exceptions.CredentialsError(
+          'Invalid service account credentials: %s' % (
+              service_account_json_keyfile,))
+    credentials = oauth2client.service_account._ServiceAccountCredentials(  # pylint: disable=protected-access
+        service_account_id=service_account_info['client_id'],
+        service_account_email=service_account_info['client_email'],
+        private_key_id=service_account_info['private_key_id'],
+        private_key_pkcs8_text=service_account_info['private_key'],
+        scopes=scopes,
+        **service_account_kwargs)
+    return credentials
+  if service_account_name is not None:
     credentials = ServiceAccountCredentialsFromFile(
-        service_account_name, service_account_keyfile, scopes)
+        service_account_name, service_account_keyfile, scopes,
+        service_account_kwargs=service_account_kwargs)
     if credentials is not None:
       return credentials
   credentials = GaeAssertionCredentials.Get(scopes)
@@ -79,16 +100,20 @@ def GetCredentials(package_name, scopes, client_id, client_secret, user_agent,
 
 
 def ServiceAccountCredentialsFromFile(
-    service_account_name, private_key_filename, scopes):
+    service_account_name, private_key_filename, scopes,
+    service_account_kwargs=None):
   with open(private_key_filename) as key_file:
     return ServiceAccountCredentials(
-        service_account_name, key_file.read(), scopes)
+        service_account_name, key_file.read(), scopes,
+        service_account_kwargs=service_account_kwargs)
 
 
-def ServiceAccountCredentials(service_account_name, private_key, scopes):
+def ServiceAccountCredentials(service_account_name, private_key, scopes,
+                              service_account_kwargs=None):
+  service_account_kwargs = service_account_kwargs or {}
   scopes = util.NormalizeScopes(scopes)
   return oauth2client.client.SignedJwtAssertionCredentials(
-      service_account_name, private_key, scopes)
+      service_account_name, private_key, scopes, **service_account_kwargs)
 
 
 def _EnsureFileExists(filename):
