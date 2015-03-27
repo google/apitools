@@ -42,6 +42,7 @@ encoding.AddCustomJsonEnumMapping(
 class StandardQueryParameters(messages.Message):
   field = messages.StringField(1)
   prettyPrint = messages.BooleanField(5, default=True)  # pylint: disable=invalid-name
+  pp = messages.BooleanField(6, default=True)
 
 
 class FakeCredentials(object):
@@ -137,11 +138,15 @@ class BaseApiTest(unittest2.TestCase):
     http_request = service.PrepareHttpRequest(method_config, request,
                                               global_params=global_params)
     self.assertFalse('prettyPrint' in http_request.url)
+    self.assertFalse('pp' in http_request.url)
 
     global_params.prettyPrint = False  # pylint: disable=invalid-name
+    global_params.pp = False
+
     http_request = service.PrepareHttpRequest(method_config, request,
                                               global_params=global_params)
     self.assertTrue('prettyPrint=0' in http_request.url)
+    self.assertTrue('pp=0' in http_request.url)
 
   def testQueryRemapping(self):
     method_config = base_api.ApiMethodInfo(

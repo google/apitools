@@ -437,6 +437,10 @@ class BaseApiService(object):
     # as 0 if False, and ignored otherwise (True is the default).
     if not query_info.pop('prettyPrint', True):
       query_info['prettyPrint'] = 0
+    # The One Platform equivalent of prettyPrint is pp, which also needs
+    # custom encoding.
+    if not query_info.pop('pp', True):
+      query_info['pp'] = 0
     return query_info
 
   def __ConstructQueryParams(self, query_params, request, global_params):
