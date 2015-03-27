@@ -332,6 +332,10 @@ class ServiceRegistry(object):
     relative_path = self.__names.NormalizeRelativePath(
         ''.join((self.__base_path, method_description['path'])))
     method_id = method_description['id']
+    ordered_params = []
+    for param_name in method_description.get('parameterOrder', []):
+      if method_description['parameters'][param_name].get('required', False):
+        ordered_params.append(param_name)
     method_info = base_api.ApiMethodInfo(
         relative_path=relative_path,
         method_id=method_id,
@@ -340,7 +344,7 @@ class ServiceRegistry(object):
             method_description.get('description', '')),
         query_params=[],
         path_params=[],
-        ordered_params=method_description.get('parameterOrder', []),
+        ordered_params=ordered_params,
         request_type_name=self.__names.ClassName(request),
         response_type_name=self.__names.ClassName(response),
         request_field=request_field,
