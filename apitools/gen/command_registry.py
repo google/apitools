@@ -293,6 +293,11 @@ class CommandRegistry(object):
         printer("'add_header', [],")
         printer("'Additional http headers (as key=value strings). Can be '")
         printer("'specified multiple times.')")
+      printer('flags.DEFINE_string(')
+      with printer.Indent('    '):
+        printer("'service_account_json_keyfile', '',")
+        printer("'Filename for a JSON service account key downloaded from '")
+        printer("'the Developer Console.')")
       for flag_info in self.__global_flags:
         self.__PrintFlag(printer, flag_info)
     printer()
@@ -328,12 +333,18 @@ class CommandRegistry(object):
               'FLAGS.api_endpoint)')
       printer("additional_http_headers = dict(x.split('=', 1) for x in "
               "FLAGS.add_header)")
+      printer('credentials_args = {')
+      with printer.Indent('    '):
+        printer("'service_account_json_keyfile': os.path.expanduser("
+                'FLAGS.service_account_json_keyfile)')
+      printer('}')
       printer('try:')
       with printer.Indent():
         printer('client = client_lib.%s(', self.__client_info.client_class_name)
         with printer.Indent(indent='    '):
           printer('api_endpoint, log_request=log_request,')
           printer('log_response=log_response,')
+          printer('credentials_args=credentials_args,')
           printer('additional_http_headers=additional_http_headers)')
       printer('except apitools_base.CredentialsError as e:')
       with printer.Indent():
@@ -431,6 +442,7 @@ class CommandRegistry(object):
     # information.
     printer()
     printer('import code')
+    printer('import os')
     printer('import platform')
     printer('import sys')
     printer()
