@@ -125,12 +125,12 @@ class ExtraTypesTest(unittest2.TestCase):
             datetime.date(1980, 10, 24),
             datetime.date(1981, 1, 19),
             ])
-    json_msg = json.dumps({
-        'start_date': '1752-09-09', 'all_dates': [
-            '1979-05-06', '1980-10-24', '1981-01-19',
-            ]})
-    self.assertEqual(json_msg, encoding.MessageToJson(msg))
-    self.assertEqual(msg, encoding.JsonToMessage(DateMsg, json_msg))
+    msg_dict = {
+        'start_date': '1752-09-09',
+        'all_dates': ['1979-05-06', '1980-10-24', '1981-01-19'],
+    }
+    self.assertEqual(msg_dict, json.loads(encoding.MessageToJson(msg)))
+    self.assertEqual(msg, encoding.JsonToMessage(DateMsg, json.dumps(msg_dict)))
 
   def testInt64(self):
     # Testing roundtrip of type 'long'
