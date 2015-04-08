@@ -2,6 +2,7 @@
 """Common credentials classes and constructors."""
 from __future__ import print_function
 
+import argparse
 import datetime
 import json
 import os
@@ -13,7 +14,7 @@ import oauth2client.gce
 import oauth2client.locked_file
 import oauth2client.multistore_file
 import oauth2client.service_account
-import oauth2client.tools  # for flag declarations
+from oauth2client import tools  # for gflags declarations
 from six.moves import http_client
 from six.moves import urllib
 
@@ -384,6 +385,21 @@ class GaeAssertionCredentials(oauth2client.client.AssertionCredentials):
     self.access_token = token
 
 
+def _GetRunFlowFlags():
+  parser = argparse.ArgumentParser(parents=[tools.argparser])
+  # Get command line argparse flags.
+  flags = parser.parse_args()
+
+  # Allow `gflags` and `argparse` to be used side-by-side.
+  if hasattr(FLAGS, 'auth_host_name'):
+    flags.auth_host_name = FLAGS.auth_host_name
+  if hasattr(FLAGS, 'auth_host_port'):
+    flags.auth_host_port = FLAGS.auth_host_port
+  if hasattr(FLAGS, 'auth_local_webserver'):
+    flags.noauth_local_webserver = (not FLAGS.auth_local_webserver)
+  return flags
+
+
 # TODO(craigcitro): Switch this from taking a path to taking a stream.
 def CredentialsFromFile(path, client_info):
   """Read credentials from a file."""
@@ -403,9 +419,8 @@ def CredentialsFromFile(path, client_info):
       # retry loop, they can ^C.
       try:
         flow = oauth2client.client.OAuth2WebServerFlow(**client_info)
-        # We delay this import because it's rarely needed and takes a long time.
-        from oauth2client import tools
-        credentials = tools.run(flow, credential_store)
+        flags = _GetRunFlowFlags()
+        credentials = tools.run_flow(flow, credential_store, flags)
         break
       except (oauth2client.client.FlowExchangeError, SystemExit) as e:
         # Here SystemExit is "no credential at all", and the
