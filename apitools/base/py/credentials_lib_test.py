@@ -63,5 +63,38 @@ class CredentialsLibTest(unittest2.TestCase):
     self._GetServiceCreds(service_account_name='my_service_account')
 
 
+class TestGetRunFlowFlags(unittest2.TestCase):
+
+  def setUp(self):
+    self._flags_actual = credentials_lib.FLAGS
+
+  def tearDown(self):
+    credentials_lib.FLAGS = self._flags_actual
+
+  def test_with_gflags(self):
+    HOST = object()
+    PORT = object()
+
+    class MockFlags(object):
+      auth_host_name = HOST
+      auth_host_port = PORT
+      auth_local_webserver = False
+
+    credentials_lib.FLAGS = MockFlags
+    flags = credentials_lib._GetRunFlowFlags()
+    self.assertEqual(flags.auth_host_name, HOST)
+    self.assertEqual(flags.auth_host_port, PORT)
+    self.assertEqual(flags.logging_level, 'ERROR')
+    self.assertEqual(flags.noauth_local_webserver, True)
+
+  def test_without_gflags(self):
+    credentials_lib.FLAGS = None
+    flags = credentials_lib._GetRunFlowFlags()
+    self.assertEqual(flags.auth_host_name, 'localhost')
+    self.assertEqual(flags.auth_host_port, [8080, 8090])
+    self.assertEqual(flags.logging_level, 'ERROR')
+    self.assertEqual(flags.noauth_local_webserver, False)
+
+
 if __name__ == '__main__':
   unittest2.main()
