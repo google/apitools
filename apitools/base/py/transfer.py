@@ -404,6 +404,8 @@ class Download(_Transfer):
       else:
         response = self.__GetChunk(self.progress,
                                    additional_headers=additional_headers)
+      if self.total_size is None:
+        self.__SetTotal(response.info)
       response = self.__ProcessResponse(response)
       self._ExecuteCallback(callback, response)
       if (response.status_code == http_client.OK or
