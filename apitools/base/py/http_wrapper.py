@@ -240,9 +240,11 @@ def HandleExceptionsAndRebuildHttpConnections(retry_args):
   retry_after = None
 
   # Transport failures
-  if isinstance(retry_args.exc, http_client.BadStatusLine):
-    logging.debug('Caught BadStatusLine from httplib, retrying: %s',
-                  retry_args.exc)
+  if isinstance(retry_args.exc, (http_client.BadStatusLine,
+                                 http_client.IncompleteRead,
+                                 http_client.ResponseNotReady)):
+    logging.debug('Caught HTTP error %s, retrying: %s',
+                  type(retry_args.exc).__name__, retry_args.exc)
   elif isinstance(retry_args.exc, socket.error):
     logging.debug('Caught socket error, retrying: %s', retry_args.exc)
   elif isinstance(retry_args.exc, socket.gaierror):
