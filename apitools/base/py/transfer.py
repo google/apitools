@@ -766,9 +766,7 @@ class Upload(_Transfer):
             'Failed to transfer all bytes in chunk, upload paused at byte '
             '%d' % self.progress)
       self._ExecuteCallback(callback, response)
-    if self.__complete:
-      # TODO(craigcitro): Decide how to handle errors in the
-      # non-seekable case.
+    if self.__complete and hasattr(self.stream, 'seek'):
       current_pos = self.stream.tell()
       self.stream.seek(0, os.SEEK_END)
       end_pos = self.stream.tell()
