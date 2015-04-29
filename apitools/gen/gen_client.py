@@ -21,7 +21,7 @@ flags.DEFINE_string(
     '--discovery_url.')
 flags.DEFINE_string(
     'discovery_url', '',
-    'URL (or "name/version") of the discovery document to use. '
+    'URL (or "name.version") of the discovery document to use. '
     'Mutually exclusive with --infile.')
 
 flags.DEFINE_string(
