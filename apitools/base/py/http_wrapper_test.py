@@ -6,23 +6,24 @@ from apitools.base.py import http_wrapper
 
 
 class RaisesExceptionOnLen(object):
-  """Supports length property but raises if __len__ is used."""
 
-  def __len__(self):
-    raise Exception('len() called unnecessarily')
+    """Supports length property but raises if __len__ is used."""
 
-  def length(self):
-    return 1
+    def __len__(self):
+        raise Exception('len() called unnecessarily')
+
+    def length(self):
+        return 1
 
 
 class HttpWrapperTest(unittest2.TestCase):
 
-  def testRequestBodyUsesLengthProperty(self):
-    http_wrapper.Request(body=RaisesExceptionOnLen())
+    def testRequestBodyUsesLengthProperty(self):
+        http_wrapper.Request(body=RaisesExceptionOnLen())
 
-  def testRequestBodyWithLen(self):
-    http_wrapper.Request(body='burrito')
+    def testRequestBodyWithLen(self):
+        http_wrapper.Request(body='burrito')
 
 
 if __name__ == '__main__':
-  unittest2.main()
+    unittest2.main()
