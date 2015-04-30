@@ -62,7 +62,7 @@ class NewCmd(appcommands.Cmd):
             self._max_args = len(self._argspec.args or ())
             self._min_args = self._max_args - len(self._argspec.defaults or ())
             if self._star_args:
-                self._max_args = sys.maxint
+                self._max_args = sys.maxsize
 
             self._debug_mode = FLAGS.debug_mode
             self.surface_in_shell = True
