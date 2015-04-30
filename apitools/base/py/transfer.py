@@ -25,11 +25,38 @@ __all__ = [
     'Upload',
     'RESUMABLE_UPLOAD',
     'SIMPLE_UPLOAD',
+    'DownloadProgressPrinter',
+    'DownloadCompletePrinter',
+    'UploadProgressPrinter',
+    'UploadCompletePrinter',
 ]
 
 _RESUMABLE_UPLOAD_THRESHOLD = 5 << 20
 SIMPLE_UPLOAD = 'simple'
 RESUMABLE_UPLOAD = 'resumable'
+
+
+def DownloadProgressPrinter(response, download):
+  """Print download progress based on response."""
+  if 'content-range' in response.info:
+    print('Received %s' % response.info['content-range'])
+  else:
+    print('Received %d bytes' % response.length)
+
+
+def DownloadCompletePrinter(response, download):
+  """Print information about a completed download."""
+  print('Download complete')
+
+
+def UploadProgressPrinter(response, upload):
+  """Print upload progress based on response."""
+  print('Sent %s' % response.info['range'])
+
+
+def UploadCompletePrinter(response, upload):
+  """Print information about a completed upload."""
+  print('Upload complete')
 
 
 class _Transfer(object):
@@ -152,13 +179,17 @@ class Download(_Transfer):
   _REQUIRED_SERIALIZATION_KEYS = set((
       'auto_transfer', 'progress', 'total_size', 'url'))
 
-  def __init__(self, *args, **kwds):
+  def __init__(self, stream, progress_callback=None, finish_callback=None,
+               **kwds):
     total_size = kwds.pop('total_size', None)
-    super(Download, self).__init__(*args, **kwds)
+    super(Download, self).__init__(stream, **kwds)
     self.__initial_response = None
     self.__progress = 0
     self.__total_size = total_size
     self.__encoding = None
+
+    self.progress_callback = progress_callback
+    self.finish_callback = finish_callback
 
   @property
   def progress(self):
@@ -276,17 +307,6 @@ class Download(_Transfer):
     if self.auto_transfer:
       self.StreamInChunks()
 
-  @staticmethod
-  def _ArgPrinter(response, unused_download):
-    if 'content-range' in response.info:
-      print('Received %s' % response.info['content-range'])
-    else:
-      print('Received %d bytes' % response.length)
-
-  @staticmethod
-  def _CompletePrinter(*unused_args):
-    print('Download complete')
-
   def __NormalizeStartEnd(self, start, end=None):
     if end is not None:
       if start < 0:
@@ -393,8 +413,8 @@ class Download(_Transfer):
   def StreamInChunks(self, callback=None, finish_callback=None,
                      additional_headers=None):
     """Stream the entire download."""
-    callback = callback or self._ArgPrinter
-    finish_callback = finish_callback or self._CompletePrinter
+    callback = callback or self.progress_callback
+    finish_callback = finish_callback or self.finish_callback
 
     self.EnsureInitialized()
     while True:
@@ -431,6 +451,7 @@ class Upload(_Transfer):
 
   def __init__(self, stream, mime_type, total_size=None, http=None,
                close_stream=False, chunksize=None, auto_transfer=True,
+               progress_callback=None, finish_callback=None,
                **kwds):
     super(Upload, self).__init__(
         stream, close_stream=close_stream, chunksize=chunksize,
@@ -442,6 +463,8 @@ class Upload(_Transfer):
     self.__server_chunk_granularity = None
     self.__strategy = None
 
+    self.progress_callback = progress_callback
+    self.finish_callback = finish_callback
     self.total_size = total_size
 
   @property
@@ -731,22 +754,14 @@ class Upload(_Transfer):
           'Server requires chunksize to be a multiple of %d',
           self.__server_chunk_granularity)
 
-  @staticmethod
-  def _ArgPrinter(response, unused_upload):
-    print('Sent %s' % response.info['range'])
-
-  @staticmethod
-  def _CompletePrinter(*unused_args):
-    print('Upload complete')
-
   def __StreamMedia(self, callback=None, finish_callback=None,
                     additional_headers=None, use_chunks=True):
     """Helper function for StreamMedia / StreamInChunks."""
     if self.strategy != RESUMABLE_UPLOAD:
       raise exceptions.InvalidUserInputError(
           'Cannot stream non-resumable upload')
-    callback = callback or self._ArgPrinter
-    finish_callback = finish_callback or self._CompletePrinter
+    callback = callback or self.progress_callback
+    finish_callback = finish_callback or self.finish_callback
     # final_response is set if we resumed an already-completed upload.
     response = self.__final_response
     send_func = self.__SendChunk if use_chunks else self.__SendMediaBody

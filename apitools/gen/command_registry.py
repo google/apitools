@@ -541,14 +541,22 @@ class CommandRegistry(object):
             printer('if FLAGS.upload_filename:')
             with printer.Indent():
               printer('upload = apitools_base.Upload.FromFile(')
-              printer('    FLAGS.upload_filename, FLAGS.upload_mime_type)')
+              printer('    FLAGS.upload_filename, FLAGS.upload_mime_type,')
+              printer('    progress_callback='
+                      'apitools_base.UploadProgressPrinter,')
+              printer('    finish_callback='
+                      'apitools_base.UploadCompletePrinter)')
           if command_info.has_download:
             call_args.append('download=download')
             printer('download = None')
             printer('if FLAGS.download_filename:')
             with printer.Indent():
               printer('download = apitools_base.Download.FromFile('
-                      'FLAGS.download_filename, overwrite=FLAGS.overwrite)')
+                      'FLAGS.download_filename, overwrite=FLAGS.overwrite,')
+              printer('    progress_callback='
+                      'apitools_base.DownloadProgressPrinter,')
+              printer('    finish_callback='
+                      'apitools_base.DownloadCompletePrinter)')
           printer('result = client.%s(', command_info.client_method_path)
           with printer.Indent(indent='    '):
             printer('%s)', ', '.join(call_args))
