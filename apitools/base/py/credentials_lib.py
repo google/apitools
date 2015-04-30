@@ -67,7 +67,8 @@ def GetCredentials(package_name, scopes, client_id, client_secret, user_agent,
     if service_account_json_keyfile:
         with open(service_account_json_keyfile) as keyfile:
             service_account_info = json.load(keyfile)
-        if service_account_info.get('type') != oauth2client.client.SERVICE_ACCOUNT:
+        if service_account_info.get(
+            'type') != oauth2client.client.SERVICE_ACCOUNT:
             raise exceptions.CredentialsError(
                 'Invalid service account credentials: %s' % (
                     service_account_json_keyfile,))
@@ -285,7 +286,8 @@ class GceAssertionCredentials(oauth2client.gce.AppAssertionCredentials):
         except urllib.error.URLError as e:
             raise exceptions.CommunicationError(
                 'Could not reach metadata service: %s' % e.reason)
-        return util.NormalizeScopes(scope.strip() for scope in response.readlines())
+        return util.NormalizeScopes(scope.strip()
+                                    for scope in response.readlines())
 
     def _refresh(self, do_request):
         """Refresh self.access_token.

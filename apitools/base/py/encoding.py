@@ -257,7 +257,8 @@ class _ProtoJsonApiTools(protojson.ProtoJson):
 
     def decode_message(self, message_type, encoded_message):
         if message_type in _CUSTOM_MESSAGE_CODECS:
-            return _CUSTOM_MESSAGE_CODECS[message_type].decoder(encoded_message)
+            return _CUSTOM_MESSAGE_CODECS[
+                message_type].decoder(encoded_message)
         # We turn off the default logging in protorpc. We may want to
         # remove this later.
         old_level = logging.getLogger().level
@@ -305,7 +306,8 @@ class _ProtoJsonApiTools(protojson.ProtoJson):
 
     def encode_message(self, message):
         if isinstance(message, messages.FieldList):
-            return '[%s]' % (', '.join(self.encode_message(x) for x in message))
+            return '[%s]' % (', '.join(self.encode_message(x)
+                             for x in message))
         if type(message) in _CUSTOM_MESSAGE_CODECS:
             return _CUSTOM_MESSAGE_CODECS[type(message)].encoder(message)
         message = _EncodeUnknownFields(message)

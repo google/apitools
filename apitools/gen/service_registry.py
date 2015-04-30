@@ -233,7 +233,8 @@ class ServiceRegistry(object):
                 for name in self.__service_method_info_map.keys():
                     printer('self.%s = self.%s(self)',
                             name, self.__GetServiceClassName(name))
-            for name, method_info_map in self.__service_method_info_map.items():
+            for name, method_info_map in self.__service_method_info_map.items(
+                ):
                 self.__WriteSingleService(
                     printer, name, method_info_map, client_info.client_class_name)
 
@@ -291,7 +292,8 @@ class ServiceRegistry(object):
         """Determine if this method needs a new request type created."""
         if not request_type:
             return True
-        if method_description.get('id', '') in self.__unelidable_request_methods:
+        if method_description.get(
+            'id', '') in self.__unelidable_request_methods:
             return True
         message = self.__message_registry.LookupDescriptorOrDie(request_type)
         if message is None:
@@ -352,7 +354,8 @@ class ServiceRegistry(object):
         method_id = method_description['id']
         ordered_params = []
         for param_name in method_description.get('parameterOrder', []):
-            if method_description['parameters'][param_name].get('required', False):
+            if method_description['parameters'][
+                param_name].get('required', False):
                 ordered_params.append(param_name)
         method_info = base_api.ApiMethodInfo(
             relative_path=relative_path,

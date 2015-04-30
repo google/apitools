@@ -170,7 +170,8 @@ def AcceptableMimeType(accept_patterns, mime_type):
         return all(accept in ('*', provided) for accept, provided
                    in zip(pattern.split('/'), mime_type.split('/')))
 
-    return any(MimeTypeMatches(pattern, mime_type) for pattern in accept_patterns)
+    return any(MimeTypeMatches(pattern, mime_type)
+               for pattern in accept_patterns)
 
 
 def MapParamNames(params, request_type):

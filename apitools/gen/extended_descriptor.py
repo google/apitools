@@ -240,7 +240,8 @@ class _Proto2Printer(ProtoPrinter):
 
     def __PrintEnumCommentLines(self, enum_type):
         description = enum_type.description or '%s enum type.' % enum_type.name
-        for line in textwrap.wrap(description, self.__printer.CalculateWidth() - 3):
+        for line in textwrap.wrap(
+            description, self.__printer.CalculateWidth() - 3):
             self.__printer('// %s', line)
         PrintIndentedDescriptions(self.__printer, enum_type.values, 'Values',
                                   prefix='// ')
@@ -293,7 +294,8 @@ class _Proto2Printer(ProtoPrinter):
                                   prefix='// ')
 
     def __PrintFieldDescription(self, description):
-        for line in textwrap.wrap(description, self.__printer.CalculateWidth() - 3):
+        for line in textwrap.wrap(
+            description, self.__printer.CalculateWidth() - 3):
             self.__printer('// %s', line)
 
     def __PrintFields(self, fields):

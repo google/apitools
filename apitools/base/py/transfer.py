@@ -218,7 +218,8 @@ class Download(_Transfer):
                    **kwds)
 
     @classmethod
-    def FromData(cls, stream, json_data, http=None, auto_transfer=None, **kwds):
+    def FromData(
+        cls, stream, json_data, http=None, auto_transfer=None, **kwds):
         """Create a new Download object from a stream and serialized data."""
         info = json.loads(json_data)
         missing_keys = cls._REQUIRED_SERIALIZATION_KEYS - set(info.keys())
@@ -356,11 +357,13 @@ class Download(_Transfer):
         if response.status_code not in self._ACCEPTABLE_STATUSES:
             # We distinguish errors that mean we made a mistake in setting
             # up the transfer versus something we should attempt again.
-            if response.status_code in (http_client.FORBIDDEN, http_client.NOT_FOUND):
+            if response.status_code in (
+                http_client.FORBIDDEN, http_client.NOT_FOUND):
                 raise exceptions.HttpError.FromResponse(response)
             else:
                 raise exceptions.TransferRetryError(response.content)
-        if response.status_code in (http_client.OK, http_client.PARTIAL_CONTENT):
+        if response.status_code in (
+            http_client.OK, http_client.PARTIAL_CONTENT):
             self.stream.write(response.content)
             self.__progress += response.length
             if response.info and 'content-encoding' in response.info:
@@ -698,7 +701,8 @@ class Upload(_Transfer):
         refresh_response = http_wrapper.MakeRequest(
             self.http, refresh_request, redirections=0, retries=self.num_retries)
         range_header = self._GetRangeHeaderFromResponse(refresh_response)
-        if refresh_response.status_code in (http_client.OK, http_client.CREATED):
+        if refresh_response.status_code in (
+            http_client.OK, http_client.CREATED):
             self.__complete = True
             self.__progress = self.total_size
             self.stream.seek(self.progress)

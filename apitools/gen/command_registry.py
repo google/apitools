@@ -143,7 +143,8 @@ class CommandRegistry(object):
             ))
             arg_names.append(name)
         flags = []
-        for extended_field in sorted(request_type.fields, key=lambda x: x.name):
+        for extended_field in sorted(
+            request_type.fields, key=lambda x: x.name):
             field = extended_field.field_descriptor
             if extended_field.name in arg_names:
                 continue

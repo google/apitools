@@ -150,11 +150,13 @@ class _UrlBuilder(object):
         base_url = urllib.parse.urlunsplit((
             urlparts.scheme, urlparts.netloc, '', None, None))
         relative_path = urlparts.path or ''
-        return cls(base_url, relative_path=relative_path, query_params=query_params)
+        return cls(
+            base_url, relative_path=relative_path, query_params=query_params)
 
     @property
     def base_url(self):
-        return urllib.parse.urlunsplit((self.__scheme, self.__netloc, '', '', ''))
+        return urllib.parse.urlunsplit(
+            (self.__scheme, self.__netloc, '', '', ''))
 
     @base_url.setter
     def base_url(self, value):
@@ -371,7 +373,8 @@ class BaseApiClient(object):
 
     # TODO(craigcitro): Decide where these two functions should live.
     def SerializeMessage(self, message):
-        return encoding.MessageToJson(message, include_fields=self.__include_fields)
+        return encoding.MessageToJson(
+            message, include_fields=self.__include_fields)
 
     def DeserializeMessage(self, response_type, data):
         """Deserialize the given data as method_config.response_type."""
@@ -476,7 +479,8 @@ class BaseApiService(object):
                 query_info[k] = v.isoformat()
         return query_info
 
-    def __ConstructRelativePath(self, method_config, request, relative_path=None):
+    def __ConstructRelativePath(
+        self, method_config, request, relative_path=None):
         """Determine the relative path for request."""
         python_param_names = util.MapParamNames(
             method_config.path_params, type(request))

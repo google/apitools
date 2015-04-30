@@ -46,7 +46,8 @@ class DateField(messages.Field):
     #  * since a subclass's metaclass must inherit from its superclass's
     #    metaclass, we're forced to have this hard-to-read inheritance.
     #
-    class __metaclass__(messages.Field.__metaclass__):  # pylint: disable=invalid-name
+    class __metaclass__(
+        messages.Field.__metaclass__):  # pylint: disable=invalid-name
 
         def __init__(cls, name, bases, dct):  # pylint: disable=no-self-argument
             super(messages.Field.__metaclass__, cls).__init__(name, bases, dct)

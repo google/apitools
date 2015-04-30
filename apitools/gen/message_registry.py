@@ -373,7 +373,8 @@ class MessageRegistry(object):
             # We don't actually know this is a message -- it might be an
             # enum. However, we can't check that until we've created all the
             # types, so we come back and fix this up later.
-            return TypeInfo(type_name=type_ref, variant=messages.Variant.MESSAGE)
+            return TypeInfo(
+                type_name=type_ref, variant=messages.Variant.MESSAGE)
 
         if 'enum' in attrs:
             enum_name = '%sValuesEnum' % name_hint
@@ -429,7 +430,8 @@ class MessageRegistry(object):
             schema['id'] = name_hint
             self.AddDescriptorFromSchema(name_hint, schema)
             self.__AddIfUnknown(name_hint)
-            return TypeInfo(type_name=name_hint, variant=messages.Variant.MESSAGE)
+            return TypeInfo(
+                type_name=name_hint, variant=messages.Variant.MESSAGE)
 
         raise ValueError('Unknown type: %s' % type_name)
 
@@ -443,7 +445,8 @@ class MessageRegistry(object):
                 if field.field_descriptor.variant == messages.Variant.MESSAGE:
                     field_type_name = field.field_descriptor.type_name
                     field_type = self.LookupDescriptor(field_type_name)
-                    if isinstance(field_type, extended_descriptor.ExtendedEnumDescriptor):
+                    if isinstance(
+                        field_type, extended_descriptor.ExtendedEnumDescriptor):
                         field.field_descriptor.variant = messages.Variant.ENUM
             for submessage_type in message_type.message_types:
                 self._FixupMessage(submessage_type)
