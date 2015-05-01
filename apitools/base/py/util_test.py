@@ -105,35 +105,17 @@ class UtilTest(unittest2.TestCase):
             util.Typecheck(
                 instance_of_class1, (Class1, (Class2, Class3)), 'message'))
 
-        try:
+        with self.assertRaises(exceptions.TypecheckError):
             util.Typecheck(instance_of_class1, Class2)
-            self.fail(
-                'Type mismatch not detected when called with 2 arguments')
-        except exceptions.TypecheckError:
-            pass  # expected
 
-        try:
+        with self.assertRaises(exceptions.TypecheckError):
             util.Typecheck(instance_of_class1, (Class2, Class3))
-            self.fail(
-                'Type mismatch not detected when called with 2 arguments including '
-                'type tuple')
-        except exceptions.TypecheckError:
-            pass  # expected
 
-        try:
+        with self.assertRaises(exceptions.TypecheckError):
             util.Typecheck(instance_of_class1, Class2, 'message')
-            self.fail(
-                'Type mismatch not detected when called with 3 arguments')
-        except exceptions.TypecheckError:
-            pass  # expected
 
-        try:
+        with self.assertRaises(exceptions.TypecheckError):
             util.Typecheck(instance_of_class1, (Class2, Class3), 'message')
-            self.fail(
-                'Type mismatch not detected when called with 3 arguments including '
-                'type tuple')
-        except exceptions.TypecheckError:
-            pass  # expected
 
     def testAcceptableMimeType(self):
         valid_pairs = (

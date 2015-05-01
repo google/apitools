@@ -88,7 +88,8 @@ class ExtraTypesTest(unittest2.TestCase):
             extra_types.JsonObject.Property(
                 key='a', value=extra_types.JsonValue(integer_value=6)),
             extra_types.JsonObject.Property(
-                key='b', value=extra_types.JsonValue(string_value='eleventeen')),
+                key='b',
+                value=extra_types.JsonValue(string_value='eleventeen')),
         ])
         self.assertRoundTrip(d)
         # We don't know json_d will round-trip, because of randomness in
@@ -165,8 +166,8 @@ class ExtraTypesTest(unittest2.TestCase):
                                message=message, times=times - 1)
 
         # Single
-        json_msg = ('{"such_string": "poot", "wow": "-1234",'
-                    ' "very_unsigned": "999", "much_repeated": ["123", "456"]}')
+        json_msg = ('{"such_string": "poot", "wow": "-1234", '
+                    '"very_unsigned": "999", "much_repeated": ["123", "456"]}')
         out_json = MtoJ(JtoM(DogeMsg, json_msg))
         self.assertEqual(json.loads(out_json)['wow'], '-1234')
 

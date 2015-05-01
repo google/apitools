@@ -49,7 +49,8 @@ class CredentialsLibTest(unittest2.TestCase):
         with mock.patch.object(credentials_lib, '_OpenNoProxy',
                                side_effect=MockMetadataCalls,
                                autospec=True) as opener_mock:
-            with mock.patch.object(util, 'DetectGce', autospec=True) as mock_detect:
+            with mock.patch.object(util, 'DetectGce',
+                                   autospec=True) as mock_detect:
                 mock_detect.return_value = True
                 validator = CreateUriValidator(
                     re.compile(r'.*/%s/.*' % service_account_name),

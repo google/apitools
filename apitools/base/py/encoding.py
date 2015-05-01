@@ -43,7 +43,7 @@ _FIELD_TYPE_CODECS = {}
 
 
 def MapUnrecognizedFields(field_name):
-    """Register field_name as a container for unrecognized fields in message."""
+    """Register field_name as a container for unrecognized fields."""
     def Register(cls):
         _UNRECOGNIZED_FIELD_MAPPINGS[cls] = field_name
         return cls
@@ -128,15 +128,17 @@ def MessageToRepr(msg, multiline=False, **kwargs):
       **kwargs: {str:str}, Additional flags for how to format the string.
 
     Known **kwargs:
-      shortstrings: bool, True if all string values should be truncated at
-          100 characters, since when mocking the contents typically don't matter
-          except for IDs, and IDs are usually less than 100 characters.
+      shortstrings: bool, True if all string values should be
+          truncated at 100 characters, since when mocking the contents
+          typically don't matter except for IDs, and IDs are usually
+          less than 100 characters.
       no_modules: bool, True if the long module name should not be printed with
           each type.
 
     Returns:
       str, A string of valid python (assuming the right imports have been made)
       that recreates the message passed into this function.
+
     """
 
     # TODO(user): craigcitro suggests a pretty-printer from apitools/gen.
@@ -307,8 +309,9 @@ class _ProtoJsonApiTools(protojson.ProtoJson):
     def encode_message(self, message):
         if isinstance(message, messages.FieldList):
             return '[%s]' % (', '.join(self.encode_message(x)
-                             for x in message))
-        if type(message) in _CUSTOM_MESSAGE_CODECS:
+                                       for x in message))
+        message_type = type(message)
+        if message_type in _CUSTOM_MESSAGE_CODECS:
             return _CUSTOM_MESSAGE_CODECS[type(message)].encoder(message)
         message = _EncodeUnknownFields(message)
         result = super(_ProtoJsonApiTools, self).encode_message(message)
@@ -474,8 +477,8 @@ def _ProcessUnknownEnums(message, encoded_message):
         if (isinstance(field, messages.EnumField) and
                 field.name in decoded_message and
                 message.get_assigned_value(field.name) is None):
-            message.set_unrecognized_field(field.name, decoded_message[field.name],
-                                           messages.Variant.ENUM)
+            message.set_unrecognized_field(
+                field.name, decoded_message[field.name], messages.Variant.ENUM)
     return message
 
 
@@ -553,13 +556,15 @@ def AddCustomJsonFieldMapping(message_type, python_name, json_name):
     """
     if not issubclass(message_type, messages.Message):
         raise exceptions.TypecheckError(
-            'Cannot set JSON field mapping for non-message "%s"' % message_type)
+            'Cannot set JSON field mapping for '
+            'non-message "%s"' % message_type)
     message_name = message_type.definition_name()
     try:
         _ = message_type.field_by_name(python_name)
     except KeyError:
         raise exceptions.InvalidDataError(
-            'Field %s not recognized for type %s' % (python_name, message_type))
+            'Field %s not recognized for type %s' % (
+                python_name, message_type))
     field_mappings = _JSON_FIELD_MAPPINGS.setdefault(message_name, {})
     _CheckForExistingMappings('field', message_type, python_name, json_name)
     field_mappings[python_name] = json_name
@@ -584,8 +589,8 @@ def _FetchRemapping(type_name, mapping_type, python_name=None, json_name=None,
     """Common code for fetching a key or value from a remapping dict."""
     if python_name and json_name:
         raise exceptions.InvalidDataError(
-            'Cannot specify both python_name and json_name for %s remapping' % (
-                mapping_type,))
+            'Cannot specify both python_name and json_name '
+            'for %s remapping' % mapping_type)
     if not (python_name or json_name):
         raise exceptions.InvalidDataError(
             'Must specify either python_name or json_name for %s remapping' % (

@@ -38,7 +38,8 @@ class Names(object):
                  name_convention=None,
                  capitalize_enums=False):
         self.__strip_prefixes = sorted(strip_prefixes, cmp=_SortLengthFirst)
-        self.__name_convention = name_convention or self.DEFAULT_NAME_CONVENTION
+        self.__name_convention = (
+            name_convention or self.DEFAULT_NAME_CONVENTION)
         self.__capitalize_enums = capitalize_enums
 
     @staticmethod
@@ -172,8 +173,9 @@ class ClientInfo(collections.namedtuple('ClientInfo', (
             'user_agent': user_agent,
             'api_key': api_key,
         }
-        client_class_name = ''.join(
-            map(names.ClassName, (client_info['package'], client_info['version'])))
+        client_class_name = '%s%s' % (
+            names.ClassName(client_info['package']),
+            names.ClassName(client_info['version']))
         client_info['client_class_name'] = client_class_name
         return cls(**client_info)
 
@@ -297,9 +299,11 @@ def FetchDiscoveryDoc(discovery_url, retries=5):
             discovery_doc = json.loads(urllib2.urlopen(discovery_url).read())
             break
         except (urllib2.HTTPError, urllib2.URLError) as last_exception:
-            logging.warning('Attempting to fetch discovery doc again after "%s"',
-                            last_exception)
+            logging.warning(
+                'Attempting to fetch discovery doc again after "%s"',
+                last_exception)
     if discovery_doc is None:
-        raise CommunicationError('Could not find discovery doc at url "%s": %s' % (
-            discovery_url, last_exception))
+        raise CommunicationError(
+            'Could not find discovery doc at url "%s": %s' % (
+                discovery_url, last_exception))
     return discovery_doc

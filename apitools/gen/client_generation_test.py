@@ -57,8 +57,8 @@ class ClientGenerationTest(unittest2.TestCase):
                     '--overwrite',
                     'client',
                 ]
-                logging.info(
-                    'Testing API %s with command line: %s', api, ' '.join(args))
+                logging.info('Testing API %s with command line: %s',
+                             api, ' '.join(args))
                 retcode = subprocess.call(args)
                 if retcode == 128:
                     logging.error('Failed to fetch discovery doc, continuing.')

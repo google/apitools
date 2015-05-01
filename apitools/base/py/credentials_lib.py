@@ -18,14 +18,12 @@ from oauth2client import tools  # for gflags declarations
 from six.moves import http_client
 from six.moves import urllib
 
-import logging
-
 from apitools.base.py import exceptions
 from apitools.base.py import util
 
 try:
-    import gflags as flags
-    FLAGS = flags.FLAGS
+    import gflags
+    FLAGS = gflags.FLAGS
 except ImportError:
     FLAGS = None
 
@@ -47,7 +45,8 @@ def GetCredentials(package_name, scopes, client_id, client_secret, user_agent,
                    credentials_filename=None,
                    service_account_name=None, service_account_keyfile=None,
                    service_account_json_keyfile=None,
-                   api_key=None, client=None):
+                   api_key=None,  # pylint: disable=unused-argument
+                   client=None):  # pylint: disable=unused-argument
     """Attempt to get credentials, using an oauth dance as the last resort."""
     scopes = util.NormalizeScopes(scopes)
     if ((service_account_name and not service_account_keyfile) or
@@ -67,18 +66,20 @@ def GetCredentials(package_name, scopes, client_id, client_secret, user_agent,
     if service_account_json_keyfile:
         with open(service_account_json_keyfile) as keyfile:
             service_account_info = json.load(keyfile)
-        if service_account_info.get(
-            'type') != oauth2client.client.SERVICE_ACCOUNT:
+        account_type = service_account_info.get('type')
+        if account_type != oauth2client.client.SERVICE_ACCOUNT:
             raise exceptions.CredentialsError(
                 'Invalid service account credentials: %s' % (
                     service_account_json_keyfile,))
-        credentials = oauth2client.service_account._ServiceAccountCredentials(  # pylint: disable=protected-access
+        # pylint: disable=protected-access
+        credentials = oauth2client.service_account._ServiceAccountCredentials(
             service_account_id=service_account_info['client_id'],
             service_account_email=service_account_info['client_email'],
             private_key_id=service_account_info['private_key_id'],
             private_key_pkcs8_text=service_account_info['private_key'],
             scopes=scopes,
             **service_account_kwargs)
+        # pylint: enable=protected-access
         return credentials
     if service_account_name is not None:
         credentials = ServiceAccountCredentialsFromFile(
@@ -147,16 +148,18 @@ class GceAssertionCredentials(oauth2client.gce.AppAssertionCredentials):
         """Initializes the credentials instance.
 
         Args:
-          scopes: The scopes to get. If None, whatever scopes that are available
-                  to the instance are used.
-          service_account_name: The service account to retrieve the scopes from.
+          scopes: The scopes to get. If None, whatever scopes that are
+              available to the instance are used.
+          service_account_name: The service account to retrieve the scopes
+              from.
           **kwds: Additional keyword args.
+
         """
         # If there is a connectivity issue with the metadata server,
-        # detection calls may fail even if we've already successfully identified
-        # these scopes in the same execution. However, the available scopes don't
-        # change once an instance is created, so there is no reason to perform
-        # more than one query.
+        # detection calls may fail even if we've already successfully
+        # identified these scopes in the same execution. However, the
+        # available scopes don't change once an instance is created,
+        # so there is no reason to perform more than one query.
         #
         # TODO(craigcitro): Move this into oauth2client.
         self.__service_account_name = service_account_name
@@ -193,7 +196,8 @@ class GceAssertionCredentials(oauth2client.gce.AppAssertionCredentials):
         """
         creds = {  # Credentials metadata dict.
             'scopes': sorted(list(scopes)) if scopes else None,
-            'svc_acct_name': self.__service_account_name}
+            'svc_acct_name': self.__service_account_name,
+        }
         if _EnsureFileExists(cache_filename):
             locked_file = oauth2client.locked_file.LockedFile(
                 cache_filename, 'r+b', 'rb')
@@ -203,10 +207,9 @@ class GceAssertionCredentials(oauth2client.gce.AppAssertionCredentials):
                 if cached_creds_str:
                     # Cached credentials metadata dict.
                     cached_creds = json.loads(cached_creds_str)
-                    if (creds['svc_acct_name'] == cached_creds['svc_acct_name'] and
-                        (creds['scopes'] is None or
-                         creds['scopes'] == cached_creds['scopes'])):
-                        scopes = cached_creds['scopes']
+                    if creds['svc_acct_name'] == cached_creds['svc_acct_name']:
+                        if creds['scopes'] in (None, cached_creds['scopes']):
+                            scopes = cached_creds['scopes']
             finally:
                 locked_file.unlock_and_close()
         return scopes
@@ -232,8 +235,9 @@ class GceAssertionCredentials(oauth2client.gce.AppAssertionCredentials):
                         'svc_acct_name': self.__service_account_name}
                     locked_file.file_handle().write(
                         json.dumps(creds, encoding='ascii'))
-                    # If it's not locked, the locking process will write the same
-                    # data to the file, so just continue.
+                    # If it's not locked, the locking process will
+                    # write the same data to the file, so just
+                    # continue.
             finally:
                 locked_file.unlock_and_close()
 
@@ -243,8 +247,8 @@ class GceAssertionCredentials(oauth2client.gce.AppAssertionCredentials):
                 'GCE credentials requested outside a GCE instance')
         if not self.GetServiceAccount(self.__service_account_name):
             raise exceptions.ResourceUnavailableError(
-                'GCE credentials requested but service account %s does not exist.' %
-                self.__service_account_name)
+                'GCE credentials requested but service account '
+                '%s does not exist.' % self.__service_account_name)
         if scopes:
             scope_ls = util.NormalizeScopes(scopes)
             instance_scopes = self.GetInstanceScopes()
@@ -292,12 +296,13 @@ class GceAssertionCredentials(oauth2client.gce.AppAssertionCredentials):
     def _refresh(self, do_request):
         """Refresh self.access_token.
 
-        This function replaces AppAssertionCredentials._refresh, which does not use
-        the credential store and is therefore poorly suited for multi-threaded
-        scenarios.
+        This function replaces AppAssertionCredentials._refresh, which
+        does not use the credential store and is therefore poorly
+        suited for multi-threaded scenarios.
 
         Args:
           do_request: A function matching httplib2.Http.request's signature.
+
         """
         # pylint: disable=protected-access
         oauth2client.client.OAuth2Credentials._refresh(self, do_request)
@@ -329,9 +334,9 @@ class GceAssertionCredentials(oauth2client.gce.AppAssertionCredentials):
 
         self.access_token = credential_info['access_token']
         if 'expires_in' in credential_info:
-            self.token_expiry = (
-                datetime.timedelta(seconds=int(credential_info['expires_in'])) +
-                datetime.datetime.utcnow())
+            expires_in = int(credential_info['expires_in'])
+            self.token_expiry = datetime.timedelta(
+                seconds=expires_in + datetime.datetime.utcnow())
         else:
             self.token_expiry = None
         self.invalid = False
@@ -350,6 +355,11 @@ class GceAssertionCredentials(oauth2client.gce.AppAssertionCredentials):
         if 'invalid' in data:
             credentials.invalid = data['invalid']
         return credentials
+
+    @property
+    def serialization_data(self):
+        raise NotImplementedError(
+            'Cannot serialize credentials for GCE service accounts.')
 
 
 # TODO(craigcitro): Currently, we can't even *load*

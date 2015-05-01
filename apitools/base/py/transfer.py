@@ -36,7 +36,7 @@ SIMPLE_UPLOAD = 'simple'
 RESUMABLE_UPLOAD = 'resumable'
 
 
-def DownloadProgressPrinter(response, download):
+def DownloadProgressPrinter(response, unused_download):
     """Print download progress based on response."""
     if 'content-range' in response.info:
         print('Received %s' % response.info['content-range'])
@@ -44,17 +44,17 @@ def DownloadProgressPrinter(response, download):
         print('Received %d bytes' % response.length)
 
 
-def DownloadCompletePrinter(response, download):
+def DownloadCompletePrinter(unused_response, unused_download):
     """Print information about a completed download."""
     print('Download complete')
 
 
-def UploadProgressPrinter(response, upload):
+def UploadProgressPrinter(response, unused_upload):
     """Print upload progress based on response."""
     print('Sent %s' % response.info['range'])
 
 
-def UploadCompletePrinter(response, upload):
+def UploadCompletePrinter(unused_response, unused_upload):
     """Print information about a completed upload."""
     print('Upload complete')
 
@@ -75,7 +75,8 @@ class _Transfer(object):
         # Let the @property do validation
         self.num_retries = num_retries
 
-        self.retry_func = http_wrapper.HandleExceptionsAndRebuildHttpConnections
+        self.retry_func = (
+            http_wrapper.HandleExceptionsAndRebuildHttpConnections)
         self.auto_transfer = auto_transfer
         self.chunksize = chunksize or 1048576
 
@@ -208,8 +209,8 @@ class Download(_Transfer):
         if os.path.exists(path) and not overwrite:
             raise exceptions.InvalidUserInputError(
                 'File %s exists and overwrite not specified' % path)
-        return cls(open(path, 'wb'), close_stream=True, auto_transfer=auto_transfer,
-                   **kwds)
+        return cls(open(path, 'wb'), close_stream=True,
+                   auto_transfer=auto_transfer, **kwds)
 
     @classmethod
     def FromStream(cls, stream, auto_transfer=True, total_size=None, **kwds):
@@ -218,8 +219,8 @@ class Download(_Transfer):
                    **kwds)
 
     @classmethod
-    def FromData(
-        cls, stream, json_data, http=None, auto_transfer=None, **kwds):
+    def FromData(cls, stream, json_data, http=None, auto_transfer=None,
+                 **kwds):
         """Create a new Download object from a stream and serialized data."""
         info = json.loads(json_data)
         missing_keys = cls._REQUIRED_SERIALIZATION_KEYS - set(info.keys())
@@ -234,8 +235,8 @@ class Download(_Transfer):
             download.auto_transfer = info['auto_transfer']
         setattr(download, '_Download__progress', info['progress'])
         setattr(download, '_Download__total_size', info['total_size'])
-        download._Initialize(
-            http, info['url'])  # pylint: disable=protected-access
+        download._Initialize(  # pylint: disable=protected-access
+            http, info['url'])
         return download
 
     @property
@@ -353,17 +354,17 @@ class Download(_Transfer):
             retries=self.num_retries)
 
     def __ProcessResponse(self, response):
-        """Process this response (by updating self and writing to self.stream)."""
+        """Process response (by updating self and writing to self.stream)."""
         if response.status_code not in self._ACCEPTABLE_STATUSES:
             # We distinguish errors that mean we made a mistake in setting
             # up the transfer versus something we should attempt again.
-            if response.status_code in (
-                http_client.FORBIDDEN, http_client.NOT_FOUND):
+            if response.status_code in (http_client.FORBIDDEN,
+                                        http_client.NOT_FOUND):
                 raise exceptions.HttpError.FromResponse(response)
             else:
                 raise exceptions.TransferRetryError(response.content)
-        if response.status_code in (
-            http_client.OK, http_client.PARTIAL_CONTENT):
+        if response.status_code in (http_client.OK,
+                                    http_client.PARTIAL_CONTENT):
             self.stream.write(response.content)
             self.__progress += response.length
             if response.info and 'content-encoding' in response.info:
@@ -429,8 +430,8 @@ class Download(_Transfer):
                 response = self.__initial_response
                 self.__initial_response = None
             else:
-                response = self.__GetChunk(self.progress,
-                                           additional_headers=additional_headers)
+                response = self.__GetChunk(
+                    self.progress, additional_headers=additional_headers)
             if self.total_size is None:
                 self.__SetTotal(response.info)
             response = self.__ProcessResponse(response)
@@ -470,6 +471,7 @@ class Upload(_Transfer):
         self.__progress = 0
         self.__server_chunk_granularity = None
         self.__strategy = None
+        self.__total_size = None
 
         self.progress_callback = progress_callback
         self.finish_callback = finish_callback
@@ -491,8 +493,8 @@ class Upload(_Transfer):
                 raise exceptions.InvalidUserInputError(
                     'Could not guess mime type for %s' % path)
         size = os.stat(path).st_size
-        return cls(open(path, 'rb'), mime_type, total_size=size, close_stream=True,
-                   auto_transfer=auto_transfer, **kwds)
+        return cls(open(path, 'rb'), mime_type, total_size=size,
+                   close_stream=True, auto_transfer=auto_transfer, **kwds)
 
     @classmethod
     def FromStream(cls, stream, mime_type, total_size=None, auto_transfer=True,
@@ -501,12 +503,12 @@ class Upload(_Transfer):
         if mime_type is None:
             raise exceptions.InvalidUserInputError(
                 'No mime_type specified for stream')
-        return cls(stream, mime_type, total_size=total_size, close_stream=False,
-                   auto_transfer=auto_transfer, **kwds)
+        return cls(stream, mime_type, total_size=total_size,
+                   close_stream=False, auto_transfer=auto_transfer, **kwds)
 
     @classmethod
     def FromData(cls, stream, json_data, http, auto_transfer=None, **kwds):
-        """Create a new Upload of stream from serialized json_data using http."""
+        """Create a new Upload of stream from serialized json_data and http."""
         info = json.loads(json_data)
         missing_keys = cls._REQUIRED_SERIALIZATION_KEYS - set(info.keys())
         if missing_keys:
@@ -526,8 +528,8 @@ class Upload(_Transfer):
         else:
             upload.auto_transfer = info['auto_transfer']
         upload.strategy = RESUMABLE_UPLOAD
-        upload._Initialize(
-            http, info['url'])  # pylint: disable=protected-access
+        upload._Initialize(  # pylint: disable=protected-access
+            http, info['url'])
         upload.RefreshResumableUploadState()
         upload.EnsureInitialized()
         if upload.auto_transfer:
@@ -663,8 +665,9 @@ class Upload(_Transfer):
         msg.set_payload(self.stream.read())
         msg_root.attach(msg)
 
-        # NOTE: We encode the body, but can't use `email.message.Message.as_string`
-        #       because it prepends `> ` to `From ` lines.
+        # NOTE: We encode the body, but can't use
+        #       `email.message.Message.as_string` because it prepends
+        #       `> ` to `From ` lines.
         # NOTE: We must use six.StringIO() instead of io.StringIO() since the
         #       `email` library uses cStringIO in Py2 and io.StringIO in Py3.
         fp = six.StringIO()
@@ -697,12 +700,14 @@ class Upload(_Transfer):
             return
         self.EnsureInitialized()
         refresh_request = http_wrapper.Request(
-            url=self.url, http_method='PUT', headers={'Content-Range': 'bytes */*'})
+            url=self.url, http_method='PUT',
+            headers={'Content-Range': 'bytes */*'})
         refresh_response = http_wrapper.MakeRequest(
-            self.http, refresh_request, redirections=0, retries=self.num_retries)
+            self.http, refresh_request, redirections=0,
+            retries=self.num_retries)
         range_header = self._GetRangeHeaderFromResponse(refresh_response)
-        if refresh_response.status_code in (
-            http_client.OK, http_client.CREATED):
+        if refresh_response.status_code in (http_client.OK,
+                                            http_client.CREATED):
             self.__complete = True
             self.__progress = self.total_size
             self.stream.seek(self.progress)
@@ -790,8 +795,8 @@ class Upload(_Transfer):
             if self.progress + 1 != self.stream.tell():
                 # TODO(craigcitro): Add a better way to recover here.
                 raise exceptions.CommunicationError(
-                    'Failed to transfer all bytes in chunk, upload paused at byte '
-                    '%d' % self.progress)
+                    'Failed to transfer all bytes in chunk, upload paused at '
+                    'byte %d' % self.progress)
             self._ExecuteCallback(callback, response)
         if self.__complete and hasattr(self.stream, 'seek'):
             current_pos = self.stream.tell()
@@ -832,7 +837,7 @@ class Upload(_Transfer):
             additional_headers=additional_headers)
 
     def __SendMediaRequest(self, request, end):
-        """Helper function to make the request for SendMediaBody & SendChunk."""
+        """Request helper function for SendMediaBody & SendChunk."""
         response = http_wrapper.MakeRequest(
             self.bytes_http, request, retry_func=self.retry_func,
             retries=self.num_retries)
@@ -879,8 +884,8 @@ class Upload(_Transfer):
         self.EnsureInitialized()
         no_log_body = self.total_size is None
         if self.total_size is None:
-            # For the streaming resumable case, we need to detect when we're at the
-            # end of the stream.
+            # For the streaming resumable case, we need to detect when
+            # we're at the end of the stream.
             body_stream = buffered_stream.BufferedStream(
                 self.stream, start, self.chunksize)
             end = body_stream.stream_end_position

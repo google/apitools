@@ -18,7 +18,7 @@ _CLIENT = None
 
 
 def _GetClient():
-    global _CLIENT
+    global _CLIENT  # pylint: disable=global-statement
     if _CLIENT is None:
         _CLIENT = storage.StorageV1()
     return _CLIENT

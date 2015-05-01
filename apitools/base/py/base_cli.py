@@ -38,7 +38,7 @@ _OUTPUT_FORMATTER_MAP = {
 def DeclareBaseFlags():
     """Declare base flags for all CLIs."""
     # TODO(craigcitro): FlagValidators?
-    global _BASE_FLAGS_DECLARED
+    global _BASE_FLAGS_DECLARED  # pylint: disable=global-statement
     if _BASE_FLAGS_DECLARED:
         return
     flags.DEFINE_boolean(
@@ -120,7 +120,7 @@ class ConsoleWithReadline(code.InteractiveConsole):
             atexit.register(lambda: readline.write_history_file(histfile))
 
 
-def run_main():
+def run_main():  # pylint: disable=invalid-name
     """Function to be used as setuptools script entry point.
 
     Appcommands assumes that it always runs as __main__, but launching

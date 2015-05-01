@@ -193,8 +193,9 @@ class Response(collections.namedtuple(
 def CheckResponse(response):
     if response is None:
         # Caller shouldn't call us if the response is None, but handle anyway.
-        raise exceptions.RequestError('Request to url %s did not return a response.'
-                                      % response.request_url)
+        raise exceptions.RequestError(
+            'Request to url %s did not return a response.' %
+            response.request_url)
     elif (response.status_code >= 500 or
           response.status_code == TOO_MANY_REQUESTS):
         raise exceptions.BadStatusCodeError.FromResponse(response)
@@ -295,21 +296,23 @@ def MakeRequest(http, http_request, retries=7, redirections=5,
       retries: (int, default 5) Number of retries to attempt on 5XX replies.
       redirections: (int, default 5) Number of redirects to follow.
       retry_func: Function to handle retries on exceptions. Arguments are
-                  (Httplib2.Http, Request, Exception, int num_retries).
-      check_response_func: Function to validate the HTTP response. Arguments are
-                           (Response, response content, url).
+          (Httplib2.Http, Request, Exception, int num_retries).
+      check_response_func: Function to validate the HTTP response.
+          Arguments are (Response, response content, url).
 
     Raises:
       InvalidDataFromServerError: if there is no response after retries.
 
     Returns:
       A Response object.
+
     """
     retry = 0
     while True:
         try:
-            return _MakeRequestNoRetry(http, http_request, redirections=redirections,
-                                       check_response_func=check_response_func)
+            return _MakeRequestNoRetry(
+                http, http_request, redirections=redirections,
+                check_response_func=check_response_func)
         # retry_func will consume the exception types it handles and raise.
         # pylint: disable=broad-except
         except Exception as e:
@@ -332,14 +335,15 @@ def _MakeRequestNoRetry(http, http_request, redirections=5,
           an underlying http, for example, HTTPMultiplexer.
       http_request: A Request to send.
       redirections: (int, default 5) Number of redirects to follow.
-      check_response_func: Function to validate the HTTP response. Arguments are
-                           (Response, response content, url).
+      check_response_func: Function to validate the HTTP response.
+          Arguments are (Response, response content, url).
 
     Returns:
       A Response object.
 
     Raises:
       RequestError if no response could be parsed.
+
     """
     connection_type = None
     # Handle overrides for connection types.  This is used if the caller

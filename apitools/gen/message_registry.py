@@ -56,8 +56,9 @@ class MessageRegistry(object):
                          variant=messages.BytesField.DEFAULT_VARIANT),
         'date': TypeInfo(type_name='extra_types.DateField',
                          variant=messages.Variant.STRING),
-        'date-time': TypeInfo(type_name='protorpc.message_types.DateTimeMessage',
-                              variant=messages.Variant.MESSAGE),
+        'date-time': TypeInfo(
+            type_name='protorpc.message_types.DateTimeMessage',
+            variant=messages.Variant.MESSAGE),
     }
 
     def __init__(self, client_info, names, description,
@@ -139,7 +140,8 @@ class MessageRegistry(object):
         if isinstance(new_descriptor,
                       extended_descriptor.ExtendedMessageDescriptor):
             self.__current_env.message_types.append(new_descriptor)
-        elif isinstance(new_descriptor, extended_descriptor.ExtendedEnumDescriptor):
+        elif isinstance(new_descriptor,
+                        extended_descriptor.ExtendedEnumDescriptor):
             self.__current_env.enum_types.append(new_descriptor)
         self.__unknown_types.discard(full_name)
         self.__nascent_types.remove(full_name)
@@ -243,8 +245,8 @@ class MessageRegistry(object):
             self.__DeclareMessageAlias(schema, 'extra_types.JsonValue')
             return
         if schema.get('type') != 'object':
-            raise ValueError(
-                'Cannot create message descriptors for type %s', schema.get('type'))
+            raise ValueError('Cannot create message descriptors for type %s',
+                             schema.get('type'))
         message = extended_descriptor.ExtendedMessageDescriptor()
         message.name = self.__names.ClassName(schema['id'])
         message.description = util.CleanDescription(schema.get(
@@ -258,7 +260,7 @@ class MessageRegistry(object):
                 message.fields.append(field)
                 if field.name != name:
                     message.field_mappings.append(
-                        extended_descriptor.ExtendedMessageDescriptor.JsonFieldMapping(
+                        type(message).JsonFieldMapping(
                             python_name=field.name, json_name=name))
                     self.__AddImport(
                         'from %s import encoding' % self.__base_files_package)
@@ -321,7 +323,8 @@ class MessageRegistry(object):
         if 'default' in attrs:
             # TODO(craigcitro): Correctly handle non-primitive default values.
             default = attrs['default']
-            if field.type_name != 'string' and field.variant != messages.Variant.ENUM:
+            if not (field.type_name == 'string' or
+                    field.variant == messages.Variant.ENUM):
                 default = str(json.loads(default))
             if field.variant == messages.Variant.ENUM:
                 default = self.__names.NormalizeEnumName(default)
@@ -413,8 +416,8 @@ class MessageRegistry(object):
                     items.get('title') or name_hint)
                 entry_type_name = self.__AddEntryType(
                     entry_name_hint, items.get('items'), parent_name)
-                return TypeInfo(
-                    type_name=entry_type_name, variant=messages.Variant.MESSAGE)
+                return TypeInfo(type_name=entry_type_name,
+                                variant=messages.Variant.MESSAGE)
             else:
                 return self.__GetTypeInfo(items, entry_name_hint)
         elif type_name == 'any':
@@ -445,8 +448,8 @@ class MessageRegistry(object):
                 if field.field_descriptor.variant == messages.Variant.MESSAGE:
                     field_type_name = field.field_descriptor.type_name
                     field_type = self.LookupDescriptor(field_type_name)
-                    if isinstance(
-                        field_type, extended_descriptor.ExtendedEnumDescriptor):
+                    if isinstance(field_type,
+                                  extended_descriptor.ExtendedEnumDescriptor):
                         field.field_descriptor.variant = messages.Variant.ENUM
             for submessage_type in message_type.message_types:
                 self._FixupMessage(submessage_type)

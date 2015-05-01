@@ -46,8 +46,8 @@ class BatchApiRequest(object):
 
         """Holds request and response information for each request.
 
-        ApiCalls are ultimately exposed to the client once the HTTP batch request
-        has been completed.
+        ApiCalls are ultimately exposed to the client once the HTTP
+        batch request has been completed.
 
         Attributes:
           http_request: A client-supplied http_wrapper.Request to be
@@ -56,6 +56,7 @@ class BatchApiRequest(object):
               response to the user request, or None if an error occurred.
           exception: An apiclient.errors.HttpError object if an error
               occurred, or None.
+
         """
 
         def __init__(self, request, retryable_codes, service, method_config):
@@ -63,9 +64,11 @@ class BatchApiRequest(object):
 
             Args:
               request: An http_wrapper.Request object.
-              retryable_codes: A list of integer HTTP codes that can be retried.
+              retryable_codes: A list of integer HTTP codes that can
+                  be retried.
               service: A service inheriting from base_api.BaseApiService.
               method_config: Method config for the desired API request.
+
             """
             self.__retryable_codes = list(
                 set(retryable_codes + [http_client.UNAUTHORIZED]))
@@ -97,8 +100,8 @@ class BatchApiRequest(object):
 
         @property
         def terminal_state(self):
-            return (self.__http_response and (
-                self.__http_response.status_code not in self.__retryable_codes))
+            response_code = getattr(self.__http_response, 'status_code', 0)
+            return response_code not in self.__retryable_codes
 
         def HandleResponse(self, http_response, exception):
             """Handles an incoming http response to the request in http_request.
@@ -108,7 +111,9 @@ class BatchApiRequest(object):
 
             Args:
               http_response: Deserialized http_wrapper.Response object.
-              exception: apiclient.errors.HttpError object if an error occurred.
+              exception: apiclient.errors.HttpError object if an error
+                  occurred.
+
             """
             self.__http_response = http_response
             self.__exception = exception
@@ -134,12 +139,14 @@ class BatchApiRequest(object):
           service: A class inheriting base_api.BaseApiService.
           method: A string indicated desired method from the service. See
               the example in the class docstring.
-          request: An input message appropriate for the specified service.method.
+          request: An input message appropriate for the specified
+              service.method.
           global_params: Optional additional parameters to pass into
               method.PrepareHttpRequest.
 
         Returns:
           None
+
         """
         # Retrieve the configs for the desired method and service.
         method_config = service.GetMethodConfig(method)
@@ -160,7 +167,8 @@ class BatchApiRequest(object):
 
         Args:
           http: httplib2.Http object for use in the request.
-          sleep_between_polls: Integer number of seconds to sleep between polls.
+          sleep_between_polls: Integer number of seconds to sleep between
+              polls.
           max_retries: Max retries. Any requests that have not succeeded by
               this number of retries simply report the last response or
               exception, whatever it happened to be.
@@ -175,8 +183,8 @@ class BatchApiRequest(object):
             if attempt:
                 time.sleep(sleep_between_polls)
 
-            # Create a batch_http_request object and populate it with incomplete
-            # requests.
+            # Create a batch_http_request object and populate it with
+            # incomplete requests.
             batch_http_request = BatchHttpRequest(batch_url=self.batch_url)
             for request in requests:
                 batch_http_request.Add(
@@ -187,9 +195,9 @@ class BatchApiRequest(object):
             requests = [request for request in self.api_requests if not
                         request.terminal_state]
 
-            if (any(request.authorization_failed for request in requests)
-                    and hasattr(http.request, 'credentials')):
-                http.request.credentials.refresh(http)
+            if hasattr(http.request, 'credentials'):
+                if any(request.authorization_failed for request in requests):
+                    http.request.credentials.refresh(http)
 
             if not requests:
                 break
@@ -207,10 +215,11 @@ class BatchHttpRequest(object):
         Args:
           batch_url: URL to send batch requests to.
           callback: A callback to be called for each response, of the
-            form callback(response, exception). The first parameter is
-            the deserialized Response object. The second is an
-            apiclient.errors.HttpError exception object if an HTTP error
-            occurred while processing the request, or None if no error occurred.
+              form callback(response, exception). The first parameter is
+              the deserialized Response object. The second is an
+              apiclient.errors.HttpError exception object if an HTTP error
+              occurred while processing the request, or None if no error
+              occurred.
         """
         # Endpoint to which these requests are sent.
         self.__batch_url = batch_url
@@ -235,9 +244,10 @@ class BatchHttpRequest(object):
           request_id: String identifier for a individual request.
 
         Returns:
-          A Content-ID header with the id_ encoded into it. A UUID is prepended to
-          the value because Content-ID headers are supposed to be universally
-          unique.
+          A Content-ID header with the id_ encoded into it. A UUID is
+          prepended to the value because Content-ID headers are
+          supposed to be universally unique.
+
         """
         return '<%s+%s>' % (self.__base_id, urllib_parse.quote(request_id))
 
@@ -354,16 +364,17 @@ class BatchHttpRequest(object):
         Args:
           request: A http_wrapper.Request to add to the batch.
           callback: A callback to be called for this response, of the
-            form callback(response, exception). The first parameter is the
-            deserialized response object. The second is an
-            apiclient.errors.HttpError exception object if an HTTP error
-            occurred while processing the request, or None if no errors occurred.
+              form callback(response, exception). The first parameter is the
+              deserialized response object. The second is an
+              apiclient.errors.HttpError exception object if an HTTP error
+              occurred while processing the request, or None if no errors
+              occurred.
 
         Returns:
           None
         """
-        self.__request_response_handlers[self._NewId()] = RequestResponseAndHandler(
-            request, None, callback)
+        handler = RequestResponseAndHandler(request, None, callback)
+        self.__request_response_handlers[self._NewId()] = handler
 
     def _Execute(self, http):
         """Serialize batch request, send to server, process response.
@@ -417,7 +428,7 @@ class BatchHttpRequest(object):
             # Disable protected access because namedtuple._replace(...)
             # is not actually meant to be protected.
             self.__request_response_handlers[request_id] = (
-                self.__request_response_handlers[request_id]._replace(  # pylint: disable=protected-access
+                self.__request_response_handlers[request_id]._replace(
                     response=response))
 
     def Execute(self, http):

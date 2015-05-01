@@ -100,8 +100,9 @@ class BaseApiTest(unittest2.TestCase):
         self.assertEqual(response_message, service.ProcessHttpResponse(
             method_config, http_response))
         with service.client.JsonResponseModel():
-            self.assertEqual(http_response.content, service.ProcessHttpResponse(
-                method_config, http_response))
+            self.assertEqual(
+                http_response.content,
+                service.ProcessHttpResponse(method_config, http_response))
 
     def testAdditionalHeaders(self):
         additional_headers = {'Request-Is-Awesome': '1'}
@@ -168,7 +169,8 @@ class BaseApiTest(unittest2.TestCase):
             request_type_name='MessageWithRemappings',
             path_params=['remapped_field', 'enum_field'])
         request = MessageWithRemappings(
-            str_field='gonna', enum_field=MessageWithRemappings.AnEnum.value_one)
+            str_field='gonna',
+            enum_field=MessageWithRemappings.AnEnum.value_one)
         service = FakeService()
         expected_url = service.client.url + 'parameters/gonna/remap/ONE%2FTWO'
         http_request = service.PrepareHttpRequest(method_config, request)

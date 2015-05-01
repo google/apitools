@@ -317,9 +317,11 @@ class EncodingTest(unittest2.TestCase):
             MessageWithRemappings.SomeEnum, 'second_value', 'wire_name')
 
     def testMessageToRepr(self):
-        # pylint:disable=bad-whitespace, Using the same string returned by
-        # MessageToRepr, with the module names fixed.
+        # Using the same string returned by MessageToRepr, with the
+        # module names fixed.
+        # pylint: disable=bad-whitespace
         msg = SimpleMessage(field='field', repfield=['field', 'field', ],)
+        # pylint: enable=bad-whitespace
         self.assertEqual(
             encoding.MessageToRepr(msg),
             r"%s.SimpleMessage(field='field',repfield=['field','field',],)" % (
@@ -334,20 +336,15 @@ class EncodingTest(unittest2.TestCase):
             tzinfo=util.TimeZoneOffset(datetime.timedelta(0))))
         self.assertEqual(
             encoding.MessageToRepr(msg, multiline=True),
-            # pylint:disable=line-too-long, Too much effort to make MessageToRepr
-            # wrap lines properly.
-            """\
-%s.TimeMessage(
-    timefield=datetime.datetime(2014, 7, 2, 23, 33, 25, 541000, tzinfo=protorpc.util.TimeZoneOffset(datetime.timedelta(0))),
-)""" % __name__)
+            ('%s.TimeMessage(\n    '
+             'timefield=datetime.datetime(2014, 7, 2, 23, 33, 25, 541000, '
+             'tzinfo=protorpc.util.TimeZoneOffset('
+             'datetime.timedelta(0))),\n)') % __name__)
         self.assertEqual(
             encoding.MessageToRepr(msg, multiline=True, no_modules=True),
-            # pylint:disable=line-too-long, Too much effort to make MessageToRepr
-            # wrap lines properly.
-            """\
-TimeMessage(
-    timefield=datetime.datetime(2014, 7, 2, 23, 33, 25, 541000, tzinfo=TimeZoneOffset(datetime.timedelta(0))),
-)""")
+            'TimeMessage(\n    '
+            'timefield=datetime.datetime(2014, 7, 2, 23, 33, 25, 541000, '
+            'tzinfo=TimeZoneOffset(datetime.timedelta(0))),\n)')
 
 
 if __name__ == '__main__':

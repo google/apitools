@@ -8,6 +8,7 @@ cause pain.
 """
 
 # pylint:disable=wildcard-import
+# pylint:disable=unused-wildcard-import
 
 from apitools.base.py.app2 import *
 from apitools.base.py.base_cli import *

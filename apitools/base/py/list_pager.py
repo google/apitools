@@ -17,19 +17,21 @@ def YieldFromList(
 
     Args:
       service: apitools_base.BaseApiService, A service with a .List() method.
-      request: protorpc.messages.Message, The request message corresponding to the
-          service's .List() method, with all the attributes populated except
-          the .maxResults and .pageToken attributes.
+      request: protorpc.messages.Message, The request message
+          corresponding to the service's .List() method, with all the
+          attributes populated except the .maxResults and .pageToken
+          attributes.
       limit: int, The maximum number of records to yield. None if all available
           records should be yielded.
       batch_size: int, The number of items to retrieve per request.
       method: str, The name of the method used to fetch resources.
       field: str, The field in the response that will be a list of items.
       predicate: lambda, A function that returns true for items to be yielded.
-      current_token_attribute: str, The name of the attribute in a request message
-          holding the page token for the page being requested.
-      next_token_attribute: str, The name of the attribute in a response message
-          holding the page token for the next page.
+      current_token_attribute: str, The name of the attribute in a
+          request message holding the page token for the page being
+          requested.
+      next_token_attribute: str, The name of the attribute in a
+          response message holding the page token for the next page.
 
     Yields:
       protorpc.message.Message, The resources listed by the service.

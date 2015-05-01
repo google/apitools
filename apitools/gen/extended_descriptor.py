@@ -177,7 +177,8 @@ def PrintIndentedDescriptions(printer, ls, name, prefix=''):
                 printer(name + ':')
                 for x in ls:
                     description = '%s: %s' % (x.name, x.description)
-                    for line in textwrap.wrap(description, width, initial_indent='  ',
+                    for line in textwrap.wrap(description, width,
+                                              initial_indent='  ',
                                               subsequent_indent='    '):
                         printer(line)
 
@@ -240,8 +241,8 @@ class _Proto2Printer(ProtoPrinter):
 
     def __PrintEnumCommentLines(self, enum_type):
         description = enum_type.description or '%s enum type.' % enum_type.name
-        for line in textwrap.wrap(
-            description, self.__printer.CalculateWidth() - 3):
+        for line in textwrap.wrap(description,
+                                  self.__printer.CalculateWidth() - 3):
             self.__printer('// %s', line)
         PrintIndentedDescriptions(self.__printer, enum_type.values, 'Values',
                                   prefix='// ')
@@ -286,16 +287,16 @@ class _Proto2Printer(ProtoPrinter):
         width = self.__printer.CalculateWidth() - 3
         for line in textwrap.wrap(description, width):
             self.__printer('// %s', line)
-        PrintIndentedDescriptions(self.__printer, message_type.enum_types, 'Enums',
-                                  prefix='// ')
+        PrintIndentedDescriptions(self.__printer, message_type.enum_types,
+                                  'Enums', prefix='// ')
         PrintIndentedDescriptions(self.__printer, message_type.message_types,
                                   'Messages', prefix='// ')
-        PrintIndentedDescriptions(self.__printer, message_type.fields, 'Fields',
-                                  prefix='// ')
+        PrintIndentedDescriptions(self.__printer, message_type.fields,
+                                  'Fields', prefix='// ')
 
     def __PrintFieldDescription(self, description):
-        for line in textwrap.wrap(
-            description, self.__printer.CalculateWidth() - 3):
+        for line in textwrap.wrap(description,
+                                  self.__printer.CalculateWidth() - 3):
             self.__printer('// %s', line)
 
     def __PrintFields(self, fields):
@@ -465,7 +466,8 @@ def _PrintMessages(proto_printer, message_list):
 
 
 _MESSAGE_FIELD_MAP = {
-    message_types.DateTimeMessage.definition_name(): message_types.DateTimeField,
+    message_types.DateTimeMessage.definition_name(): (
+        message_types.DateTimeField),
 }
 
 
@@ -503,8 +505,8 @@ def _PrintFields(fields, printer):
             printed_field_info['label_format'] = ', repeated=True'
 
         if field_type.DEFAULT_VARIANT != field.variant:
-            printed_field_info['variant_format'] = ', variant=messages.Variant.%s' % (
-                field.variant,)
+            printed_field_info['variant_format'] = (
+                ', variant=messages.Variant.%s' % field.variant)
 
         if field.default_value:
             if field_type in [messages.BytesField, messages.StringField]:

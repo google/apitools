@@ -99,12 +99,13 @@ class NewCmd(appcommands.Cmd):
         # that we can per-command flags in the REPL.
         args = argv[1:]
         fail = None
+        fail_template = '%s positional args, found %d, expected at %s %d'
         if len(args) < self._min_args:
-            fail = 'Not enough positional args; found %d, expected at least %d' % (
-                len(args), self._min_args)
+            fail = fail_template % ('Not enough', len(args),
+                                    'least', self._min_args)
         if len(args) > self._max_args:
-            fail = 'Too many positional args; found %d, expected at most %d' % (
-                len(args), self._max_args)
+            fail = fail_template % ('Too many', len(args),
+                                    'most', self._max_args)
         if fail:
             print(fail)
             if self.usage:
@@ -207,7 +208,7 @@ class CommandLoop(cmd.Cmd):
     def _set_prompt(self):
         self.prompt = self._default_prompt
 
-    def do_EOF(self, *unused_args):
+    def do_EOF(self, *unused_args):  # pylint: disable=invalid-name
         """Terminate the running command loop.
 
         This function raises an exception to avoid the need to do
@@ -227,6 +228,7 @@ class CommandLoop(cmd.Cmd):
     def postloop(self):
         print('Goodbye.')
 
+    # pylint: disable=arguments-differ
     def completedefault(self, unused_text, line, unused_begidx, unused_endidx):
         if not line:
             return []
@@ -240,6 +242,7 @@ class CommandLoop(cmd.Cmd):
                 print(usage)
                 print('%s%s' % (self.prompt, line), end=' ')
             return []
+    # pylint: enable=arguments-differ
 
     def emptyline(self):
         print('Available commands:', end=' ')
@@ -326,7 +329,6 @@ class CommandLoop(cmd.Cmd):
 
     def postcmd(self, stop, line):
         return bool(stop) or line == 'EOF'
-# pylint: enable=g-bad-name
 
 
 class Repl(NewCmd):

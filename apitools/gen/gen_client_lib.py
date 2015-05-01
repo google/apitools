@@ -5,7 +5,6 @@ Relevant links:
   https://developers.google.com/discovery/v1/reference/apis#resource
 """
 
-import json
 from six.moves import urllib_parse
 
 from apitools.base.py import base_cli
@@ -64,7 +63,8 @@ class DescriptorGenerator(object):
             '//cloud/bigscience/apitools/base/py:apitools_base')
         self.__names = names
         self.__base_url, self.__base_path = _ComputePaths(
-            self.__package, self.__client_info.url_version, self.__discovery_doc)
+            self.__package, self.__client_info.url_version,
+            self.__discovery_doc)
 
         # Order is important here: we need the schemas before we can
         # define the services.
@@ -88,8 +88,8 @@ class DescriptorGenerator(object):
 
         self.__command_registry = command_registry.CommandRegistry(
             self.__package, self.__version, self.__client_info,
-            self.__message_registry, self.__root_package, self.__base_files_package,
-            self.__base_url, self.__names)
+            self.__message_registry, self.__root_package,
+            self.__base_files_package, self.__base_url, self.__names)
         self.__command_registry.AddGlobalParameters(
             self.__message_registry.LookupDescriptorOrDie(
                 'StandardQueryParameters'))
@@ -113,7 +113,7 @@ class DescriptorGenerator(object):
         if api_methods:
             self.__services_registry.AddServiceFromResource(
                 'api', {'methods': api_methods})
-        self.__client_info = self.__client_info._replace(  # pylint:disable=protected-access
+        self.__client_info = self.__client_info._replace(
             scopes=self.__services_registry.scopes)
 
     @property

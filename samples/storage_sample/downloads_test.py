@@ -7,7 +7,6 @@ files in apitools, via GCS. There are no performance tests here yet.
 import io
 import json
 import os
-import pkgutil
 import unittest
 
 import apitools.base.py as apitools_base
@@ -17,7 +16,7 @@ _CLIENT = None
 
 
 def _GetClient():
-    global _CLIENT
+    global _CLIENT  # pylint: disable=global-statement
     if _CLIENT is None:
         _CLIENT = storage.StorageV1()
     return _CLIENT
@@ -167,8 +166,8 @@ class DownloadsTest(unittest.TestCase):
             'total_size': response.size,
             'url': response.mediaLink,
         })
-        self.__download = storage.Download.FromData(self.__buffer, download_data,
-                                                    http=self.__client.http)
+        self.__download = storage.Download.FromData(
+            self.__buffer, download_data, http=self.__client.http)
         self.__download.StreamInChunks(callback=_ProgressCallback)
         self.assertEqual(15, self.__buffer.tell())
         self.__buffer.seek(0)

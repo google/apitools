@@ -197,9 +197,9 @@ class BaseApiClient(object):
     _USER_AGENT = ''
 
     def __init__(self, url, credentials=None, get_credentials=True, http=None,
-                 model=None, log_request=False, log_response=False, num_retries=5,
-                 credentials_args=None, default_global_params=None,
-                 additional_http_headers=None):
+                 model=None, log_request=False, log_response=False,
+                 num_retries=5, credentials_args=None,
+                 default_global_params=None, additional_http_headers=None):
         _RequireClassAttrs(self, ('_package', '_scopes', 'messages_module'))
         if default_global_params is not None:
             util.Typecheck(default_global_params, self.params_type)
@@ -464,8 +464,8 @@ class BaseApiService(object):
                           for param in global_param_names)
         # Next, add the query params.
         query_param_names = util.MapParamNames(query_params, type(request))
-        query_info.update(
-            (param, getattr(request, param, None)) for param in query_param_names)
+        query_info.update((param, getattr(request, param, None))
+                          for param in query_param_names)
         query_info = dict((k, v) for k, v in query_info.items()
                           if v is not None)
         query_info = self.__EncodePrettyPrint(query_info)
@@ -479,8 +479,8 @@ class BaseApiService(object):
                 query_info[k] = v.isoformat()
         return query_info
 
-    def __ConstructRelativePath(
-        self, method_config, request, relative_path=None):
+    def __ConstructRelativePath(self, method_config, request,
+                                relative_path=None):
         """Determine the relative path for request."""
         python_param_names = util.MapParamNames(
             method_config.path_params, type(request))
@@ -516,8 +516,8 @@ class BaseApiService(object):
         if self.__client.response_type_model == 'json':
             return http_response.content
         else:
-            response_type = _LoadClass(
-                method_config.response_type_name, self.__client.MESSAGES_MODULE)
+            response_type = _LoadClass(method_config.response_type_name,
+                                       self.__client.MESSAGES_MODULE)
             return self.__client.DeserializeMessage(
                 response_type, http_response.content)
 
@@ -598,7 +598,8 @@ class BaseApiService(object):
                 'Cannot yet use both upload and download at once')
 
         http_request = self.PrepareHttpRequest(
-            method_config, request, global_params, upload, upload_config, download)
+            method_config, request, global_params, upload, upload_config,
+            download)
 
         # TODO(craigcitro): Make num_retries customizable on Transfer
         # objects, and pass in self.__client.num_retries when initializing
