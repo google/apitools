@@ -21,6 +21,7 @@ IGNORED_DIRECTORIES = [
 ]
 IGNORED_FILES = [
     'ez_setup.py',
+    'run_pylint.py',
     'setup.py',
 ]
 PRODUCTION_RC = 'default.pylintrc'
