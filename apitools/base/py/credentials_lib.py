@@ -403,10 +403,10 @@ class GaeAssertionCredentials(oauth2client.client.AssertionCredentials):
         self.access_token = token
 
 
-def _GetRunFlowFlags():
+def _GetRunFlowFlags(args=None):
     parser = argparse.ArgumentParser(parents=[tools.argparser])
     # Get command line argparse flags.
-    flags = parser.parse_args()
+    flags = parser.parse_args(args=args)
 
     # Allow `gflags` and `argparse` to be used side-by-side.
     if hasattr(FLAGS, 'auth_host_name'):
