@@ -8,9 +8,10 @@ as it's all done within the context of a mock.
 """
 
 import difflib
-import textwrap
 
 from protorpc import messages
+import six
+
 import apitools.base.py as apitools_base
 
 
@@ -68,22 +69,24 @@ class UnexpectedRequestException(Error):
         diff = '\n'.join(diff_lines)
 
         if expected_key != received_key:
-            msg = textwrap.dedent("""\
-          expected: {expected_key}({expected_request})
-          received: {received_key}({received_request})
-          """).format(
+            msg = '\n'.join((
+                'expected: {expected_key}({expected_request})',
+                'received: {received_key}({received_request})',
+                '',
+            )).format(
                 expected_key=expected_key,
                 expected_request=expected_repr,
                 received_key=received_key,
                 received_request=received_repr)
             super(UnexpectedRequestException, self).__init__(msg)
         else:
-            msg = textwrap.dedent("""\
-          for request to {key},
-          expected: {expected_request}
-          received: {received_request}
-          diff: {diff}
-          """).format(
+            msg = '\n'.join((
+                'for request to {key},',
+                'expected: {expected_request}',
+                'received: {received_request}',
+                'diff: {diff}',
+                '',
+            )).format(
                 key=expected_key,
                 expected_request=expected_repr,
                 received_request=received_repr,
@@ -154,9 +157,8 @@ class _ExpectedRequestResponse(object):
                                              (self.__key, self.__request))
 
         if self.__exception:
-            # pylint:disable=raising-bad-type, Can only throw
-            # apitools_base.Error.
-            raise self.__exception
+            # Can only throw apitools_base.Error.
+            raise self.__exception  # pylint: disable=raising-bad-type
 
         return self.__response
 
@@ -164,6 +166,7 @@ class _ExpectedRequestResponse(object):
 class _MockedService(apitools_base.BaseApiService):
 
     def __init__(self, key, mocked_client, methods, real_service):
+        super(_MockedService, self).__init__(mocked_client)
         self.__dict__.update(real_service.__dict__)
         for method in methods:
             real_method = None
@@ -200,12 +203,14 @@ class _MockedMethod(object):
         # future things that can be passed to Expect(), like special
         # params to the method call.
 
-        # pylint:disable=protected-access, Class in same module.
+        # pylint: disable=protected-access
+        # Class in same module.
         self.__mocked_client._request_responses.append(
             _ExpectedRequestResponse(self.__key,
                                      request,
                                      response=response,
                                      exception=exception))
+        # pylint: enable=protected-access
 
     def __call__(self, request, **unused_kwargs):
         # TODO(jasmuth): allow the testing code to expect certain
@@ -213,19 +218,21 @@ class _MockedMethod(object):
         # upload parameter used by media-heavy services like bigquery
         # or bigstore.
 
-        # pylint:disable=protected-access, Class in same module.
+        # pylint: disable=protected-access
+        # Class in same module.
         if self.__mocked_client._request_responses:
             request_response = self.__mocked_client._request_responses.pop(0)
         else:
             raise UnexpectedRequestException(
                 (self.__key, request), (None, None))
+        # pylint: enable=protected-access
 
         response = request_response.ValidateAndRespond(self.__key, request)
 
         if response is None and self.__real_method:
             response = self.__real_method(request)
-            print apitools_base.MessageToRepr(
-                response, multiline=True, shortstrings=True)
+            print(apitools_base.MessageToRepr(
+                response, multiline=True, shortstrings=True))
             return response
 
         return response
@@ -279,9 +286,10 @@ class Client(object):
                 continue
             self.__real_service_classes[name] = service_class
             service = service_class(client)
-            # pylint:disable=protected-access, Some liberty is allowed with
-            # mocking.
+            # pylint: disable=protected-access
+            # Some liberty is allowed with mocking.
             collection_name = service_class._NAME
+            # pylint: enable=protected-access
             api_name = '%s_%s' % (self.__client_class._PACKAGE,
                                   self.__client_class._URL_VERSION)
             mocked_service = _MockedService(
@@ -301,11 +309,11 @@ class Client(object):
     def __exit__(self, exc_type, value, traceback):
         self.Unmock()
         if value:
-            raise exc_type, value, traceback
+            six.reraise(exc_type, value, traceback)
         return True
 
     def Unmock(self):
-        for name, service_class in self.__real_service_classes.iteritems():
+        for name, service_class in self.__real_service_classes.items():
             setattr(self.__client_class, name, service_class)
 
         if self._request_responses:
