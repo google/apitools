@@ -142,6 +142,11 @@ class UtilTest(unittest2.TestCase):
         self.assertFalse(util.AcceptableMimeType(['application/json', 'img/*'],
                                                  'text/plain'))
 
+    def testMalformedMimeType(self):
+        self.assertRaises(
+            exceptions.InvalidUserInputError,
+            util.AcceptableMimeType, ['*/*'], 'abcd')
+
     def testUnsupportedMimeType(self):
         self.assertRaises(
             exceptions.GeneratedClientError,
