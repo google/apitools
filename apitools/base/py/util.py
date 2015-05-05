@@ -157,6 +157,9 @@ def AcceptableMimeType(accept_patterns, mime_type):
     Returns:
       Whether or not mime_type matches (at least) one of these patterns.
     """
+    if '/' not in mime_type:
+        raise exceptions.InvalidUserInputError(
+            'Invalid MIME type: "%s"' % mime_type)
     unsupported_patterns = [p for p in accept_patterns if ';' in p]
     if unsupported_patterns:
         raise exceptions.GeneratedClientError(
