@@ -199,11 +199,6 @@ def CheckResponse(response):
     elif (response.status_code >= 500 or
           response.status_code == TOO_MANY_REQUESTS):
         raise exceptions.BadStatusCodeError.FromResponse(response)
-    elif response.status_code == http_client.UNAUTHORIZED:
-        # Sometimes we get a 401 after a connection break.
-        # TODO(craigcitro): this shouldn't be a retryable exception, but
-        # for now we retry.
-        raise exceptions.BadStatusCodeError.FromResponse(response)
     elif response.retry_after:
         raise exceptions.RetryAfterError.FromResponse(response)
 
