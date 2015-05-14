@@ -335,8 +335,9 @@ class GceAssertionCredentials(oauth2client.gce.AppAssertionCredentials):
         self.access_token = credential_info['access_token']
         if 'expires_in' in credential_info:
             expires_in = int(credential_info['expires_in'])
-            self.token_expiry = datetime.timedelta(
-                seconds=expires_in + datetime.datetime.utcnow())
+            self.token_expiry = (
+                datetime.timedelta(seconds=expires_in) +
+                datetime.datetime.utcnow())
         else:
             self.token_expiry = None
         self.invalid = False
