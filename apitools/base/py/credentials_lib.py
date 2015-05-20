@@ -2,7 +2,6 @@
 """Common credentials classes and constructors."""
 from __future__ import print_function
 
-import argparse
 import datetime
 import json
 import os
@@ -405,6 +404,15 @@ class GaeAssertionCredentials(oauth2client.client.AssertionCredentials):
 
 
 def _GetRunFlowFlags(args=None):
+    # There's one rare situation where gsutil will not have argparse
+    # available, but doesn't need anything depending on argparse anyway,
+    # since they're bringing their own credentials. So we just allow this
+    # to fail with an ImportError in those cases.
+    #
+    # TODO(craigcitro): Move this import back to the top when we drop
+    # python 2.6 support (eg when gsutil does).
+    import argparse
+
     parser = argparse.ArgumentParser(parents=[tools.argparser])
     # Get command line argparse flags.
     flags = parser.parse_args(args=args)
