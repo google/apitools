@@ -4,10 +4,11 @@ These tests exercise most of the corner cases for upload/download of
 files in apitools, via GCS. There are no performance tests here yet.
 """
 
-import io
 import json
 import os
 import unittest
+
+import six
 
 import apitools.base.py as apitools_base
 import storage
@@ -31,7 +32,7 @@ class DownloadsTest(unittest.TestCase):
         self.__ResetDownload()
 
     def __ResetDownload(self, auto_transfer=False):
-        self.__buffer = io.StringIO()
+        self.__buffer = six.StringIO()
         self.__download = storage.Download.FromStream(
             self.__buffer, auto_transfer=auto_transfer)
 
@@ -62,6 +63,7 @@ class DownloadsTest(unittest.TestCase):
         self.assertEqual(0, self.__buffer.tell())
 
     def testObjectDoesNotExist(self):
+        self.__ResetDownload(auto_transfer=True)
         with self.assertRaises(apitools_base.HttpError):
             self.__GetFile(self.__GetRequest('nonexistent_file'))
 
@@ -159,7 +161,7 @@ class DownloadsTest(unittest.TestCase):
         request = storage.StorageObjectsGetRequest(
             bucket=self._DEFAULT_BUCKET, object=object_name)
         response = self.__client.objects.Get(request)
-        self.__buffer = io.StringIO()
+        self.__buffer = six.StringIO()
         download_data = json.dumps({
             'auto_transfer': False,
             'progress': 0,
