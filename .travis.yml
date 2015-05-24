@@ -10,4 +10,4 @@ install:
   - pip install . --allow-external argparse
 script: tox -e $TOX_ENV
 after_success:
-  - tox -e coveralls
+  - if [[ "${TOX_ENV}" == "py27" ]]; then tox -e coveralls; fi
