@@ -9,9 +9,10 @@ import keyword
 import logging
 import os
 import re
-import urllib2
 
 import six
+import six.moves.urllib.error as urllib_error
+import six.moves.urllib.request as urllib_request
 
 
 class Error(Exception):
@@ -24,8 +25,8 @@ class CommunicationError(Error):
     """Error in network communication."""
 
 
-def _SortLengthFirst(a, b):
-    return -cmp(len(a), len(b)) or cmp(a, b)
+def _SortLengthFirstKey(a):
+    return -len(a), a
 
 
 class Names(object):
@@ -37,7 +38,7 @@ class Names(object):
     def __init__(self, strip_prefixes,
                  name_convention=None,
                  capitalize_enums=False):
-        self.__strip_prefixes = sorted(strip_prefixes, cmp=_SortLengthFirst)
+        self.__strip_prefixes = sorted(strip_prefixes, key=_SortLengthFirstKey)
         self.__name_convention = (
             name_convention or self.DEFAULT_NAME_CONVENTION)
         self.__capitalize_enums = capitalize_enums
@@ -296,9 +297,11 @@ def FetchDiscoveryDoc(discovery_url, retries=5):
     last_exception = None
     for _ in range(retries):
         try:
-            discovery_doc = json.loads(urllib2.urlopen(discovery_url).read())
+            discovery_doc = json.loads(
+                urllib_request.urlopen(discovery_url).read())
             break
-        except (urllib2.HTTPError, urllib2.URLError) as last_exception:
+        except (urllib_error.HTTPError,
+                urllib_error.URLError) as last_exception:
             logging.warning(
                 'Attempting to fetch discovery doc again after "%s"',
                 last_exception)
