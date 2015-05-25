@@ -91,3 +91,38 @@ class FusiontablesColumnListRequest(messages.Message):
     maxResults = messages.IntegerField(1, variant=messages.Variant.UINT32)
     pageToken = messages.StringField(2)
     tableId = messages.StringField(3, required=True)
+
+
+class FusiontablesColumnListAlternateRequest(messages.Message):
+
+    """A FusiontablesColumnListRequest object.
+
+    Fields:
+      pageSize: Maximum number of columns to return. Optional. Default is 5.
+      pageToken: Continuation token specifying which result page to return.
+        Optional.
+      tableId: Table whose columns are being listed.
+    """
+
+    pageSize = messages.IntegerField(1, variant=messages.Variant.UINT32)
+    pageToken = messages.StringField(2)
+    tableId = messages.StringField(3, required=True)
+
+
+class ColumnListAlternate(messages.Message):
+
+    """Represents a list of columns in a table.
+
+    Fields:
+      items: List of all requested columns.
+      kind: Type name: a list of all columns.
+      nextPageToken: Token used to access the next page of this
+        result. No token is displayed if there are no more pages left.
+      totalItems: Total number of columns for the table.
+
+    """
+
+    columns = messages.MessageField('Column', 1, repeated=True)
+    kind = messages.StringField(2, default=u'fusiontables#columnList')
+    nextPageToken = messages.StringField(3)
+    totalItems = messages.IntegerField(4, variant=messages.Variant.INT32)
