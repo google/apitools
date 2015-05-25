@@ -7,10 +7,10 @@ import email.mime.multipart as mime_multipart
 import email.mime.nonmultipart as mime_nonmultipart
 import email.parser as email_parser
 import itertools
-import io
 import time
 import uuid
 
+import six
 from six.moves import http_client
 from six.moves import urllib_parse
 
@@ -100,7 +100,9 @@ class BatchApiRequest(object):
 
         @property
         def terminal_state(self):
-            response_code = getattr(self.__http_response, 'status_code', 0)
+            if self.__http_response is None:
+                return False
+            response_code = self.__http_response.status_code
             return response_code not in self.__retryable_codes
 
         def HandleResponse(self, http_response, exception):
@@ -176,8 +178,8 @@ class BatchApiRequest(object):
         Returns:
           List of ApiCalls.
         """
-        requests = [request for request in self.api_requests if not
-                    request.terminal_state]
+        requests = [request for request in self.api_requests
+                    if not request.terminal_state]
 
         for attempt in range(max_retries):
             if attempt:
@@ -290,7 +292,11 @@ class BatchHttpRequest(object):
         parsed = urllib_parse.urlsplit(request.url)
         request_line = urllib_parse.urlunsplit(
             (None, None, parsed.path, parsed.query, None))
-        status_line = request.http_method + ' ' + request_line + ' HTTP/1.1\n'
+        status_line = u' '.join((
+            request.http_method,
+            request_line.decode('utf-8'),
+            u'HTTP/1.1\n'
+        ))
         major, minor = request.headers.get(
             'content-type', 'application/json').split('/')
         msg = mime_nonmultipart.MIMENonMultipart(major, minor)
@@ -309,7 +315,7 @@ class BatchHttpRequest(object):
             msg.set_payload(request.body)
 
         # Serialize the mime message.
-        str_io = io.StringIO()
+        str_io = six.StringIO()
         # maxheaderlen=0 means don't line wrap headers.
         gen = generator.Generator(str_io, maxheaderlen=0)
         gen.flatten(msg, unixfrom=False)
@@ -320,7 +326,7 @@ class BatchHttpRequest(object):
         if request.body is None:
             body = body[:-2]
 
-        return status_line.encode('utf-8') + body
+        return status_line + body
 
     def _DeserializeResponse(self, payload):
         """Convert string into Response and content.
