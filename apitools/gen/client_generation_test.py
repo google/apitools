@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """Test gen_client against all the APIs we use regularly."""
 
 import contextlib
@@ -38,9 +37,6 @@ class ClientGenerationTest(unittest2.TestCase):
         super(ClientGenerationTest, self).setUp()
         self.gen_client_binary = 'gen_client'
 
-    # TODO(craigcitro): Make apitools codegen support python 2.6.
-    # Maybe.
-    #
     # unittest in 2.6 doesn't have skipIf.
     @unittest2.skipUnless(sys.version_info[0] == 2 and
                           sys.version_info[1] == 7,
@@ -74,7 +70,3 @@ class ClientGenerationTest(unittest2.TestCase):
                     retcode = subprocess.call(cmdline_args, stdout=out)
                 # appcommands returns 1 on help
                 self.assertEqual(1, retcode)
-
-
-if __name__ == '__main__':
-    unittest2.main()

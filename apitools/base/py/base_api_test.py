@@ -1,13 +1,9 @@
-#!/usr/bin/env python
-
-
 import datetime
 import sys
 
-from six.moves import urllib_parse
-
 from protorpc import message_types
 from protorpc import messages
+from six.moves import urllib_parse
 import unittest2
 
 from apitools.base.py import base_api
@@ -181,7 +177,3 @@ class BaseApiTest(unittest2.TestCase):
         expected_url = service.client.url + 'parameters/gonna/remap/ONE/TWO'
         http_request = service.PrepareHttpRequest(method_config, request)
         self.assertEqual(expected_url, http_request.url)
-
-
-if __name__ == '__main__':
-    unittest2.main()

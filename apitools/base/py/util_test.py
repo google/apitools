@@ -1,6 +1,4 @@
-#!/usr/bin/env python
-
-
+"""Tests for util.py."""
 from protorpc import messages
 import unittest2
 
@@ -174,6 +172,3 @@ class UtilTest(unittest2.TestCase):
         remapped_params = ['str_field', 'enum_field']
         self.assertEqual(remapped_params,
                          util.MapParamNames(params, MessageWithRemappings))
-
-if __name__ == '__main__':
-    unittest2.main()

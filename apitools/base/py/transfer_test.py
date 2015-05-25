@@ -1,8 +1,5 @@
-#!/usr/bin/env python
-
-
+"""Tests for transfer.py."""
 import six
-
 import unittest2
 
 from apitools.base.py import base_api
@@ -61,7 +58,3 @@ class TransferTest(unittest2.TestCase):
         self.assertEqual(url_builder.query_params['uploadType'], 'media')
         rewritten_upload_contents = http_request.body
         self.assertTrue(rewritten_upload_contents.endswith(upload_contents))
-
-
-if __name__ == '__main__':
-    unittest2.main()

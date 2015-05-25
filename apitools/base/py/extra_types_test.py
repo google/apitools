@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-
-
 import datetime
 import json
 import math
@@ -175,7 +172,3 @@ class ExtraTypesTest(unittest2.TestCase):
         msg = DogeMsg(such_string='wow', wow=-1234,
                       very_unsigned=800, much_repeated=[123, 456])
         self.assertEqual(msg, DoRoundtrip(DogeMsg, message=msg))
-
-
-if __name__ == '__main__':
-    unittest2.main()

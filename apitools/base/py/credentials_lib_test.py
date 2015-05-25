@@ -1,10 +1,7 @@
-#!/usr/bin/env python
-
-
 import re
-import six
 
 import mock
+import six
 from six.moves import http_client
 import unittest2
 
@@ -100,7 +97,3 @@ class TestGetRunFlowFlags(unittest2.TestCase):
         self.assertEqual(flags.auth_host_port, [8080, 8090])
         self.assertEqual(flags.logging_level, 'ERROR')
         self.assertEqual(flags.noauth_local_webserver, False)
-
-
-if __name__ == '__main__':
-    unittest2.main()

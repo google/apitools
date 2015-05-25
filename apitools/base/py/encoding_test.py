@@ -1,6 +1,3 @@
-#!/usr/bin/env python
-
-
 import base64
 import datetime
 import json
@@ -345,7 +342,3 @@ class EncodingTest(unittest2.TestCase):
             'TimeMessage(\n    '
             'timefield=datetime.datetime(2014, 7, 2, 23, 33, 25, 541000, '
             'tzinfo=TimeZoneOffset(datetime.timedelta(0))),\n)')
-
-
-if __name__ == '__main__':
-    unittest2.main()

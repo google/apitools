@@ -1,5 +1,4 @@
 """Tests for http_wrapper."""
-
 import unittest2
 
 from apitools.base.py import http_wrapper
@@ -23,7 +22,3 @@ class HttpWrapperTest(unittest2.TestCase):
 
     def testRequestBodyWithLen(self):
         http_wrapper.Request(body='burrito')
-
-
-if __name__ == '__main__':
-    unittest2.main()

@@ -1,9 +1,8 @@
-#!/usr/bin/env python
 """Tests for stream_slice."""
 
-import six
 import string
 
+import six
 import unittest2
 
 from apitools.base.py import exceptions
@@ -49,7 +48,3 @@ class StreamSliceTest(unittest2.TestCase):
         with self.assertRaises(exceptions.StreamExhausted) as e:
             ss.read(10)
         self.assertIn('exhausted after %d' % len(self.value), str(e.exception))
-
-
-if __name__ == '__main__':
-    unittest2.main()

@@ -507,7 +507,3 @@ class BatchTest(unittest2.TestCase):
 
             # Global callback was called once per handler.
             self.assertEqual(len(test_requests), global_callback.call_count)
-
-
-if __name__ == '__main__':
-    unittest2.main()

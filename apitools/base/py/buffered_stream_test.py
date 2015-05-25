@@ -1,9 +1,8 @@
-#!/usr/bin/env python
-"""Tests for stream_slice."""
+"""Tests for buffered_stream."""
 
-import six
 import string
 
+import six
 import unittest2
 
 from apitools.base.py import buffered_stream
@@ -51,7 +50,3 @@ class BufferedStreamTest(unittest2.TestCase):
             bs.read()
         with self.assertRaises(exceptions.NotYetImplementedError):
             bs.read(size=-1)
-
-
-if __name__ == '__main__':
-    unittest2.main()

@@ -127,6 +127,3 @@ class UtilTest(unittest2.TestCase):
             _NestedListMessage(
                 nested_list=[_NestedMessage(nested='foo'),
                              _NestedMessage(nested='foo')])))
-
-if __name__ == '__main__':
-    unittest2.main()
