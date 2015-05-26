@@ -298,6 +298,8 @@ class Download(_Transfer):
             http_request.url = client.FinalizeTransferUrl(http_request.url)
         url = http_request.url
         if self.auto_transfer:
+            end_byte = self.__ComputeEndByte(0)
+            self.__SetRangeHeader(http_request, 0, end_byte)
             response = http_wrapper.MakeRequest(
                 self.bytes_http or http, http_request)
             if response.status_code not in self._ACCEPTABLE_STATUSES:
@@ -339,14 +341,42 @@ class Download(_Transfer):
         else:
             request.headers['range'] = 'bytes=%d-%d' % (start, end)
 
-    def __GetChunk(self, start, end=None, additional_headers=None):
+    def __ComputeEndByte(self, start, end=None, use_chunks=True):
+        """Compute the last byte to fetch for this request.
+
+        This is all based on the HTTP spec for Range and
+        Content-Range.
+
+        Note that this is potentially confusing in several ways:
+          * the value for the last byte is 0-based, eg "fetch 10 bytes
+            from the beginning" would return 9 here.
+          * if we have no information about size, and don't want to
+            use the chunksize, we'll return None.
+        See the tests for more examples.
+
+        Args:
+          start: byte to start at.
+          end: (int or None, default: None) Suggested last byte.
+          use_chunks: (bool, default: True) If False, ignore self.chunksize.
+
+        Returns:
+          Last byte to use in a Range header, or None.
+
+        """
+        end_byte = end
+        if use_chunks:
+            alternate = start + self.chunksize - 1
+            end_byte = min(end_byte, alternate) if end_byte else alternate
+        if self.total_size:
+            alternate = self.total_size - 1
+            end_byte = min(end_byte, alternate) if end_byte else alternate
+        return end_byte
+
+    def __GetChunk(self, start, end, additional_headers=None):
         """Retrieve a chunk, and return the full response."""
         self.EnsureInitialized()
-        end_byte = end
-        if self.total_size and end:
-            end_byte = min(end, self.total_size)
         request = http_wrapper.Request(url=self.url)
-        self.__SetRangeHeader(request, start, end=end_byte)
+        self.__SetRangeHeader(request, start, end=end)
         if additional_headers is not None:
             request.headers.update(additional_headers)
         return http_wrapper.MakeRequest(
@@ -378,7 +408,8 @@ class Download(_Transfer):
             self.stream.write('')
         return response
 
-    def GetRange(self, start, end=None, additional_headers=None):
+    def GetRange(self, start, end=None, additional_headers=None,
+                 use_chunks=True):
         """Retrieve a given byte range from this download, inclusive.
 
         Range must be of one of these three forms:
@@ -394,6 +425,8 @@ class Download(_Transfer):
           end: (int, optional) Where to stop fetching bytes. (See above.)
           additional_headers: (bool, optional) Any additional headers to
               pass with the request.
+          use_chunks: (bool, default: True) If False, ignore self.chunksize
+              and fetch this range in a single request.
 
         Returns:
           None. Streams bytes into self.stream.
@@ -406,7 +439,9 @@ class Download(_Transfer):
         else:
             progress = start
         while not progress_end_normalized or progress < end:
-            response = self.__GetChunk(progress, end=end,
+            end_byte = self.__ComputeEndByte(progress, end=end,
+                                             use_chunks=use_chunks)
+            response = self.__GetChunk(progress, end_byte,
                                        additional_headers=additional_headers)
             if not progress_end_normalized:
                 self.__SetTotal(response.info)
@@ -420,7 +455,28 @@ class Download(_Transfer):
 
     def StreamInChunks(self, callback=None, finish_callback=None,
                        additional_headers=None):
-        """Stream the entire download."""
+        """Stream the entire download in chunks."""
+        self.StreamMedia(callback=callback, finish_callback=finish_callback,
+                         additional_headers=additional_headers,
+                         use_chunks=True)
+
+    def StreamMedia(self, callback=None, finish_callback=None,
+                    additional_headers=None, use_chunks=True):
+        """Stream the entire download.
+
+        Args:
+          callback: (default: None) Callback to call as each chunk is
+              completed.
+          finish_callback: (default: None) Callback to call when the
+              download is complete.
+          additional_headers: (default: None) Additional headers to
+              include in fetching bytes.
+          use_chunks: (bool, default: True) If False, ignore self.chunksize
+              and stream this download in a single request.
+
+        Returns:
+            None. Streams bytes into self.stream.
+        """
         callback = callback or self.progress_callback
         finish_callback = finish_callback or self.finish_callback
 
@@ -430,8 +486,11 @@ class Download(_Transfer):
                 response = self.__initial_response
                 self.__initial_response = None
             else:
+                end_byte = self.__ComputeEndByte(self.progress,
+                                                 use_chunks=use_chunks)
                 response = self.__GetChunk(
-                    self.progress, additional_headers=additional_headers)
+                    self.progress, end_byte,
+                    additional_headers=additional_headers)
             if self.total_size is None:
                 self.__SetTotal(response.info)
             response = self.__ProcessResponse(response)
