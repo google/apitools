@@ -150,13 +150,17 @@ class DescriptorGenerator(object):
         printer('import pkgutil')
         printer()
         printer('from %s import *', self.__base_files_package)
+        if self.__root_package == '.':
+            import_prefix = ''
+        else:
+            import_prefix = '%s.' % self.__root_package
         if self.__generate_cli:
-            printer('from %s.%s import *',
-                    self.__root_package, self.__client_info.cli_rule_name)
-        printer('from %s.%s import *',
-                self.__root_package, self.__client_info.client_rule_name)
-        printer('from %s.%s import *',
-                self.__root_package, self.__client_info.messages_rule_name)
+            printer('from %s%s import *',
+                    import_prefix, self.__client_info.cli_rule_name)
+        printer('from %s%s import *',
+                import_prefix, self.__client_info.client_rule_name)
+        printer('from %s%s import *',
+                import_prefix, self.__client_info.messages_rule_name)
         printer()
         printer('__path__ = pkgutil.extend_path(__path__, __name__)')
 
