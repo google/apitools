@@ -520,7 +520,30 @@ _JSON_ENUM_MAPPINGS = {}
 _JSON_FIELD_MAPPINGS = {}
 
 
-def AddCustomJsonEnumMapping(enum_type, python_name, json_name):
+def _GetTypeKey(message_type, package):
+    """Get the prefix for this message type in mapping dicts."""
+    key = message_type.definition_name()
+    if package and key.startswith(package + '.'):
+        module_name = message_type.__module__
+        # We normalize '__main__' to something unique, if possible.
+        if module_name == '__main__':
+            try:
+                file_name = sys.modules[module_name].__file__
+            except (AttributeError, KeyError):
+                pass
+            else:
+                base_name = os.path.basename(file_name)
+                split_name = os.path.splitext(base_name)
+                if len(split_name) == 1:
+                    module_name = unicode(base_name)
+                else:
+                    module_name = u'.'.join(split_name[:-1])
+        key = module_name + '.' + key.partition('.')[2]
+    return key
+
+
+def AddCustomJsonEnumMapping(enum_type, python_name, json_name,
+                             package=''):
     """Add a custom wire encoding for a given enum value.
 
     This is primarily used in generated code, to handle enum values
@@ -530,11 +553,14 @@ def AddCustomJsonEnumMapping(enum_type, python_name, json_name):
       enum_type: (messages.Enum) An enum type
       python_name: (string) Python name for this value.
       json_name: (string) JSON name to be used on the wire.
+      package: (basestring, optional) Package prefix for this enum, if
+          present. We strip this off the enum name in order to generate
+          unique keys.
     """
     if not issubclass(enum_type, messages.Enum):
         raise exceptions.TypecheckError(
             'Cannot set JSON enum mapping for non-enum "%s"' % enum_type)
-    enum_name = enum_type.definition_name()
+    enum_name = _GetTypeKey(enum_type, package)
     if python_name not in enum_type.names():
         raise exceptions.InvalidDataError(
             'Enum value %s not a value for type %s' % (python_name, enum_type))
@@ -543,7 +569,8 @@ def AddCustomJsonEnumMapping(enum_type, python_name, json_name):
     field_mappings[python_name] = json_name
 
 
-def AddCustomJsonFieldMapping(message_type, python_name, json_name):
+def AddCustomJsonFieldMapping(message_type, python_name, json_name,
+                              package=''):
     """Add a custom wire encoding for a given message field.
 
     This is primarily used in generated code, to handle enum values
@@ -553,12 +580,15 @@ def AddCustomJsonFieldMapping(message_type, python_name, json_name):
       message_type: (messages.Message) A message type
       python_name: (string) Python name for this value.
       json_name: (string) JSON name to be used on the wire.
+      package: (basestring, optional) Package prefix for this message, if
+          present. We strip this off the message name in order to generate
+          unique keys.
     """
     if not issubclass(message_type, messages.Message):
         raise exceptions.TypecheckError(
             'Cannot set JSON field mapping for '
             'non-message "%s"' % message_type)
-    message_name = message_type.definition_name()
+    message_name = _GetTypeKey(message_type, package)
     try:
         _ = message_type.field_by_name(python_name)
     except KeyError:

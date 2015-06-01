@@ -1,6 +1,7 @@
 import base64
 import datetime
 import json
+import sys
 
 from protorpc import message_types
 from protorpc import messages
@@ -342,3 +343,28 @@ class EncodingTest(unittest2.TestCase):
             'TimeMessage(\n    '
             'timefield=datetime.datetime(2014, 7, 2, 23, 33, 25, 541000, '
             'tzinfo=TimeZoneOffset(datetime.timedelta(0))),\n)')
+
+    def testPackageMappingsNoPackage(self):
+        this_module_name = util.get_package_for_module(__name__)
+        full_type_name = 'MessageWithEnum.ThisEnum'
+        full_key = '%s.%s' % (this_module_name, full_type_name)
+        self.assertEqual(full_key,
+                         encoding._GetTypeKey(MessageWithEnum.ThisEnum, ''))
+
+    def testPackageMappingsWithPackage(self):
+        this_module_name = util.get_package_for_module(__name__)
+        full_type_name = 'MessageWithEnum.ThisEnum'
+        full_key = '%s.%s' % (this_module_name, full_type_name)
+        this_module = sys.modules[__name__]
+        new_package = 'new_package'
+        try:
+            setattr(this_module, 'package', new_package)
+            new_key = '%s.%s' % (new_package, full_type_name)
+            self.assertEqual(
+                new_key,
+                encoding._GetTypeKey(MessageWithEnum.ThisEnum, ''))
+            self.assertEqual(
+                full_key,
+                encoding._GetTypeKey(MessageWithEnum.ThisEnum, new_package))
+        finally:
+            delattr(this_module, 'package')
