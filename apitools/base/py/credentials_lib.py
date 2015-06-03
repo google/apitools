@@ -45,7 +45,8 @@ def GetCredentials(package_name, scopes, client_id, client_secret, user_agent,
                    service_account_name=None, service_account_keyfile=None,
                    service_account_json_keyfile=None,
                    api_key=None,  # pylint: disable=unused-argument
-                   client=None):  # pylint: disable=unused-argument
+                   client=None,  # pylint: disable=unused-argument
+                   oauth2client_args=None):
     """Attempt to get credentials, using an oauth dance as the last resort."""
     scopes = util.NormalizeScopes(scopes)
     if ((service_account_name and not service_account_keyfile) or
@@ -94,7 +95,8 @@ def GetCredentials(package_name, scopes, client_id, client_secret, user_agent,
         return credentials
     credentials_filename = credentials_filename or os.path.expanduser(
         '~/.apitools.token')
-    credentials = CredentialsFromFile(credentials_filename, client_info)
+    credentials = CredentialsFromFile(credentials_filename, client_info,
+                                      oauth2client_args=oauth2client_args)
     if credentials is not None:
         return credentials
     raise exceptions.CredentialsError('Could not create valid credentials')
@@ -428,7 +430,7 @@ def _GetRunFlowFlags(args=None):
 
 
 # TODO(craigcitro): Switch this from taking a path to taking a stream.
-def CredentialsFromFile(path, client_info):
+def CredentialsFromFile(path, client_info, oauth2client_args=None):
     """Read credentials from a file."""
     credential_store = oauth2client.multistore_file.get_credential_storage(
         path,
@@ -446,7 +448,7 @@ def CredentialsFromFile(path, client_info):
             # retry loop, they can ^C.
             try:
                 flow = oauth2client.client.OAuth2WebServerFlow(**client_info)
-                flags = _GetRunFlowFlags()
+                flags = _GetRunFlowFlags(args=oauth2client_args)
                 credentials = tools.run_flow(flow, credential_store, flags)
                 break
             except (oauth2client.client.FlowExchangeError, SystemExit) as e:
