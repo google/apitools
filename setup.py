@@ -47,7 +47,8 @@ TESTING_PACKAGES = [
 
 CONSOLE_SCRIPTS = [
     'gen_client = apitools.gen.gen_client:run_main',
-    ]
+    'oauth2l = apitools.scripts.oauth2l:run_main [cli]',
+]
 
 py_version = platform.python_version()
 
@@ -78,6 +79,11 @@ setuptools.setup(
         'cli': CLI_PACKAGES,
         'testing': TESTING_PACKAGES,
         },
+    # Add in any packaged data.
+    include_package_data=True,
+    package_data={
+        'apitools.data': ['*'],
+    },
     # PyPI package information.
     classifiers=[
         'License :: OSI Approved :: Apache Software License',
