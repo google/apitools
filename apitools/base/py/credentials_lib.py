@@ -5,6 +5,7 @@ from __future__ import print_function
 import datetime
 import json
 import os
+import threading
 
 import httplib2
 import oauth2client
@@ -36,6 +37,15 @@ __all__ = [
     'ServiceAccountCredentials',
     'ServiceAccountCredentialsFromFile',
 ]
+
+
+# Lock when accessing the cache file to avoid resource contention.
+cache_file_lock = threading.Lock()
+
+
+def SetCredentialsCacheFileLock(lock):
+    global cache_file_lock  # pylint: disable=global-statement
+    cache_file_lock = lock
 
 
 # TODO(craigcitro): Expose the extra args here somewhere higher up,
@@ -199,20 +209,23 @@ class GceAssertionCredentials(oauth2client.gce.AppAssertionCredentials):
             'scopes': sorted(list(scopes)) if scopes else None,
             'svc_acct_name': self.__service_account_name,
         }
-        if _EnsureFileExists(cache_filename):
-            locked_file = oauth2client.locked_file.LockedFile(
-                cache_filename, 'r+b', 'rb')
-            try:
-                locked_file.open_and_lock()
-                cached_creds_str = locked_file.file_handle().read()
-                if cached_creds_str:
-                    # Cached credentials metadata dict.
-                    cached_creds = json.loads(cached_creds_str)
-                    if creds['svc_acct_name'] == cached_creds['svc_acct_name']:
-                        if creds['scopes'] in (None, cached_creds['scopes']):
-                            scopes = cached_creds['scopes']
-            finally:
-                locked_file.unlock_and_close()
+        with cache_file_lock:
+            if _EnsureFileExists(cache_filename):
+                locked_file = oauth2client.locked_file.LockedFile(
+                    cache_filename, 'r+b', 'rb')
+                try:
+                    locked_file.open_and_lock()
+                    cached_creds_str = locked_file.file_handle().read()
+                    if cached_creds_str:
+                        # Cached credentials metadata dict.
+                        cached_creds = json.loads(cached_creds_str)
+                        if (creds['svc_acct_name'] ==
+                                cached_creds['svc_acct_name']):
+                            if (creds['scopes'] in
+                                    (None, cached_creds['scopes'])):
+                                scopes = cached_creds['scopes']
+                finally:
+                    locked_file.unlock_and_close()
         return scopes
 
     def _WriteCacheFile(self, cache_filename, scopes):
@@ -225,22 +238,23 @@ class GceAssertionCredentials(oauth2client.gce.AppAssertionCredentials):
           cache_filename: Cache filename to check.
           scopes: Scopes for the desired credentials.
         """
-        if _EnsureFileExists(cache_filename):
-            locked_file = oauth2client.locked_file.LockedFile(
-                cache_filename, 'r+b', 'rb')
-            try:
-                locked_file.open_and_lock()
-                if locked_file.is_locked():
-                    creds = {  # Credentials metadata dict.
-                        'scopes': sorted(list(scopes)),
-                        'svc_acct_name': self.__service_account_name}
-                    locked_file.file_handle().write(
-                        json.dumps(creds, encoding='ascii'))
-                    # If it's not locked, the locking process will
-                    # write the same data to the file, so just
-                    # continue.
-            finally:
-                locked_file.unlock_and_close()
+        with cache_file_lock:
+            if _EnsureFileExists(cache_filename):
+                locked_file = oauth2client.locked_file.LockedFile(
+                    cache_filename, 'r+b', 'rb')
+                try:
+                    locked_file.open_and_lock()
+                    if locked_file.is_locked():
+                        creds = {  # Credentials metadata dict.
+                            'scopes': sorted(list(scopes)),
+                            'svc_acct_name': self.__service_account_name}
+                        locked_file.file_handle().write(
+                            json.dumps(creds, encoding='ascii'))
+                        # If it's not locked, the locking process will
+                        # write the same data to the file, so just
+                        # continue.
+                finally:
+                    locked_file.unlock_and_close()
 
     def _ScopesFromMetadataServer(self, scopes):
         if not util.DetectGce():
@@ -348,7 +362,11 @@ class GceAssertionCredentials(oauth2client.gce.AppAssertionCredentials):
     @classmethod
     def from_json(cls, json_data):
         data = json.loads(json_data)
-        credentials = GceAssertionCredentials(scopes=[data['scope']])
+        kwargs = {}
+        if 'cache_filename' in data.get('kwargs', []):
+            kwargs['cache_filename'] = data['kwargs']['cache_filename']
+        credentials = GceAssertionCredentials(scopes=[data['scope']],
+                                              **kwargs)
         if 'access_token' in data:
             credentials.access_token = data['access_token']
         if 'token_expiry' in data:
