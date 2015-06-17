@@ -34,6 +34,21 @@ class AdditionalPropertiesMessage(messages.Message):
         value = messages.StringField(2)
 
     additional_properties = messages.MessageField(
+        'AdditionalProperty', 1, repeated=True)
+
+
+@encoding.MapUnrecognizedFields('additional_properties')
+class UnrecognizedEnumMessage(messages.Message):
+
+    class ThisEnum(messages.Enum):
+        VALUE_ONE = 1
+        VALUE_TWO = 2
+
+    class AdditionalProperty(messages.Message):
+        key = messages.StringField(1)
+        value = messages.EnumField('UnrecognizedEnumMessage.ThisEnum', 2)
+
+    additional_properties = messages.MessageField(
         AdditionalProperty, 1, repeated=True)
 
 
@@ -187,6 +202,14 @@ class EncodingTest(unittest2.TestCase):
             AdditionalMessagePropertiesMessage, json_msg)
         self.assertEqual(1, len(result.additional_properties))
         self.assertEqual(0, result.additional_properties[0].value.index)
+
+    def testUnrecognizedEnum(self):
+        json_msg = '{"input": "VALUE_ONE"}'
+        result = encoding.JsonToMessage(
+            UnrecognizedEnumMessage, json_msg)
+        self.assertEqual(1, len(result.additional_properties))
+        self.assertEqual(UnrecognizedEnumMessage.ThisEnum.VALUE_ONE,
+                         result.additional_properties[0].value)
 
     def testNestedFieldMapping(self):
         nested_msg = AdditionalPropertiesMessage()
