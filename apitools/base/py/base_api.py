@@ -198,7 +198,7 @@ class BaseApiClient(object):
 
     def __init__(self, url, credentials=None, get_credentials=True, http=None,
                  model=None, log_request=False, log_response=False,
-                 num_retries=5, credentials_args=None,
+                 num_retries=5, max_retry_wait=60, credentials_args=None,
                  default_global_params=None, additional_http_headers=None):
         _RequireClassAttrs(self, ('_package', '_scopes', 'messages_module'))
         if default_global_params is not None:
@@ -207,8 +207,10 @@ class BaseApiClient(object):
         self.log_request = log_request
         self.log_response = log_response
         self.__num_retries = 5
+        self.__max_retry_wait = 60
         # We let the @property machinery below do our validation.
         self.num_retries = num_retries
+        self.max_retry_wait = max_retry_wait
         self._credentials = credentials
         if get_credentials and not credentials:
             credentials_args = credentials_args or {}
@@ -333,6 +335,18 @@ class BaseApiClient(object):
             raise exceptions.InvalidDataError(
                 'Cannot have negative value for num_retries')
         self.__num_retries = value
+
+    @property
+    def max_retry_wait(self):
+        return self.__max_retry_wait
+
+    @max_retry_wait.setter
+    def max_retry_wait(self, value):
+        util.Typecheck(value, six.integer_types)
+        if value <= 0:
+            raise exceptions.InvalidDataError(
+                'max_retry_wait must be a postiive integer')
+        self.__max_retry_wait = value
 
     @contextlib.contextmanager
     def WithRetries(self, num_retries):
@@ -617,7 +631,8 @@ class BaseApiService(object):
             if upload and upload.bytes_http:
                 http = upload.bytes_http
             http_response = http_wrapper.MakeRequest(
-                http, http_request, retries=self.__client.num_retries)
+                http, http_request, retries=self.__client.num_retries,
+                max_retry_wait=self.__client.max_retry_wait)
 
         return self.ProcessHttpResponse(method_config, http_response)
 
