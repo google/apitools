@@ -366,10 +366,10 @@ class Download(_Transfer):
         end_byte = end
         if use_chunks:
             alternate = start + self.chunksize - 1
-            end_byte = min(end_byte, alternate) if end_byte else alternate
+            end_byte = min(end_byte, alternate) if end_byte is not None else alternate
         if self.total_size:
             alternate = self.total_size - 1
-            end_byte = min(end_byte, alternate) if end_byte else alternate
+            end_byte = min(end_byte, alternate) if end_byte is not None else alternate
         return end_byte
 
     def __GetChunk(self, start, end, additional_headers=None):
@@ -438,7 +438,7 @@ class Download(_Transfer):
             progress_end_normalized = True
         else:
             progress = start
-        while not progress_end_normalized or progress < end:
+        while not progress_end_normalized or progress < end + 1:
             end_byte = self.__ComputeEndByte(progress, end=end,
                                              use_chunks=use_chunks)
             response = self.__GetChunk(progress, end_byte,
