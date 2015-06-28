@@ -561,6 +561,9 @@ class BaseApiService(object):
             util.Typecheck(body_field, messages.MessageField)
             body_type = body_field.type
 
+        # If there was no body provided, we use an empty message of the
+        # appropriate type.
+        body_value = body_value or body_type()
         if upload and not body_value:
             # We're going to fill in the body later.
             return
