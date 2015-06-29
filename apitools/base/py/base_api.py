@@ -466,6 +466,18 @@ class BaseApiService(object):
             query_info['pp'] = 0
         return query_info
 
+    def __FinalUrlValue(self, value, field):
+        """Encode value for the URL, using field to skip encoding for bytes."""
+        if isinstance(field, messages.BytesField):
+            return value
+        elif isinstance(value, six.text_type):
+            return value.encode('utf8')
+        elif isinstance(value, six.binary_type):
+            return value.decode('utf8')
+        elif isinstance(value, datetime.datetime):
+            return value.isoformat()
+        return value
+
     def __ConstructQueryParams(self, query_params, request, global_params):
         """Construct a dictionary of query parameters for this request."""
         # First, handle the global params.
@@ -474,23 +486,24 @@ class BaseApiService(object):
         global_param_names = util.MapParamNames(
             [x.name for x in self.__client.params_type.all_fields()],
             self.__client.params_type)
-        query_info = dict((param, getattr(global_params, param))
-                          for param in global_param_names)
+        global_params_type = type(global_params)
+        query_info = dict(
+            (param,
+             self.__FinalUrlValue(getattr(global_params, param),
+                                  getattr(global_params_type, param)))
+            for param in global_param_names)
         # Next, add the query params.
         query_param_names = util.MapParamNames(query_params, type(request))
-        query_info.update((param, getattr(request, param, None))
-                          for param in query_param_names)
+        request_type = type(request)
+        query_info.update(
+            (param,
+             self.__FinalUrlValue(getattr(request, param, None),
+                                  getattr(request_type, param)))
+            for param in query_param_names)
         query_info = dict((k, v) for k, v in query_info.items()
                           if v is not None)
         query_info = self.__EncodePrettyPrint(query_info)
         query_info = util.MapRequestParams(query_info, type(request))
-        for k, v in query_info.items():
-            if isinstance(v, six.text_type):
-                query_info[k] = v.encode('utf8')
-            elif isinstance(v, str):
-                query_info[k] = v.decode('utf8')
-            elif isinstance(v, datetime.datetime):
-                query_info[k] = v.isoformat()
         return query_info
 
     def __ConstructRelativePath(self, method_config, request,
