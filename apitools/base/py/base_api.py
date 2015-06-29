@@ -126,12 +126,29 @@ def NormalizeApiEndpoint(api_endpoint):
     return api_endpoint
 
 
+def _urljoin(base, url):  # pylint: disable=invalid-name
+    """Custom urljoin replacement supporting : before / in url."""
+    # In general, it's unsafe to simply join base and url. However, for
+    # the case of discovery documents, we know:
+    #  * base will never contain params, query, or fragment
+    #  * url will never contain a scheme or net_loc.
+    # In general, this means we can safely join on /; we just need to
+    # ensure we end up with precisely one / joining base and url. The
+    # exception here is the case of media uploads, where url will be an
+    # absolute url.
+    if url.startswith('http://') or url.startswith('https://'):
+        return urllib.parse.urljoin(base, url)
+    new_base = base if base.endswith('/') else base + '/'
+    new_url = url[1:] if url.startswith('/') else url
+    return new_base + new_url
+
+
 class _UrlBuilder(object):
 
     """Convenient container for url data."""
 
     def __init__(self, base_url, relative_path=None, query_params=None):
-        components = urllib.parse.urlsplit(urllib.parse.urljoin(
+        components = urllib.parse.urlsplit(_urljoin(
             base_url, relative_path or ''))
         if components.fragment:
             raise exceptions.ConfigurationValueError(

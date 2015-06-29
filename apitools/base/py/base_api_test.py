@@ -207,3 +207,13 @@ class BaseApiTest(unittest2.TestCase):
         expected_url = service.client.url + 'parameters/gonna/remap/ONE/TWO'
         http_request = service.PrepareHttpRequest(method_config, request)
         self.assertEqual(expected_url, http_request.url)
+
+    def testColonInRelativePath(self):
+        method_config = base_api.ApiMethodInfo(
+            relative_path='path:withJustColon',
+            request_type_name='SimpleMessage')
+        service = FakeService()
+        request = SimpleMessage()
+        http_request = service.PrepareHttpRequest(method_config, request)
+        self.assertEqual('http://www.example.com/path:withJustColon',
+                         http_request.url)
