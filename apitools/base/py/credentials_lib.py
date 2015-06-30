@@ -435,7 +435,7 @@ def _GetRunFlowFlags(args=None):
 
     parser = argparse.ArgumentParser(parents=[tools.argparser])
     # Get command line argparse flags.
-    flags = parser.parse_args(args=args)
+    flags, _ = parser.parse_known_args(args=args)
 
     # Allow `gflags` and `argparse` to be used side-by-side.
     if hasattr(FLAGS, 'auth_host_name'):
@@ -460,7 +460,7 @@ def CredentialsFromFile(path, client_info, oauth2client_args=None):
     credentials = credential_store.get()
     if credentials is None or credentials.invalid:
         print('Generating new OAuth credentials ...')
-        while True:
+        for _ in range(20):
             # If authorization fails, we want to retry, rather than let this
             # cascade up and get caught elsewhere. If users want out of the
             # retry loop, they can ^C.
@@ -471,8 +471,8 @@ def CredentialsFromFile(path, client_info, oauth2client_args=None):
                 break
             except (oauth2client.client.FlowExchangeError, SystemExit) as e:
                 # Here SystemExit is "no credential at all", and the
-                # FlowExchangeError is "invalid" -- usually because you reused
-                # a token.
+                # FlowExchangeError is "invalid" -- usually because
+                # you reused a token.
                 print('Invalid authorization: %s' % (e,))
             except httplib2.HttpLib2Error as e:
                 print('Communication error: %s' % (e,))
