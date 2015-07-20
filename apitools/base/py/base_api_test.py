@@ -1,3 +1,4 @@
+import base64
 import datetime
 import sys
 
@@ -160,7 +161,9 @@ class BaseApiTest(unittest2.TestCase):
         global_params = StandardQueryParameters()
         http_request = service.PrepareHttpRequest(method_config, request,
                                                   global_params=global_params)
-        want = urllib_parse.urlencode({'bytes_field': non_unicode_message})
+        want = urllib_parse.urlencode({
+            'bytes_field': base64.urlsafe_b64encode(non_unicode_message),
+        })
         self.assertIn(want, http_request.url)
 
     def testQueryBytesGlobalParams(self):
@@ -174,7 +177,9 @@ class BaseApiTest(unittest2.TestCase):
             nextPageToken=non_unicode_message)
         http_request = service.PrepareHttpRequest(method_config, request,
                                                   global_params=global_params)
-        want = urllib_parse.urlencode({'nextPageToken': non_unicode_message})
+        want = urllib_parse.urlencode({
+            'nextPageToken': base64.urlsafe_b64encode(non_unicode_message),
+        })
         self.assertIn(want, http_request.url)
 
     def testQueryRemapping(self):

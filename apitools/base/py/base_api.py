@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """Base class for api services."""
 
+import base64
 import contextlib
 import datetime
 import logging
@@ -485,8 +486,8 @@ class BaseApiService(object):
 
     def __FinalUrlValue(self, value, field):
         """Encode value for the URL, using field to skip encoding for bytes."""
-        if isinstance(field, messages.BytesField):
-            return value
+        if isinstance(field, messages.BytesField) and value is not None:
+            return base64.urlsafe_b64encode(value)
         elif isinstance(value, six.text_type):
             return value.encode('utf8')
         elif isinstance(value, six.binary_type):
