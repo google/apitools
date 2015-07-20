@@ -122,7 +122,7 @@ def _GetCodegenFromFlags():
         try:
             with open(FLAGS.client_json) as client_json:
                 f = json.loads(client_json.read())
-                web = f.get('web', {})
+                web = f.get('installed', f.get('web', {}))
                 client_id = web.get('client_id')
                 client_secret = web.get('client_secret')
         except IOError:
