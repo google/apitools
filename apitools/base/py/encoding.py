@@ -383,6 +383,8 @@ def _DecodeUnknownMessages(message, encoded_message, pair_type):
         if name in all_field_names:
             continue
         value = PyValueToMessage(field_type, value_dict)
+        if pair_type.value.repeated:
+            value = _AsMessageList(value)
         new_pair = pair_type(key=name, value=value)
         new_values.append(new_pair)
     return new_values
@@ -680,3 +682,28 @@ def _DecodeCustomFieldNames(message_type, encoded_message):
                 decoded_message[python_name] = decoded_message.pop(json_name)
         encoded_message = json.dumps(decoded_message)
     return encoded_message
+
+
+def _AsMessageList(msg):
+    """Convert the provided list-as-JsonValue to a list."""
+    # This really needs to live in extra_types, but extra_types needs
+    # to import this file to be able to register codecs.
+    # TODO(craigcitro): Split out a codecs module and fix this ugly
+    # import.
+    from apitools.base.py import extra_types
+
+    def _IsRepeatedJsonValue(msg):
+        """Return True if msg is a repeated value as a JsonValue."""
+        if isinstance(msg, extra_types.JsonArray):
+            return True
+        if isinstance(msg, extra_types.JsonValue) and msg.array_value:
+            return True
+        return False
+
+    if not _IsRepeatedJsonValue(msg):
+        raise ValueError('invalid argument to _AsMessageList')
+    if isinstance(msg, extra_types.JsonValue):
+        msg = msg.array_value
+    if isinstance(msg, extra_types.JsonArray):
+        msg = msg.entries
+    return msg

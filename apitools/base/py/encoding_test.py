@@ -10,6 +10,7 @@ import unittest2
 
 from apitools.base.py import encoding
 from apitools.base.py import exceptions
+from apitools.base.py import extra_types
 
 
 class SimpleMessage(messages.Message):
@@ -99,6 +100,17 @@ class MessageWithRemappings(messages.Message):
     another_field = messages.StringField(3)
     repeated_enum = messages.EnumField(SomeEnum, 4, repeated=True)
     repeated_field = messages.StringField(5, repeated=True)
+
+
+@encoding.MapUnrecognizedFields('additional_properties')
+class RepeatedJsonValueMessage(messages.Message):
+
+    class AdditionalProperty(messages.Message):
+        key = messages.StringField(1)
+        value = messages.MessageField(extra_types.JsonValue, 2, repeated=True)
+
+    additional_properties = messages.MessageField('AdditionalProperty', 1,
+                                                  repeated=True)
 
 
 encoding.AddCustomJsonEnumMapping(MessageWithRemappings.SomeEnum,
@@ -391,3 +403,8 @@ class EncodingTest(unittest2.TestCase):
                 encoding._GetTypeKey(MessageWithEnum.ThisEnum, new_package))
         finally:
             delattr(this_module, 'package')
+
+    def testRepeatedJsonValuesAsRepeatedProperty(self):
+        encoded_msg = '{"a": [{"one": 1}]}'
+        msg = encoding.JsonToMessage(RepeatedJsonValueMessage, encoded_msg)
+        self.assertEqual(encoded_msg, encoding.MessageToJson(msg))
