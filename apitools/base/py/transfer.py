@@ -331,7 +331,7 @@ class Download(_Transfer):
         else:
             if start < 0:
                 start = max(0, start + self.total_size)
-            return start, self.total_size
+            return start, self.total_size - 1
 
     def __SetRangeHeader(self, request, start, end=None):
         if start < 0:
@@ -364,6 +364,10 @@ class Download(_Transfer):
 
         """
         end_byte = end
+
+        if start < 0 and not self.total_size:
+            return end_byte
+
         if use_chunks:
             alternate = start + self.chunksize - 1
             if end_byte is not None:
@@ -446,7 +450,9 @@ class Download(_Transfer):
             progress_end_normalized = True
         else:
             progress = start
-        while not progress_end_normalized or progress <= end_byte:
+            end_byte = end
+        while (not progress_end_normalized or end_byte is None or
+               progress <= end_byte):
             end_byte = self.__ComputeEndByte(progress, end=end_byte,
                                              use_chunks=use_chunks)
             response = self.__GetChunk(progress, end_byte,
