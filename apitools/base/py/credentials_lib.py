@@ -142,15 +142,26 @@ def _EnsureFileExists(filename):
     return True
 
 
-def _OpenNoProxy(request):
-    """Wrapper around urllib2.open that ignores proxies."""
+def _GceMetadataRequest(relative_url, use_metadata_ip=False):
+    """Request the given url from the GCE metadata service."""
+    if use_metadata_ip:
+        base_url = 'http://169.254.169.254/'
+    else:
+        base_url = 'http://metadata.google.internal/'
+    url = base_url + 'computeMetadata/v1/' + relative_url
+    # Extra header requirement can be found here:
+    # https://developers.google.com/compute/docs/metadata
+    headers = {'Metadata-Flavor': 'Google'}
+    request = urllib.request.Request(url, headers=headers)
     opener = urllib.request.build_opener(urllib.request.ProxyHandler({}))
-    return opener.open(request)
+    try:
+        response = opener.open(request)
+    except urllib.error.URLError as e:
+        raise exceptions.CommunicationError(
+            'Could not reach metadata service: %s' % e.reason)
+    return response
 
 
-# TODO(craigcitro): We override to add some utility code, and to
-# update the old refresh implementation. Push this code into
-# oauth2client.
 class GceAssertionCredentials(oauth2client.gce.AppAssertionCredentials):
 
     """Assertion credentials for GCE instances."""
@@ -171,13 +182,10 @@ class GceAssertionCredentials(oauth2client.gce.AppAssertionCredentials):
         # identified these scopes in the same execution. However, the
         # available scopes don't change once an instance is created,
         # so there is no reason to perform more than one query.
-        #
-        # TODO(craigcitro): Move this into oauth2client.
         self.__service_account_name = service_account_name
-        cache_filename = None
         cached_scopes = None
-        if 'cache_filename' in kwds:
-            cache_filename = kwds['cache_filename']
+        cache_filename = kwds.get('cache_filename')
+        if cache_filename:
             cached_scopes = self._CheckCacheFileForMatch(
                 cache_filename, scopes)
 
@@ -276,35 +284,16 @@ class GceAssertionCredentials(oauth2client.gce.AppAssertionCredentials):
         return scopes
 
     def GetServiceAccount(self, account):
-        account_uri = (
-            'http://metadata.google.internal/computeMetadata/'
-            'v1/instance/service-accounts')
-        additional_headers = {'X-Google-Metadata-Request': 'True'}
-        request = urllib.request.Request(
-            account_uri, headers=additional_headers)
-        try:
-            response = _OpenNoProxy(request)
-        except urllib.error.URLError as e:
-            raise exceptions.CommunicationError(
-                'Could not reach metadata service: %s' % e.reason)
+        relative_url = 'instance/service-accounts'
+        response = _GceMetadataRequest(relative_url)
         response_lines = [line.rstrip('/\n\r')
                           for line in response.readlines()]
         return account in response_lines
 
     def GetInstanceScopes(self):
-        # Extra header requirement can be found here:
-        # https://developers.google.com/compute/docs/metadata
-        scopes_uri = (
-            'http://metadata.google.internal/computeMetadata/v1/instance/'
-            'service-accounts/%s/scopes') % self.__service_account_name
-        additional_headers = {'X-Google-Metadata-Request': 'True'}
-        request = urllib.request.Request(
-            scopes_uri, headers=additional_headers)
-        try:
-            response = _OpenNoProxy(request)
-        except urllib.error.URLError as e:
-            raise exceptions.CommunicationError(
-                'Could not reach metadata service: %s' % e.reason)
+        relative_url = 'instance/service-accounts/{0}/scopes'.format(
+            self.__service_account_name)
+        response = _GceMetadataRequest(relative_url)
         return util.NormalizeScopes(scope.strip()
                                     for scope in response.readlines())
 
@@ -328,24 +317,21 @@ class GceAssertionCredentials(oauth2client.gce.AppAssertionCredentials):
 
         If self.store is initialized, store acquired credentials there.
         """
-        token_uri = (
-            'http://metadata.google.internal/computeMetadata/v1/instance/'
-            'service-accounts/%s/token') % self.__service_account_name
-        extra_headers = {'X-Google-Metadata-Request': 'True'}
-        request = urllib.request.Request(token_uri, headers=extra_headers)
+        relative_url = 'instance/service-accounts/{0}/token'.format(
+            self.__service_account_name)
         try:
-            content = _OpenNoProxy(request).read()
-        except urllib.error.URLError as e:
+            response = _GceMetadataRequest(relative_url)
+        except exceptions.CommunicationError:
             self.invalid = True
             if self.store:
                 self.store.locked_put(self)
-            raise exceptions.CommunicationError(
-                'Could not reach metadata service: %s' % e.reason)
+            raise
+        content = response.read()
         try:
             credential_info = json.loads(content)
         except ValueError:
             raise exceptions.CredentialsError(
-                'Invalid credentials response: uri %s' % token_uri)
+                'Could not parse response as JSON: %s' % content)
 
         self.access_token = credential_info['access_token']
         if 'expires_in' in credential_info:
