@@ -673,6 +673,8 @@ class Upload(_Transfer):
         Returns:
           None.
         """
+        if upload_config.resumable_path is None:
+            self.strategy = SIMPLE_UPLOAD
         if self.strategy is not None:
             return
         strategy = SIMPLE_UPLOAD
