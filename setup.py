@@ -31,7 +31,7 @@ REQUIRED_PACKAGES = [
     'httplib2>=0.8',
     'oauth2client>=1.4.8',
     'protorpc>=0.9.1',
-    'six>=1.8.0',
+    'six>=1.9.0',
     ]
 
 CLI_PACKAGES = [
