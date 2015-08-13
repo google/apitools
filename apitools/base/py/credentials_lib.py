@@ -54,6 +54,7 @@ def GetCredentials(package_name, scopes, client_id, client_secret, user_agent,
                    credentials_filename=None,
                    service_account_name=None, service_account_keyfile=None,
                    service_account_json_keyfile=None,
+                   skip_application_default_credentials=False,
                    api_key=None,  # pylint: disable=unused-argument
                    client=None,  # pylint: disable=unused-argument
                    oauth2client_args=None):
@@ -103,6 +104,10 @@ def GetCredentials(package_name, scopes, client_id, client_secret, user_agent,
     credentials = GceAssertionCredentials.Get(scopes)
     if credentials is not None:
         return credentials
+    if not skip_application_default_credentials:
+        credentials = _GetApplicationDefaultCredentials(scopes)
+        if credentials is not None:
+            return credentials
     credentials_filename = credentials_filename or os.path.expanduser(
         '~/.apitools.token')
     credentials = CredentialsFromFile(credentials_filename, client_info,
@@ -127,6 +132,27 @@ def ServiceAccountCredentials(service_account_name, private_key, scopes,
     scopes = util.NormalizeScopes(scopes)
     return oauth2client.client.SignedJwtAssertionCredentials(
         service_account_name, private_key, scopes, **service_account_kwargs)
+
+
+def _GetApplicationDefaultCredentials(scopes):
+    gc = oauth2client.client.GoogleCredentials
+    with cache_file_lock:
+        try:
+            # pylint: disable=protected-access
+            # We've already done our own check for GAE/GCE
+            # credentials, we don't want to pay for checking again.
+            credentials = gc._implicit_credentials_from_files()
+        except oauth2client.client.ApplicationDefaultCredentialsError:
+            return None
+    # If we got back a non-service-account credential, we need to use
+    # a heuristic to decide whether or not the application default
+    # credential will work for us. We assume that if we're requesting
+    # cloud-platform, our scopes are a subset of cloud scopes, and the
+    # ADC will work.
+    cp = 'https://www.googleapis.com/auth/cloud-platform'
+    if not isinstance(credentials, gc) or cp in scopes:
+        return credentials
+    return None
 
 
 def _EnsureFileExists(filename):
