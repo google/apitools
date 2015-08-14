@@ -266,10 +266,12 @@ class _ProtoJsonApiTools(protojson.ProtoJson):
         # remove this later.
         old_level = logging.getLogger().level
         logging.getLogger().setLevel(logging.ERROR)
-        result = _DecodeCustomFieldNames(message_type, encoded_message)
-        result = super(_ProtoJsonApiTools, self).decode_message(
-            message_type, result)
-        logging.getLogger().setLevel(old_level)
+        try:
+            result = _DecodeCustomFieldNames(message_type, encoded_message)
+            result = super(_ProtoJsonApiTools, self).decode_message(
+                message_type, result)
+        finally:
+            logging.getLogger().setLevel(old_level)
         result = _ProcessUnknownEnums(result, encoded_message)
         result = _ProcessUnknownMessages(result, encoded_message)
         return _DecodeUnknownFields(result, encoded_message)
