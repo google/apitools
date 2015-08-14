@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """A helper function that executes a series of List queries for many APIs."""
 
-import encoding
+from apitools.base.py import encoding
 
 __all__ = [
     'YieldFromList',
