@@ -48,64 +48,55 @@ def SetCredentialsCacheFileLock(lock):
     cache_file_lock = lock
 
 
-# TODO(craigcitro): Expose the extra args here somewhere higher up,
-# possibly as flags in the generated CLI.
+# List of additional methods we use when attempting to construct
+# credentials. Users can register their own methods here, which we try
+# before the defaults.
+_CREDENTIALS_METHODS = []
+
+
+def _RegisterCredentialsMethod(method, position=None):
+    """Register a new method for fetching credentials.
+
+    This new method should be a function with signature:
+      client_info, **kwds -> Credentials or None
+    This method can be used as a decorator, unless position needs to
+    be supplied.
+
+    Note that method must *always* accept arbitrary keyword arguments.
+
+    Args:
+      method: New credential-fetching method.
+      position: (default: None) Where in the list of methods to
+        add this; if None, we append. In all but rare cases,
+        this should be either 0 or None.
+    Returns:
+      method, for use as a decorator.
+
+    """
+    if position is None:
+        position = len(_CREDENTIALS_METHODS)
+    else:
+        position = min(position, len(_CREDENTIALS_METHODS))
+    _CREDENTIALS_METHODS.insert(position, method)
+    return method
+
+
 def GetCredentials(package_name, scopes, client_id, client_secret, user_agent,
                    credentials_filename=None,
-                   service_account_name=None, service_account_keyfile=None,
-                   service_account_json_keyfile=None,
-                   skip_application_default_credentials=False,
                    api_key=None,  # pylint: disable=unused-argument
                    client=None,  # pylint: disable=unused-argument
-                   oauth2client_args=None):
+                   oauth2client_args=None,
+                   **kwds):
     """Attempt to get credentials, using an oauth dance as the last resort."""
     scopes = util.NormalizeScopes(scopes)
-    if ((service_account_name and not service_account_keyfile) or
-            (service_account_keyfile and not service_account_name)):
-        raise exceptions.CredentialsError(
-            'Service account name or keyfile provided without the other')
-    # TODO(craigcitro): Error checking.
     client_info = {
         'client_id': client_id,
         'client_secret': client_secret,
-        'scope': ' '.join(sorted(util.NormalizeScopes(scopes))),
+        'scope': ' '.join(sorted(scopes)),
         'user_agent': user_agent or '%s-generated/0.1' % package_name,
     }
-    service_account_kwargs = {
-        'user_agent': client_info['user_agent'],
-    }
-    if service_account_json_keyfile:
-        with open(service_account_json_keyfile) as keyfile:
-            service_account_info = json.load(keyfile)
-        account_type = service_account_info.get('type')
-        if account_type != oauth2client.client.SERVICE_ACCOUNT:
-            raise exceptions.CredentialsError(
-                'Invalid service account credentials: %s' % (
-                    service_account_json_keyfile,))
-        # pylint: disable=protected-access
-        credentials = oauth2client.service_account._ServiceAccountCredentials(
-            service_account_id=service_account_info['client_id'],
-            service_account_email=service_account_info['client_email'],
-            private_key_id=service_account_info['private_key_id'],
-            private_key_pkcs8_text=service_account_info['private_key'],
-            scopes=scopes,
-            **service_account_kwargs)
-        # pylint: enable=protected-access
-        return credentials
-    if service_account_name is not None:
-        credentials = ServiceAccountCredentialsFromFile(
-            service_account_name, service_account_keyfile, scopes,
-            service_account_kwargs=service_account_kwargs)
-        if credentials is not None:
-            return credentials
-    credentials = GaeAssertionCredentials.Get(scopes)
-    if credentials is not None:
-        return credentials
-    credentials = GceAssertionCredentials.Get(scopes)
-    if credentials is not None:
-        return credentials
-    if not skip_application_default_credentials:
-        credentials = _GetApplicationDefaultCredentials(scopes)
+    for method in _CREDENTIALS_METHODS:
+        credentials = method(client_info, **kwds)
         if credentials is not None:
             return credentials
     credentials_filename = credentials_filename or os.path.expanduser(
@@ -132,27 +123,6 @@ def ServiceAccountCredentials(service_account_name, private_key, scopes,
     scopes = util.NormalizeScopes(scopes)
     return oauth2client.client.SignedJwtAssertionCredentials(
         service_account_name, private_key, scopes, **service_account_kwargs)
-
-
-def _GetApplicationDefaultCredentials(scopes):
-    gc = oauth2client.client.GoogleCredentials
-    with cache_file_lock:
-        try:
-            # pylint: disable=protected-access
-            # We've already done our own check for GAE/GCE
-            # credentials, we don't want to pay for checking again.
-            credentials = gc._implicit_credentials_from_files()
-        except oauth2client.client.ApplicationDefaultCredentialsError:
-            return None
-    # If we got back a non-service-account credential, we need to use
-    # a heuristic to decide whether or not the application default
-    # credential will work for us. We assume that if we're requesting
-    # cloud-platform, our scopes are a subset of cloud scopes, and the
-    # ADC will work.
-    cp = 'https://www.googleapis.com/auth/cloud-platform'
-    if not isinstance(credentials, gc) or cp in scopes:
-        return credentials
-    return None
 
 
 def _EnsureFileExists(filename):
@@ -519,3 +489,74 @@ def GetUserinfo(credentials, http=None):  # pylint: disable=invalid-name
         credentials.refresh(http)
         response, content = http.request(url)
     return json.loads(content or '{}')  # Save ourselves from an empty reply.
+
+
+@_RegisterCredentialsMethod
+def _GetServiceAccountCredentials(
+        client_info, service_account_name=None, service_account_keyfile=None,
+        service_account_json_keyfile=None, **unused_kwds):
+    if ((service_account_name and not service_account_keyfile) or
+            (service_account_keyfile and not service_account_name)):
+        raise exceptions.CredentialsError(
+            'Service account name or keyfile provided without the other')
+    scopes = client_info['scope'].split()
+    user_agent = client_info['user_agent']
+    if service_account_json_keyfile:
+        with open(service_account_json_keyfile) as keyfile:
+            service_account_info = json.load(keyfile)
+        account_type = service_account_info.get('type')
+        if account_type != oauth2client.client.SERVICE_ACCOUNT:
+            raise exceptions.CredentialsError(
+                'Invalid service account credentials: %s' % (
+                    service_account_json_keyfile,))
+        # pylint: disable=protected-access
+        credentials = oauth2client.service_account._ServiceAccountCredentials(
+            service_account_id=service_account_info['client_id'],
+            service_account_email=service_account_info['client_email'],
+            private_key_id=service_account_info['private_key_id'],
+            private_key_pkcs8_text=service_account_info['private_key'],
+            scopes=scopes, user_agent=user_agent)
+        # pylint: enable=protected-access
+        return credentials
+    if service_account_name is not None:
+        credentials = ServiceAccountCredentialsFromFile(
+            service_account_name, service_account_keyfile, scopes,
+            service_account_kwargs={'user_agent': user_agent})
+        if credentials is not None:
+            return credentials
+
+
+@_RegisterCredentialsMethod
+def _GetGaeServiceAccount(unused_client_info, scopes, **unused_kwds):
+    return GaeAssertionCredentials.Get(scopes=scopes)
+
+
+@_RegisterCredentialsMethod
+def _GetGceServiceAccount(unused_client_info, scopes, **unused_kwds):
+    return GceAssertionCredentials.Get(scopes=scopes)
+
+
+@_RegisterCredentialsMethod
+def _GetApplicationDefaultCredentials(
+        unused_client_info, scopes, skip_application_default_credentials=False,
+        **unused_kwds):
+    if skip_application_default_credentials:
+        return None
+    gc = oauth2client.client.GoogleCredentials
+    with cache_file_lock:
+        try:
+            # pylint: disable=protected-access
+            # We've already done our own check for GAE/GCE
+            # credentials, we don't want to pay for checking again.
+            credentials = gc._implicit_credentials_from_files()
+        except oauth2client.client.ApplicationDefaultCredentialsError:
+            return None
+    # If we got back a non-service account credential, we need to use
+    # a heuristic to decide whether or not the application default
+    # credential will work for us. We assume that if we're requesting
+    # cloud-platform, our scopes are a subset of cloud scopes, and the
+    # ADC will work.
+    cp = 'https://www.googleapis.com/auth/cloud-platform'
+    if not isinstance(credentials, gc) or cp in scopes:
+        return credentials
+    return None
