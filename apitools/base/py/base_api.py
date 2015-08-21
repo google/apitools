@@ -202,6 +202,11 @@ class _UrlBuilder(object):
             self.__scheme, self.__netloc, self.relative_path, self.query, ''))
 
 
+def _SkipGetCredentials():
+    """Hook for skipping credentials. For internal use."""
+    return False
+
+
 class BaseApiClient(object):
 
     """Base class for client libraries."""
@@ -230,6 +235,7 @@ class BaseApiClient(object):
         self.num_retries = num_retries
         self.max_retry_wait = max_retry_wait
         self._credentials = credentials
+        get_credentials = get_credentials and not _SkipGetCredentials()
         if get_credentials and not credentials:
             credentials_args = credentials_args or {}
             self._SetCredentials(**credentials_args)
