@@ -372,5 +372,16 @@ def _MakeRequestNoRetry(http, http_request, redirections=5,
     return response
 
 
+_HTTP_FACTORIES = []
+
+
+def _RegisterHttpFactory(factory):
+    _HTTP_FACTORIES.append(factory)
+
+
 def GetHttp(**kwds):
+    for factory in _HTTP_FACTORIES:
+        http = factory(**kwds)
+        if http is not None:
+            return http
     return httplib2.Http(**kwds)
