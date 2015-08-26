@@ -463,7 +463,7 @@ class Download(_Transfer):
                 progress_end_normalized = True
             response = self.__ProcessResponse(response)
             progress += response.length
-            if not response:
+            if response.length == 0:
                 raise exceptions.TransferRetryError(
                     'Zero bytes unexpectedly returned in download response')
 
