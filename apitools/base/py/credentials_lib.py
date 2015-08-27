@@ -527,19 +527,22 @@ def _GetServiceAccountCredentials(
 
 
 @_RegisterCredentialsMethod
-def _GetGaeServiceAccount(unused_client_info, scopes, **unused_kwds):
+def _GetGaeServiceAccount(client_info, **unused_kwds):
+    scopes = client_info['scope'].split(' ')
     return GaeAssertionCredentials.Get(scopes=scopes)
 
 
 @_RegisterCredentialsMethod
-def _GetGceServiceAccount(unused_client_info, scopes, **unused_kwds):
+def _GetGceServiceAccount(client_info, **unused_kwds):
+    scopes = client_info['scope'].split(' ')
     return GceAssertionCredentials.Get(scopes=scopes)
 
 
 @_RegisterCredentialsMethod
 def _GetApplicationDefaultCredentials(
-        unused_client_info, scopes, skip_application_default_credentials=False,
+        client_info, skip_application_default_credentials=False,
         **unused_kwds):
+    scopes = client_info['scope'].split()
     if skip_application_default_credentials:
         return None
     gc = oauth2client.client.GoogleCredentials
