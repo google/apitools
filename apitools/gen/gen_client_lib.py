@@ -9,7 +9,6 @@ import datetime
 
 from six.moves import urllib_parse
 
-from apitools.base.py import base_cli
 from apitools.gen import command_registry
 from apitools.gen import message_registry
 from apitools.gen import service_registry
@@ -27,7 +26,8 @@ def _StandardQueryParametersSchema(discovery_doc):
     # We add an entry for the trace, since Discovery doesn't.
     standard_query_schema['properties']['trace'] = {
         'type': 'string',
-        'description': base_cli.TRACE_HELP,
+        'description': ('A tracing token of the form "token:<tokenid>" '
+                        'to include in api requests.'),
         'location': 'query',
     }
     return standard_query_schema
