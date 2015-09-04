@@ -62,8 +62,6 @@ class DescriptorGenerator(object):
         self.__generate_cli = generate_cli
         self.__root_package = root_package
         self.__base_files_package = base_package
-        self.__base_files_target = (
-            '//cloud/bigscience/apitools/base/py:apitools_base')
         self.__names = names
         self.__base_url, self.__base_path = _ComputePaths(
             self.__package, self.__client_info.url_version,
