@@ -58,11 +58,6 @@ def DeclareBaseFlags():
 
     _BASE_FLAGS_DECLARED = True
 
-# NOTE: This is specified here so that it can be read by other files
-# without depending on the flag to be registered.
-TRACE_HELP = (
-    'A tracing token of the form "token:<tokenid>" '
-    'to include in api requests.')
 FLAGS = flags.FLAGS
 
 
