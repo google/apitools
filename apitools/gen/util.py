@@ -141,9 +141,11 @@ def Chdir(dirname, create=True):
         else:
             os.mkdir(dirname)
     previous_directory = os.getcwd()
-    os.chdir(dirname)
-    yield
-    os.chdir(previous_directory)
+    try:
+        os.chdir(dirname)
+        yield
+    finally:
+        os.chdir(previous_directory)
 
 
 def NormalizeVersion(version):
