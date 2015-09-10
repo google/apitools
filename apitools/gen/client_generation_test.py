@@ -1,13 +1,11 @@
 """Test gen_client against all the APIs we use regularly."""
 
-import contextlib
 import logging
 import os
-import shutil
 import subprocess
-import sys
 import tempfile
 
+from apitools.gen import test_utils
 
 import unittest2
 
@@ -19,31 +17,16 @@ _API_LIST = [
 ]
 
 
-@contextlib.contextmanager
-def TempDir():
-    original_dir = os.getcwd()
-    path = tempfile.mkdtemp()
-    try:
-        os.chdir(path)
-        yield path
-    finally:
-        os.chdir(original_dir)
-        shutil.rmtree(path)
-
-
 class ClientGenerationTest(unittest2.TestCase):
 
     def setUp(self):
         super(ClientGenerationTest, self).setUp()
         self.gen_client_binary = 'gen_client'
 
-    # unittest in 2.6 doesn't have skipIf.
-    @unittest2.skipUnless(sys.version_info[0] == 2 and
-                          sys.version_info[1] == 7,
-                          'Only runs in Python 2.7')
+    @test_utils.RunOnlyOnPython27
     def testGeneration(self):
         for api in _API_LIST:
-            with TempDir():
+            with test_utils.TempDir(change_to=True):
                 args = [
                     self.gen_client_binary,
                     '--client_id=12345',
