@@ -35,23 +35,25 @@ DateTimeMessage = message_types.DateTimeMessage
 # pylint:enable=invalid-name
 
 
-class DateField(messages.Field):
+# We insert our own metaclass here to avoid letting ProtoRPC
+# register this as the default field type for strings.
+#  * since ProtoRPC does this via metaclasses, we don't have any
+#    choice but to use one ourselves
+#  * since a subclass's metaclass must inherit from its superclass's
+#    metaclass, we're forced to have this hard-to-read inheritance.
+#
+# pylint: disable=protected-access
+class _FieldMeta(messages._FieldMeta):
+
+    def __init__(cls, name, bases, dct):  # pylint: disable=no-self-argument
+        # pylint: disable=super-init-not-called,non-parent-init-called
+        type.__init__(cls, name, bases, dct)
+# pylint: enable=protected-access
+
+
+class DateField(six.with_metaclass(_FieldMeta, messages.Field)):
 
     """Field definition for Date values."""
-
-    # We insert our own metaclass here to avoid letting ProtoRPC
-    # register this as the default field type for strings.
-    #  * since ProtoRPC does this via metaclasses, we don't have any
-    #    choice but to use one ourselves
-    #  * since a subclass's metaclass must inherit from its superclass's
-    #    metaclass, we're forced to have this hard-to-read inheritance.
-    #
-    # pylint: disable=invalid-name
-    class __metaclass__(messages.Field.__metaclass__):
-
-        def __init__(cls, name, bases, dct):
-            super(messages.Field.__metaclass__, cls).__init__(name, bases, dct)
-    # pylint: enable=invalid-name
 
     VARIANTS = frozenset([messages.Variant.STRING])
     DEFAULT_VARIANT = messages.Variant.STRING
