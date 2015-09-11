@@ -831,6 +831,8 @@ class Upload(_Transfer):
         # go ahead and pump the bytes now.
         if self.auto_transfer:
             return self.StreamInChunks()
+        else:
+            return http_response
 
     def __GetLastByte(self, range_header):
         _, _, end = range_header.partition('-')
