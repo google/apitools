@@ -1,9 +1,5 @@
 #!/usr/bin/env python
-"""Extra types understood by apitools.
-
-This file will be replaced by a .proto file when we switch to proto2
-from protorpc.
-"""
+"""Extra types understood by apitools."""
 
 import collections
 import datetime
@@ -29,7 +25,6 @@ __all__ = [
     'JsonProtoDecoder',
 ]
 
-# We import from protorpc.
 # pylint:disable=invalid-name
 DateTimeMessage = message_types.DateTimeMessage
 # pylint:enable=invalid-name
