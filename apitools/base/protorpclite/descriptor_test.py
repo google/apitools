@@ -18,9 +18,9 @@
 """Tests for apitools.base.protorpclite.descriptor."""
 import platform
 import types
-import unittest
 
 import six
+import unittest2
 
 from apitools.base.protorpclite import descriptor
 from apitools.base.protorpclite import message_types
@@ -78,8 +78,8 @@ class DescribeEnumTest(test_util.TestCase):
         described.check_initialized()
         self.assertEquals(expected, described)
 
-    @unittest.skipIf('PyPy' in platform.python_implementation(),
-                     'todo: reenable this')
+    @unittest2.skipIf('PyPy' in platform.python_implementation(),
+                      'todo: reenable this')
     def testEnumWithItems(self):
         class EnumWithItems(messages.Enum):
             A = 3
@@ -511,9 +511,5 @@ class DescriptorLibraryTest(test_util.TestCase):
         self.assertEquals(None, self.library.lookup_package('Packageless'))
 
 
-def main():
-    unittest.main()
-
-
 if __name__ == '__main__':
-    main()
+    unittest2.main()
