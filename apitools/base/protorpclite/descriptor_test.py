@@ -16,10 +16,6 @@
 #
 
 """Tests for apitools.base.protorpclite.descriptor."""
-
-__author__ = 'rafek@google.com (Rafe Kaplan)'
-
-
 import types
 import unittest
 
@@ -131,7 +127,7 @@ class DescribeFieldTest(test_util.TestCase):
             self.assertEquals(expected, described)
 
     def testDefault(self):
-        for field_class, default, expected_default in (
+        test_cases = (
             (messages.IntegerField, 200, '200'),
             (messages.FloatField, 1.5, '1.5'),
             (messages.FloatField, 1e6, '1000000.0'),
@@ -141,7 +137,8 @@ class DescribeFieldTest(test_util.TestCase):
              b''.join([six.int2byte(x) for x in (31, 32, 33)]),
              b'\\x1f !'),
             (messages.StringField, RUSSIA, RUSSIA),
-        ):
+        )
+        for field_class, default, expected_default in test_cases:
             field = field_class(10, default=default)
             field.name = u'a_field'
 
@@ -288,9 +285,10 @@ class DescribeFileTest(test_util.TestCase):
     """Test describing modules."""
 
     def LoadModule(self, module_name, source):
-        result = {'__name__': module_name,
-                  'messages': messages,
-                  }
+        result = {
+            '__name__': module_name,
+            'messages': messages,
+        }
         exec(source, result)
 
         module = types.ModuleType(module_name)
@@ -472,7 +470,8 @@ class ModuleFinderTest(test_util.TestCase):
             descriptor.describe_enum_value(
                 test_util.OptionalMessage.SimpleEnum.VAL1),
             descriptor.import_descriptor_loader(
-                'apitools.base.protorpclite.test_util.OptionalMessage.SimpleEnum.VAL1'))
+                'apitools.base.protorpclite.test_util.'
+                'OptionalMessage.SimpleEnum.VAL1'))
 
 
 class DescriptorLibraryTest(test_util.TestCase):
@@ -488,12 +487,13 @@ class DescriptorLibraryTest(test_util.TestCase):
 
     def testLookupPackage(self):
         self.assertEquals('csv', self.library.lookup_package('csv'))
-        self.assertEquals('apitools.base.protorpclite',
-                          self.library.lookup_package('apitools.base.protorpclite'))
+        self.assertEquals(
+            'apitools.base.protorpclite',
+            self.library.lookup_package('apitools.base.protorpclite'))
 
     def testLookupNonPackages(self):
-        for name in ('', 'a',
-                     'apitools.base.protorpclite.descriptor.DescriptorLibrary'):
+        lib = 'apitools.base.protorpclite.descriptor.DescriptorLibrary'
+        for name in ('', 'a', lib):
             self.assertRaisesWithRegexpMatch(
                 messages.DefinitionNotFoundError,
                 'Could not find definition for %s' % name,

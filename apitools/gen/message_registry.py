@@ -57,7 +57,8 @@ class MessageRegistry(object):
         'date': TypeInfo(type_name='extra_types.DateField',
                          variant=messages.Variant.STRING),
         'date-time': TypeInfo(
-            type_name='apitools.base.protorpclite.message_types.DateTimeMessage',
+            type_name=('apitools.base.protorpclite.message_types.'
+                       'DateTimeMessage'),
             variant=messages.Variant.MESSAGE),
     }
 

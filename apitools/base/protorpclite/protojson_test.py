@@ -14,12 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
 """Tests for apitools.base.protorpclite.protojson."""
-
-__author__ = 'rafek@google.com (Rafe Kaplan)'
-
-
 import datetime
 import json
 import unittest
@@ -40,7 +35,7 @@ class CustomField(messages.MessageField):
         super(CustomField, self).__init__(self.message_type, number, **kwargs)
 
     def value_to_message(self, value):
-        return self.message_type()
+        return self.message_type()  # pylint:disable=not-callable
 
 
 class MyMessage(messages.Message):
@@ -96,9 +91,10 @@ class ProtojsonTest(test_util.TestCase,
     "int32_value": 1020,
     "string_value": "a string",
     "enum_value": "VAL2"
-  }
-  """
+    }
+    """
 
+    # pylint:disable=anomalous-unicode-escape-in-string
     encoded_full = """{
     "double_value": 1.23,
     "float_value": -2.5,
@@ -109,8 +105,8 @@ class ProtojsonTest(test_util.TestCase,
     "string_value": "a string\u044f",
     "bytes_value": "YSBieXRlc//+",
     "enum_value": "VAL2"
-  }
-  """
+    }
+    """
 
     encoded_repeated = """{
     "double_value": [1.23, 2.3],
@@ -122,21 +118,21 @@ class ProtojsonTest(test_util.TestCase,
     "string_value": ["a string\u044f", "another string"],
     "bytes_value": ["YSBieXRlc//+", "YW5vdGhlciBieXRlcw=="],
     "enum_value": ["VAL2", "VAL1"]
-  }
-  """
+    }
+    """
 
     encoded_nested = """{
     "nested": {
       "a_value": "a string"
     }
-  }
-  """
+    }
+    """
 
     encoded_repeated_nested = """{
     "repeated_nested": [{"a_value": "a string"},
                         {"a_value": "another string"}]
-  }
-  """
+    }
+    """
 
     unexpected_tag_message = '{"unknown": "value"}'
 
@@ -155,7 +151,9 @@ class ProtojsonTest(test_util.TestCase,
     def testConvertIntegerToFloat(self):
         """Test that integers passed in to float fields are converted.
 
-        This is necessary because JSON outputs integers for numbers with 0 decimals.
+        This is necessary because JSON outputs integers for numbers
+        with 0 decimals.
+
         """
         message = protojson.decode_message(MyMessage, '{"a_float": 10}')
 
@@ -251,15 +249,18 @@ class ProtojsonTest(test_util.TestCase,
 
     def testNotJSON(self):
         """Test error when string is not valid JSON."""
-        self.assertRaises(ValueError,
-                          protojson.decode_message, MyMessage, '{this is not json}')
+        self.assertRaises(
+            ValueError,
+            protojson.decode_message, MyMessage,
+            '{this is not json}')
 
     def testDoNotEncodeStrangeObjects(self):
         """Test trying to encode a strange object.
 
-        The main purpose of this test is to complete coverage.  It ensures that
-        the default behavior of the JSON encoder is preserved when someone tries to
-        serialized an unexpected type.
+        The main purpose of this test is to complete coverage. It
+        ensures that the default behavior of the JSON encoder is
+        preserved when someone tries to serialized an unexpected type.
+
         """
         class BogusObject(object):
 
@@ -280,8 +281,9 @@ class ProtojsonTest(test_util.TestCase,
 
     def testProtojsonUnrecognizedFieldName(self):
         """Test that unrecognized fields are saved and can be accessed."""
-        decoded = protojson.decode_message(MyMessage,
-                                           ('{"an_integer": 1, "unknown_val": 2}'))
+        decoded = protojson.decode_message(
+            MyMessage,
+            ('{"an_integer": 1, "unknown_val": 2}'))
         self.assertEquals(decoded.an_integer, 1)
         self.assertEquals(1, len(decoded.all_unrecognized_fields()))
         self.assertEquals('unknown_val', decoded.all_unrecognized_fields()[0])
@@ -317,8 +319,10 @@ class ProtojsonTest(test_util.TestCase,
     def testUnrecognizedFieldVariants(self):
         """Test that unrecognized fields are mapped to the right variants."""
         for encoded, expected_variant in (
-                ('{"an_integer": 1, "unknown_val": 2}', messages.Variant.INT64),
-                ('{"an_integer": 1, "unknown_val": 2.0}', messages.Variant.DOUBLE),
+                ('{"an_integer": 1, "unknown_val": 2}',
+                 messages.Variant.INT64),
+                ('{"an_integer": 1, "unknown_val": 2.0}',
+                 messages.Variant.DOUBLE),
                 ('{"an_integer": 1, "unknown_val": "string value"}',
                  messages.Variant.STRING),
                 ('{"an_integer": 1, "unknown_val": [1, 2, 3]}',
@@ -327,7 +331,8 @@ class ProtojsonTest(test_util.TestCase,
                  messages.Variant.DOUBLE),
                 ('{"an_integer": 1, "unknown_val": [1, "foo", 3]}',
                  messages.Variant.STRING),
-                ('{"an_integer": 1, "unknown_val": true}', messages.Variant.BOOL)):
+                ('{"an_integer": 1, "unknown_val": true}',
+                 messages.Variant.BOOL)):
             decoded = protojson.decode_message(MyMessage, encoded)
             self.assertEquals(decoded.an_integer, 1)
             self.assertEquals(1, len(decoded.all_unrecognized_fields()))
@@ -354,9 +359,12 @@ class ProtojsonTest(test_util.TestCase,
 
     def testEncodeDateTime(self):
         for datetime_string, datetime_vals in (
-                ('2012-09-30T15:31:50.262000', (2012, 9, 30, 15, 31, 50, 262000)),
-                ('2012-09-30T15:31:50.262123', (2012, 9, 30, 15, 31, 50, 262123)),
-                ('2012-09-30T15:31:50', (2012, 9, 30, 15, 31, 50, 0))):
+                ('2012-09-30T15:31:50.262000',
+                 (2012, 9, 30, 15, 31, 50, 262000)),
+                ('2012-09-30T15:31:50.262123',
+                 (2012, 9, 30, 15, 31, 50, 262123)),
+                ('2012-09-30T15:31:50',
+                 (2012, 9, 30, 15, 31, 50, 0))):
             decoded_message = protojson.encode_message(
                 MyMessage(a_datetime=datetime.datetime(*datetime_vals)))
             expected_decoding = '{"a_datetime": "%s"}' % datetime_string
@@ -418,8 +426,9 @@ class CustomProtoJsonTest(test_util.TestCase):
         self.protojson = CustomProtoJson()
 
     def testEncode(self):
-        self.assertEqual('{"a_string": "{encoded}xyz"}',
-                         self.protojson.encode_message(MyMessage(a_string='xyz')))
+        self.assertEqual(
+            '{"a_string": "{encoded}xyz"}',
+            self.protojson.encode_message(MyMessage(a_string='xyz')))
 
     def testDecode(self):
         self.assertEqual(

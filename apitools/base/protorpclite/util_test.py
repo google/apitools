@@ -16,16 +16,12 @@
 #
 
 """Tests for apitools.base.protorpclite.util."""
-import six
-
-__author__ = 'rafek@google.com (Rafe Kaplan)'
-
-
 import datetime
-import random
 import sys
 import types
 import unittest
+
+import six
 
 from apitools.base.protorpclite import test_util
 from apitools.base.protorpclite import util
@@ -81,10 +77,10 @@ class UtilTest(test_util.TestCase):
                 return [pos1, kwonly]
         self.assertEquals([1, 1], MyClass().meth(1))
         self.assertEquals([2, 2], MyClass().meth(2, kwonly=2))
-        self.assertRaisesWithRegexpMatch(TypeError,
-                                         r'meth\(\) takes at most 2 positional '
-                                         r'arguments \(3 given\)',
-                                         MyClass().meth, 2, 3)
+        self.assertRaisesWithRegexpMatch(
+            TypeError,
+            r'meth\(\) takes at most 2 positional arguments \(3 given\)',
+            MyClass().meth, 2, 3)
 
     def testDefaultDecoration(self):
         @util.positional
@@ -102,7 +98,8 @@ class UtilTest(test_util.TestCase):
             return a
         self.assertRaisesRegexp(
             ValueError,
-            'Functions with no keyword arguments must specify max_positional_args',
+            ('Functions with no keyword arguments must specify '
+             'max_positional_args'),
             util.positional, fn)
 
     def testDecoratedFunctionDocstring(self):
@@ -192,7 +189,7 @@ class DateTimeTests(test_util.TestCase):
 
     def testDateTimeTimeZones(self):
         """Test that a datetime string with a timezone is decoded correctly."""
-        for datetime_string, datetime_vals in (
+        tests = (
             ('2012-09-30T15:31:50.262-06:00',
              (2012, 9, 30, 15, 31, 50, 262000, util.TimeZoneOffset(-360))),
             ('2012-09-30T15:31:50.262+01:30',
@@ -206,7 +203,8 @@ class DateTimeTests(test_util.TestCase):
             ('2012-09-30t15:31:50z',
              (2012, 9, 30, 15, 31, 50, 0, util.TimeZoneOffset(0))),
             ('2012-09-30T15:31:50-23:00',
-             (2012, 9, 30, 15, 31, 50, 0, util.TimeZoneOffset(-1380)))):
+             (2012, 9, 30, 15, 31, 50, 0, util.TimeZoneOffset(-1380))))
+        for datetime_string, datetime_vals in tests:
             decoded = util.decode_datetime(datetime_string)
             expected = datetime.datetime(*datetime_vals)
             self.assertEquals(expected, decoded)

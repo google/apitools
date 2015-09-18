@@ -27,15 +27,15 @@ to know the description of an enum value, enum, field or message without
 needing to download the source code.  This format is also compatible with
 other, non-Python languages.
 
-The descriptors are modeled to be binary compatible with:
-
-  http://code.google.com/p/protobuf/source/browse/trunk/src/google/protobuf/descriptor.proto
+The descriptors are modeled to be binary compatible with
+  https://github.com/google/protobuf
 
 NOTE: The names of types and fields are not always the same between these
 descriptors and the ones defined in descriptor.proto.  This was done in order
 to make source code files that use these descriptors easier to read.  For
 example, it is not necessary to prefix TYPE to all the values in
-FieldDescriptor.Variant as is done in descriptor.proto FieldDescriptorProto.Type.
+FieldDescriptor.Variant as is done in descriptor.proto
+FieldDescriptorProto.Type.
 
 Example:
 
@@ -93,34 +93,33 @@ Public Functions:
   describe_file_set: Describe a file set from a list of modules or objects.
   describe_message: Describe a Message definition.
 """
-import six
-
-__author__ = 'rafek@google.com (Rafe Kaplan)'
-
 import codecs
 import types
+
+import six
 
 from apitools.base.protorpclite import messages
 from apitools.base.protorpclite import util
 
 
-__all__ = ['EnumDescriptor',
-           'EnumValueDescriptor',
-           'FieldDescriptor',
-           'MessageDescriptor',
-           'FileDescriptor',
-           'FileSet',
-           'DescriptorLibrary',
+__all__ = [
+    'EnumDescriptor',
+    'EnumValueDescriptor',
+    'FieldDescriptor',
+    'MessageDescriptor',
+    'FileDescriptor',
+    'FileSet',
+    'DescriptorLibrary',
 
-           'describe_enum',
-           'describe_enum_value',
-           'describe_field',
-           'describe_message',
-           'describe_file',
-           'describe_file_set',
-           'describe',
-           'import_descriptor_loader',
-           ]
+    'describe_enum',
+    'describe_enum_value',
+    'describe_field',
+    'describe_message',
+    'describe_file',
+    'describe_file_set',
+    'describe',
+    'import_descriptor_loader',
+]
 
 
 # NOTE: MessageField is missing because message fields cannot have
@@ -192,7 +191,7 @@ class FieldDescriptor(messages.Message):
       default_value: String representation of default value.
     """
 
-    Variant = messages.Variant
+    Variant = messages.Variant  # pylint:disable=invalid-name
 
     class Label(messages.Enum):
         """Field label."""
@@ -209,9 +208,11 @@ class FieldDescriptor(messages.Message):
     variant = messages.EnumField(Variant, 5)
     type_name = messages.StringField(6)
 
-    # For numeric types, contains the original text representation of the value.
+    # For numeric types, contains the original text representation of
+    #   the value.
     # For booleans, "true" or "false".
-    # For strings, contains the default text contents (not escaped in any way).
+    # For strings, contains the default text contents (not escaped in any
+    #   way).
     # For bytes, contains the C escaped value.  All bytes < 128 are that are
     #   traditionally considered unprintable are also escaped.
     default_value = messages.StringField(7)
@@ -231,7 +232,8 @@ class MessageDescriptor(messages.Message):
     fields = messages.MessageField(FieldDescriptor, 2, repeated=True)
 
     message_types = messages.MessageField(
-        'apitools.base.protorpclite.descriptor.MessageDescriptor', 3, repeated=True)
+        'apitools.base.protorpclite.descriptor.MessageDescriptor', 3,
+        repeated=True)
     enum_types = messages.MessageField(EnumDescriptor, 4, repeated=True)
 
 
@@ -318,7 +320,8 @@ def describe_field(field_definition):
         field_descriptor.type_name = field_definition.type.definition_name()
 
     if isinstance(field_definition, messages.MessageField):
-        field_descriptor.type_name = field_definition.message_type.definition_name()
+        field_descriptor.type_name = (
+            field_definition.message_type.definition_name())
 
     if field_definition.default is not None:
         field_descriptor.default_value = _DEFAULT_TO_STRING_MAP[
@@ -389,11 +392,6 @@ def describe_file(module):
     Returns:
       Initialized FileDescriptor instance describing the module.
     """
-    # May not import remote at top of file because remote depends on this
-    # file
-    # TODO(rafek): Straighten out this dependency.  Possibly move these functions
-    # from descriptor to their own module.
-
     descriptor = FileDescriptor()
     descriptor.package = util.get_package_for_module(module)
 
@@ -510,8 +508,9 @@ def import_descriptor_loader(definition_name, importer=__import__):
         return describe(messages.find_definition(definition_name,
                                                  importer=__import__))
     except messages.DefinitionNotFoundError as err:
-        # There are things that find_definition will not find, but if the parent
-        # is loaded, its children can be searched for a match.
+        # There are things that find_definition will not find, but if
+        # the parent is loaded, its children can be searched for a
+        # match.
         split_name = definition_name.rsplit('.', 1)
         if len(split_name) > 1:
             parent, child = split_name
@@ -597,12 +596,13 @@ class DescriptorLibrary(object):
     def lookup_package(self, definition_name):
         """Determines the package name for any definition.
 
-        Determine the package that any definition name belongs to.  May check
-        parent for package name and will resolve missing descriptors if provided
-        descriptor loader.
+        Determine the package that any definition name belongs to. May
+        check parent for package name and will resolve missing
+        descriptors if provided descriptor loader.
 
         Args:
           definition_name: Definition name to find package for.
+
         """
         while True:
             descriptor = self.lookup_descriptor(definition_name)

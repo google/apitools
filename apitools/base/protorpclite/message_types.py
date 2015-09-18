@@ -20,9 +20,6 @@
 Includes new message and field types that are outside what is defined by the
 protocol buffers standard.
 """
-
-__author__ = 'rafek@google.com (Rafe Kaplan)'
-
 import datetime
 
 from apitools.base.protorpclite import messages
@@ -81,7 +78,8 @@ class DateTimeField(messages.MessageField):
         """
         message = super(DateTimeField, self).value_from_message(message)
         if message.time_zone_offset is None:
-            return datetime.datetime.utcfromtimestamp(message.milliseconds / 1000.0)
+            return datetime.datetime.utcfromtimestamp(
+                message.milliseconds / 1000.0)
 
         # Need to subtract the time zone offset, because when we call
         # datetime.fromtimestamp, it will add the time zone offset to the

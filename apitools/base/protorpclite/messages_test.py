@@ -16,21 +16,27 @@
 #
 
 """Tests for apitools.base.protorpclite.messages."""
-import six
-
-__author__ = 'rafek@google.com (Rafe Kaplan)'
-
-
 import pickle
 import re
 import sys
 import types
 import unittest
 
+import six
+
 from apitools.base.protorpclite import descriptor
 from apitools.base.protorpclite import message_types
 from apitools.base.protorpclite import messages
 from apitools.base.protorpclite import test_util
+
+# This package plays lots of games with modifying global variables inside
+# test cases. Hence:
+# pylint:disable=function-redefined
+# pylint:disable=global-variable-not-assigned
+# pylint:disable=global-variable-undefined
+# pylint:disable=redefined-outer-name
+# pylint:disable=undefined-variable
+# pylint:disable=unused-variable
 
 
 class ModuleInterfaceTest(test_util.ModuleInterfaceTest,
@@ -57,10 +63,11 @@ class EnumTest(test_util.TestCase):
 
     def setUp(self):
         """Set up tests."""
-        # Redefine Color class in case so that changes to it (an error) in one test
-        # does not affect other tests.
-        global Color
+        # Redefine Color class in case so that changes to it (an
+        # error) in one test does not affect other tests.
+        global Color  # pylint:disable=global-variable-not-assigned
 
+        # pylint:disable=unused-variable
         class Color(messages.Enum):
             RED = 20
             ORANGE = 2
@@ -73,7 +80,8 @@ class EnumTest(test_util.TestCase):
     def testNames(self):
         """Test that names iterates over enum names."""
         self.assertEquals(
-            set(['BLUE', 'GREEN', 'INDIGO', 'ORANGE', 'RED', 'VIOLET', 'YELLOW']),
+            set(['BLUE', 'GREEN', 'INDIGO', 'ORANGE', 'RED',
+                 'VIOLET', 'YELLOW']),
             set(Color.names()))
 
     def testNumbers(self):
@@ -289,13 +297,15 @@ class EnumTest(test_util.TestCase):
         self.assertEquals(module_name,
                           MyMessage.NestedEnum.definition_package())
 
-        self.assertEquals('%s.MyMessage.NestedMessage.NestedEnum' % module_name,
-                          MyMessage.NestedMessage.NestedEnum.definition_name())
+        self.assertEquals(
+            '%s.MyMessage.NestedMessage.NestedEnum' % module_name,
+            MyMessage.NestedMessage.NestedEnum.definition_name())
         self.assertEquals(
             '%s.MyMessage.NestedMessage' % module_name,
             MyMessage.NestedMessage.NestedEnum.outer_definition_name())
-        self.assertEquals(module_name,
-                          MyMessage.NestedMessage.NestedEnum.definition_package())
+        self.assertEquals(
+            module_name,
+            MyMessage.NestedMessage.NestedEnum.definition_package())
 
     def testMessageDefinition(self):
         """Test that enumeration knows its enclosing message definition."""
@@ -397,7 +407,8 @@ class FieldListTest(test_util.TestCase):
 
         self.assertRaisesWithRegexpMatch(
             messages.ValidationError,
-            "IntegerField is repeated. Found: <(list[_]?|sequence)iterator object",
+            ("IntegerField is repeated. Found: "
+             "<(list[_]?|sequence)iterator object"),
             messages.FieldList, self.integer_field, iter([1, 2, 3]))
 
     def testSetSlice(self):
@@ -489,7 +500,7 @@ class FieldListTest(test_util.TestCase):
             insert)
 
     def testPickle(self):
-        """Testing pickling and unpickling of disconnected FieldList instances."""
+        """Testing pickling and unpickling of FieldList instances."""
         field_list = messages.FieldList(self.integer_field, [1, 2, 3, 4, 5])
         unpickled = pickle.loads(pickle.dumps(field_list))
         self.assertEquals(field_list, unpickled)
@@ -508,12 +519,12 @@ class FieldTest(test_util.TestCase):
         Args:
           action: Callable that takes the field class as a parameter.
         """
-        for field_class in (messages.IntegerField,
-                            messages.FloatField,
-                            messages.BooleanField,
-                            messages.BytesField,
-                            messages.StringField,
-                            ):
+        classes = (messages.IntegerField,
+                   messages.FloatField,
+                   messages.BooleanField,
+                   messages.BytesField,
+                   messages.StringField)
+        for field_class in classes:
             action(field_class)
 
     def testNumberAttribute(self):
@@ -582,12 +593,13 @@ class FieldTest(test_util.TestCase):
 
     def testDefaultFields_Single(self):
         """Test default field is correct type (single)."""
-        defaults = {messages.IntegerField: 10,
-                    messages.FloatField: 1.5,
-                    messages.BooleanField: False,
-                    messages.BytesField: b'abc',
-                    messages.StringField: u'abc',
-                    }
+        defaults = {
+            messages.IntegerField: 10,
+            messages.FloatField: 1.5,
+            messages.BooleanField: False,
+            messages.BytesField: b'abc',
+            messages.StringField: u'abc',
+        }
 
         def action(field_class):
             field_class(1, default=defaults[field_class])
@@ -645,24 +657,26 @@ class FieldTest(test_util.TestCase):
 
     def testDefaultFields_EnumStringDelayedResolution(self):
         """Test that enum fields resolve default strings."""
-        field = messages.EnumField('apitools.base.protorpclite.descriptor.FieldDescriptor.Label',
-                                   1,
-                                   default='OPTIONAL')
+        field = messages.EnumField(
+            'apitools.base.protorpclite.descriptor.FieldDescriptor.Label',
+            1,
+            default='OPTIONAL')
 
         self.assertEquals(
             descriptor.FieldDescriptor.Label.OPTIONAL, field.default)
 
     def testDefaultFields_EnumIntDelayedResolution(self):
         """Test that enum fields resolve default integers."""
-        field = messages.EnumField('apitools.base.protorpclite.descriptor.FieldDescriptor.Label',
-                                   1,
-                                   default=2)
+        field = messages.EnumField(
+            'apitools.base.protorpclite.descriptor.FieldDescriptor.Label',
+            1,
+            default=2)
 
         self.assertEquals(
             descriptor.FieldDescriptor.Label.REQUIRED, field.default)
 
     def testDefaultFields_EnumOkIfTypeKnown(self):
-        """Test that enum fields accept valid default values when type is known."""
+        """Test enum fields accept valid default values when type is known."""
         field = messages.EnumField(descriptor.FieldDescriptor.Label,
                                    1,
                                    default='REPEATED')
@@ -682,9 +696,10 @@ class FieldTest(test_util.TestCase):
 
     def testDefaultFields_EnumInvalidDelayedResolution(self):
         """Test that enum fields raise errors upon delayed resolution error."""
-        field = messages.EnumField('apitools.base.protorpclite.descriptor.FieldDescriptor.Label',
-                                   1,
-                                   default=200)
+        field = messages.EnumField(
+            'apitools.base.protorpclite.descriptor.FieldDescriptor.Label',
+            1,
+            default=200)
 
         self.assertRaisesWithRegexpMatch(TypeError,
                                          'No such value for 200 in Enum Label',
@@ -694,12 +709,13 @@ class FieldTest(test_util.TestCase):
 
     def testValidate_Valid(self):
         """Test validation of valid values."""
-        values = {messages.IntegerField: 10,
-                  messages.FloatField: 1.5,
-                  messages.BooleanField: False,
-                  messages.BytesField: b'abc',
-                  messages.StringField: u'abc',
-                  }
+        values = {
+            messages.IntegerField: 10,
+            messages.FloatField: 1.5,
+            messages.BooleanField: False,
+            messages.BytesField: b'abc',
+            messages.StringField: u'abc',
+        }
 
         def action(field_class):
             # Optional.
@@ -729,12 +745,13 @@ class FieldTest(test_util.TestCase):
 
     def testValidate_Invalid(self):
         """Test validation of valid values."""
-        values = {messages.IntegerField: "10",
-                  messages.FloatField: 1,
-                  messages.BooleanField: 0,
-                  messages.BytesField: 10.20,
-                  messages.StringField: 42,
-                  }
+        values = {
+            messages.IntegerField: "10",
+            messages.FloatField: 1,
+            messages.BooleanField: 0,
+            messages.BytesField: 10.20,
+            messages.StringField: 42,
+        }
 
         def action(field_class):
             # Optional.
@@ -776,11 +793,12 @@ class FieldTest(test_util.TestCase):
             # Repeated.
             field = field_class(1, repeated=True)
             field.validate(None)
-            self.assertRaisesWithRegexpMatch(messages.ValidationError,
-                                             'Repeated values for %s may '
-                                             'not be None' % field_class.__name__,
-                                             field.validate,
-                                             [None])
+            self.assertRaisesWithRegexpMatch(
+                messages.ValidationError,
+                'Repeated values for %s may '
+                'not be None' % field_class.__name__,
+                field.validate,
+                [None])
             self.assertRaises(messages.ValidationError,
                               field.validate,
                               (None,))
@@ -788,12 +806,13 @@ class FieldTest(test_util.TestCase):
 
     def testValidateElement(self):
         """Test validation of valid values."""
-        values = {messages.IntegerField: 10,
-                  messages.FloatField: 1.5,
-                  messages.BooleanField: False,
-                  messages.BytesField: 'abc',
-                  messages.StringField: u'abc',
-                  }
+        values = {
+            messages.IntegerField: 10,
+            messages.FloatField: 1.5,
+            messages.BooleanField: False,
+            messages.BytesField: 'abc',
+            messages.StringField: u'abc',
+        }
 
         def action(field_class):
             # Optional.
@@ -902,7 +921,7 @@ class FieldTest(test_util.TestCase):
             try:
                 del MyMessage
                 del ForwardMessage
-            except:
+            except:  # pylint:disable=bare-except
                 pass
 
     def testMessageField_WrongType(self):
@@ -1084,7 +1103,7 @@ class FieldTest(test_util.TestCase):
                 del MyMessage
                 del ForwardEnum
                 del ForwardMessage
-            except:
+            except:  # pylint:disable=bare-except
                 pass
 
     def testEnumField_WrongType(self):
@@ -1111,8 +1130,9 @@ class FieldTest(test_util.TestCase):
 
             my_field = messages.StringField(1)
 
-        self.assertEquals(MyMessage,
-                          MyMessage.field_by_name('my_field').message_definition())
+        self.assertEquals(
+            MyMessage,
+            MyMessage.field_by_name('my_field').message_definition())
 
     def testNoneAssignment(self):
         """Test that assigning None does not change comparison."""
@@ -1223,8 +1243,9 @@ class MessageTest(test_util.TestCase):
 
         # Check invalid values.
         for invalid_value in 10, ['10', '20'], [None], (None,):
-            self.assertRaises(messages.ValidationError,
-                              setattr, simple_message, 'repeated', invalid_value)
+            self.assertRaises(
+                messages.ValidationError,
+                setattr, simple_message, 'repeated', invalid_value)
 
     def testIsInitialized(self):
         """Tests is_initialized."""
@@ -1305,7 +1326,7 @@ class MessageTest(test_util.TestCase):
                           action)
 
     def testNestedAttributesNotAllowed(self):
-        """Test that attribute assignment on Message classes are not allowed."""
+        """Test attribute assignment on Message classes is not allowed."""
         def int_attribute():
             class WithMethods(messages.Message):
                 not_allowed = 1
@@ -1555,10 +1576,12 @@ class MessageTest(test_util.TestCase):
             field1 = messages.IntegerField(1)
 
         message1 = MyMessage()
-        self.assertRaises(TypeError, message1.set_unrecognized_field, 'unknown4',
-                          {'unhandled': 'type'}, None)
-        self.assertRaises(TypeError, message1.set_unrecognized_field, 'unknown4',
-                          {'unhandled': 'type'}, 123)
+        self.assertRaises(
+            TypeError, message1.set_unrecognized_field, 'unknown4',
+            {'unhandled': 'type'}, None)
+        self.assertRaises(
+            TypeError, message1.set_unrecognized_field, 'unknown4',
+            {'unhandled': 'type'}, 123)
 
     def testRepr(self):
         """Test represtation of Message object."""
@@ -1696,8 +1719,9 @@ class MessageTest(test_util.TestCase):
         self.assertEquals(module_name,
                           MyMessage.NestedMessage.definition_package())
 
-        self.assertEquals('%s.MyMessage.NestedMessage.NestedMessage' % module_name,
-                          MyMessage.NestedMessage.NestedMessage.definition_name())
+        self.assertEquals(
+            '%s.MyMessage.NestedMessage.NestedMessage' % module_name,
+            MyMessage.NestedMessage.NestedMessage.definition_name())
         self.assertEquals(
             '%s.MyMessage.NestedMessage' % module_name,
             MyMessage.NestedMessage.NestedMessage.outer_definition_name())
@@ -1734,7 +1758,8 @@ class MessageTest(test_util.TestCase):
 
         self.assertRaisesWithRegexpMatch(
             AttributeError,
-            'May not assign arbitrary value does_not_exist to message SomeMessage',
+            ('May not assign arbitrary value does_not_exist to message '
+             'SomeMessage'),
             SomeMessage,
             does_not_exist=10)
 
@@ -1781,8 +1806,9 @@ class MessageTest(test_util.TestCase):
         self.assertEquals((9.5, messages.Variant.DOUBLE),
                           message.get_unrecognized_field_info('exists', 'type',
                                                               1234))
-        self.assertEquals((1234, None),
-                          message.get_unrecognized_field_info('doesntexist', 1234))
+        self.assertEquals(
+            (1234, None),
+            message.get_unrecognized_field_info('doesntexist', 1234))
 
         message.set_unrecognized_field(
             'another', 'value', messages.Variant.STRING)
@@ -1865,22 +1891,25 @@ class FindDefinitionTest(test_util.TestCase):
             self.modules.setdefault(full_name, types.ModuleType(full_name))
         return self.modules[name]
 
-    def DefineMessage(self, module, name, children={}, add_to_module=True):
+    def DefineMessage(self, module, name, children=None, add_to_module=True):
         """Define a new Message class in the context of a module.
 
-        Used for easily describing complex Message hierarchy.  Message is defined
-        including all child definitions.
+        Used for easily describing complex Message hierarchy. Message
+        is defined including all child definitions.
 
         Args:
           module: Fully qualified name of module to place Message class in.
           name: Name of Message to define within module.
-          children: Define any level of nesting of children definitions.  To define
-            a message, map the name to another dictionary.  The dictionary can
-            itself contain additional definitions, and so on.  To map to an Enum,
-            define the Enum class separately and map it by name.
-          add_to_module: If True, new Message class is added to module.  If False,
-            new Message is not added.
+          children: Define any level of nesting of children
+            definitions. To define a message, map the name to another
+            dictionary. The dictionary can itself contain additional
+            definitions, and so on. To map to an Enum, define the Enum
+            class separately and map it by name.
+          add_to_module: If True, new Message class is added to
+            module. If False, new Message is not added.
+
         """
+        children = children or {}
         # Make sure module exists.
         module_instance = self.DefineModule(module)
 
@@ -1899,15 +1928,17 @@ class FindDefinitionTest(test_util.TestCase):
             setattr(module_instance, name, message_class)
         return message_class
 
+    # pylint:disable=unused-argument
     def Importer(self, module, globals='', locals='', fromlist=None):
         """Importer function.
 
-        Acts like __import__.  Only loads modules from self.modules.  Does not
-        try to load real modules defined elsewhere.  Does not try to handle relative
-        imports.
+        Acts like __import__. Only loads modules from self.modules.
+        Does not try to load real modules defined elsewhere. Does not
+        try to handle relative imports.
 
         Args:
           module: Fully qualified name of module to load from self.modules.
+
         """
         if fromlist is None:
             module = module.split('.')[0]
@@ -1915,6 +1946,7 @@ class FindDefinitionTest(test_util.TestCase):
             return self.modules[module]
         except KeyError:
             raise ImportError()
+    # pylint:disable=unused-argument
 
     def testNoSuchModule(self):
         """Test searching for definitions that do no exist."""
@@ -1954,8 +1986,9 @@ class FindDefinitionTest(test_util.TestCase):
         self.assertEquals(A, messages.find_definition('a.b.c.A',
                                                       importer=self.Importer))
         B = self.DefineMessage('a.b.c', 'B', {'C': {}})
-        self.assertEquals(B.C, messages.find_definition('a.b.c.B.C',
-                                                        importer=self.Importer))
+        self.assertEquals(
+            B.C,
+            messages.find_definition('a.b.c.B.C', importer=self.Importer))
 
     def testRelativeToModule(self):
         """Test finding definitions relative to modules."""
@@ -2078,7 +2111,7 @@ class FindDefinitionTest(test_util.TestCase):
             messages.find_definition('Color', A, importer=self.Importer))
 
     def testFalseScope(self):
-        """Test that Message definitions nested in strange objects are hidden."""
+        """Test Message definitions nested in strange objects are hidden."""
         global X
 
         class X(object):

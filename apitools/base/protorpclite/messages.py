@@ -40,48 +40,49 @@ Public Exceptions (indentation indications class hierarchy):
   ValidationError: Raised when a message or field is not valid.
   DefinitionNotFoundError: Raised when definition not found.
 """
-import six
-
-__author__ = 'rafek@google.com (Rafe Kaplan)'
-
-
 import types
 import weakref
 
+import six
+
 from apitools.base.protorpclite import util
 
-__all__ = ['MAX_ENUM_VALUE',
-           'MAX_FIELD_NUMBER',
-           'FIRST_RESERVED_FIELD_NUMBER',
-           'LAST_RESERVED_FIELD_NUMBER',
+__all__ = [
+    'MAX_ENUM_VALUE',
+    'MAX_FIELD_NUMBER',
+    'FIRST_RESERVED_FIELD_NUMBER',
+    'LAST_RESERVED_FIELD_NUMBER',
 
-           'Enum',
-           'Field',
-           'FieldList',
-           'Variant',
-           'Message',
-           'IntegerField',
-           'FloatField',
-           'BooleanField',
-           'BytesField',
-           'StringField',
-           'MessageField',
-           'EnumField',
-           'find_definition',
+    'Enum',
+    'Field',
+    'FieldList',
+    'Variant',
+    'Message',
+    'IntegerField',
+    'FloatField',
+    'BooleanField',
+    'BytesField',
+    'StringField',
+    'MessageField',
+    'EnumField',
+    'find_definition',
 
-           'Error',
-           'DecodeError',
-           'EncodeError',
-           'EnumDefinitionError',
-           'FieldDefinitionError',
-           'InvalidVariantError',
-           'InvalidDefaultError',
-           'InvalidNumberError',
-           'MessageDefinitionError',
-           'DuplicateNumberError',
-           'ValidationError',
-           'DefinitionNotFoundError',
-           ]
+    'Error',
+    'DecodeError',
+    'EncodeError',
+    'EnumDefinitionError',
+    'FieldDefinitionError',
+    'InvalidVariantError',
+    'InvalidDefaultError',
+    'InvalidNumberError',
+    'MessageDefinitionError',
+    'DuplicateNumberError',
+    'ValidationError',
+    'DefinitionNotFoundError',
+]
+
+# pylint:disable=attribute-defined-outside-init
+# pylint:disable=protected-access
 
 
 # TODO(rafek): Add extended module test to ensure all exceptions
@@ -134,13 +135,7 @@ class ValidationError(Error):
 
     def __str__(self):
         """Prints string with field name if present on exception."""
-        message = Error.__str__(self)
-        try:
-            field_name = self.field_name
-        except AttributeError:
-            return message
-        else:
-            return message
+        return Error.__str__(self)
 
 
 # Attributes that are reserved by a class definition that
@@ -182,7 +177,7 @@ class _DefinitionClass(type):
     may change only once.
     """
 
-    __initialized = False
+    __initialized = False  # pylint:disable=invalid-name
 
     def __init__(cls, name, bases, dct):
         """Constructor."""
@@ -204,16 +199,18 @@ class _DefinitionClass(type):
             return None
 
     def __setattr__(cls, name, value):
-        """Overridden so that cannot set variables on definition classes after init.
+        """Overridden to avoid setting variables after init.
 
-        Setting attributes on a class must work during the period of initialization
-        to set the enumation value class variables and build the name/number maps.
-        Once __init__ has set the __initialized flag to True prohibits setting any
-        more values on the class.  The class is in effect frozen.
+        Setting attributes on a class must work during the period of
+        initialization to set the enumation value class variables and
+        build the name/number maps. Once __init__ has set the
+        __initialized flag to True prohibits setting any more values
+        on the class. The class is in effect frozen.
 
         Args:
           name: Name of value to set.
           value: Value to set.
+
         """
         if cls.__initialized and name not in _POST_INIT_ATTRIBUTE_NAMES:
             raise AttributeError('May not change values: %s' % name)
@@ -227,12 +224,14 @@ class _DefinitionClass(type):
     def definition_name(cls):
         """Helper method for creating definition name.
 
-        Names will be generated to include the classes package name, scope (if the
-        class is nested in another definition) and class name.
+        Names will be generated to include the classes package name,
+        scope (if the class is nested in another definition) and class
+        name.
 
-        By default, the package name for a definition is derived from its module
-        name.  However, this value can be overriden by placing a 'package' attribute
-        in the module that contains the definition class.  For example:
+        By default, the package name for a definition is derived from
+        its module name. However, this value can be overriden by
+        placing a 'package' attribute in the module that contains the
+        definition class. For example:
 
           package = 'some.alternate.package'
 
@@ -244,6 +243,7 @@ class _DefinitionClass(type):
 
         Returns:
           Dot-separated fully qualified name of definition.
+
         """
         outer_definition_name = cls.outer_definition_name()
         if outer_definition_name is None:
@@ -255,8 +255,9 @@ class _DefinitionClass(type):
         """Helper method for creating outer definition name.
 
         Returns:
-          If definition is nested, will return the outer definitions name, else the
-          package name.
+          If definition is nested, will return the outer definitions
+          name, else the package name.
+
         """
         outer_definition = cls.message_definition()
         if not outer_definition:
@@ -298,8 +299,8 @@ class _EnumClass(_DefinitionClass):
     def __init__(cls, name, bases, dct):
         # Can only define one level of sub-classes below Enum.
         if not (bases == (object,) or bases == (Enum,)):
-            raise EnumDefinitionError('Enum type %s may only inherit from Enum' %
-                                      (name,))
+            raise EnumDefinitionError(
+                'Enum type %s may only inherit from Enum' % name)
 
         cls.__by_number = {}
         cls.__by_name = {}
@@ -316,7 +317,8 @@ class _EnumClass(_DefinitionClass):
                 # Reject anything that is not an int.
                 if not isinstance(value, six.integer_types):
                     raise EnumDefinitionError(
-                        'May only use integers in Enum definitions.  Found: %s = %s' %
+                        'May only use integers in Enum definitions.  '
+                        'Found: %s = %s' %
                         (attribute, value))
 
                 # Protocol buffer standard recommends non-negative values.
@@ -328,7 +330,8 @@ class _EnumClass(_DefinitionClass):
 
                 if value > MAX_ENUM_VALUE:
                     raise EnumDefinitionError(
-                        'Must use enum values less than or equal %d.  Found: %s = %d' %
+                        'Must use enum values less than or equal %d.  '
+                        'Found: %s = %d' %
                         (MAX_ENUM_VALUE, attribute, value))
 
                 if value in cls.__by_number:
@@ -338,6 +341,7 @@ class _EnumClass(_DefinitionClass):
 
                 # Create enum instance and list in new Enum type.
                 instance = object.__new__(cls)
+                # pylint:disable=non-parent-init-called
                 cls.__init__(instance, attribute, value)
                 cls.__by_name[instance.name] = instance
                 cls.__by_number[instance.number] = instance
@@ -466,8 +470,9 @@ class Enum(six.with_metaclass(_EnumClass, object)):
         """Enable pickling.
 
         Returns:
-          A 2-tuple containing the class and __new__ args to be used for restoring
-          a pickled instance.
+          A 2-tuple containing the class and __new__ args to be used
+          for restoring a pickled instance.
+
         """
         return self.__class__, (self.number,)
 
@@ -540,9 +545,7 @@ class Enum(six.with_metaclass(_EnumClass, object)):
 
 
 # TODO(rafek): Determine to what degree this enumeration should be compatible
-# with FieldDescriptor.Type in:
-#
-#   http://code.google.com/p/protobuf/source/browse/trunk/src/google/protobuf/descriptor.proto
+# with FieldDescriptor.Type in https://github.com/google/protobuf.
 class Variant(Enum):
     """Wire format variant.
 
@@ -588,21 +591,23 @@ class _MessageClass(_DefinitionClass):
     Information contained there may help understanding this class.
 
     Meta-class enables very specific behavior for any defined Message
-    class.  All attributes defined on an Message sub-class must be field
-    instances, Enum class definitions or other Message class definitions.  Each
-    field attribute defined on an Message sub-class is added to the set of
-    field definitions and the attribute is translated in to a slot.  It also
-    ensures that only one level of Message class hierarchy is possible.  In other
-    words it is not possible to declare sub-classes of sub-classes of
-    Message.
+    class. All attributes defined on an Message sub-class must be
+    field instances, Enum class definitions or other Message class
+    definitions. Each field attribute defined on an Message sub-class
+    is added to the set of field definitions and the attribute is
+    translated in to a slot. It also ensures that only one level of
+    Message class hierarchy is possible. In other words it is not
+    possible to declare sub-classes of sub-classes of Message.
 
     This class also defines some functions in order to restrict the
-    behavior of the Message class and its sub-classes.  It is not possible
-    to change the behavior of the Message class in later classes since
-    any new classes may be defined with only field, Enums and Messages, and
-    no methods.
+    behavior of the Message class and its sub-classes. It is not
+    possible to change the behavior of the Message class in later
+    classes since any new classes may be defined with only field,
+    Enums and Messages, and no methods.
+
     """
 
+    # pylint:disable=bad-mcs-classmethod-argument
     def __new__(cls, name, bases, dct):
         """Create new Message class instance.
 
@@ -612,7 +617,7 @@ class _MessageClass(_DefinitionClass):
         by_number = {}
         by_name = {}
 
-        variant_map = {}
+        variant_map = {}  # pylint:disable=unused-variable
 
         if bases != (object,):
             # Can only define one level of sub-classes below Message.
@@ -640,9 +645,11 @@ class _MessageClass(_DefinitionClass):
                     continue
 
                 # Reject anything that is not a field.
+                # pylint:disable=unidiomatic-typecheck
                 if type(field) is Field or not isinstance(field, Field):
                     raise MessageDefinitionError(
-                        'May only use fields in message definitions.  Found: %s = %s' %
+                        'May only use fields in message definitions.  '
+                        'Found: %s = %s' %
                         (key, field))
 
                 if field.number in by_number:
@@ -672,9 +679,9 @@ class _MessageClass(_DefinitionClass):
     def __init__(cls, name, bases, dct):
         """Initializer required to assign references to new class."""
         if bases != (object,):
-            for value in dct.values():
-                if isinstance(value, _DefinitionClass) and not value is Message:
-                    value._message_definition = weakref.ref(cls)
+            for v in dct.values():
+                if isinstance(v, _DefinitionClass) and v is not Message:
+                    v._message_definition = weakref.ref(cls)
 
             for field in cls.all_fields():
                 field._message_definition = weakref.ref(cls)
@@ -689,13 +696,14 @@ class Message(six.with_metaclass(_MessageClass, object)):
     process space.  Messages are defined using the field classes (IntegerField,
     FloatField, EnumField, etc.).
 
-    Messages are more restricted than normal classes in that they may only
-    contain field attributes and other Message and Enum definitions.  These
-    restrictions are in place because the structure of the Message class is
-    intentended to itself be transmitted across network or process space and
-    used directly by clients or even other servers.  As such methods and
-    non-field attributes could not be transmitted with the structural information
-    causing discrepancies between different languages and implementations.
+    Messages are more restricted than normal classes in that they may
+    only contain field attributes and other Message and Enum
+    definitions. These restrictions are in place because the structure
+    of the Message class is intentended to itself be transmitted
+    across network or process space and used directly by clients or
+    even other servers. As such methods and non-field attributes could
+    not be transmitted with the structural information causing
+    discrepancies between different languages and implementations.
 
     Initialization and validation:
 
@@ -747,14 +755,15 @@ class Message(six.with_metaclass(_MessageClass, object)):
 
       # Now object is initialized!
       order.check_initialized()
+
     """
 
     def __init__(self, **kwargs):
         """Initialize internal messages state.
 
         Args:
-          A message can be initialized via the constructor by passing in keyword
-          arguments corresponding to fields.  For example:
+          A message can be initialized via the constructor by passing
+          in keyword arguments corresponding to fields. For example:
 
             class Date(Message):
               day = IntegerField(1)
@@ -771,6 +780,7 @@ class Message(six.with_metaclass(_MessageClass, object)):
             date.day = 6
             date.month = 6
             date.year = 1911
+
         """
         # Tag being an essential implementation detail must be private.
         self.__tags = {}
@@ -798,8 +808,9 @@ class Message(six.with_metaclass(_MessageClass, object)):
             value = getattr(self, name)
             if value is None:
                 if field.required:
-                    raise ValidationError("Message %s is missing required field %s" %
-                                          (type(self).__name__, name))
+                    raise ValidationError(
+                        "Message %s is missing required field %s" %
+                        (type(self).__name__, name))
             else:
                 try:
                     if (isinstance(field, MessageField) and
@@ -868,14 +879,15 @@ class Message(six.with_metaclass(_MessageClass, object)):
     def get_assigned_value(self, name):
         """Get the assigned value of an attribute.
 
-        Get the underlying value of an attribute.  If value has not been set, will
-        not return the default for the field.
+        Get the underlying value of an attribute. If value has not
+        been set, will not return the default for the field.
 
         Args:
           name: Name of attribute to get.
 
         Returns:
           Value of attribute, None if it has not been set.
+
         """
         message_type = type(self)
         try:
@@ -933,7 +945,8 @@ class Message(six.with_metaclass(_MessageClass, object)):
         Args:
           key: The name or number used to refer to this unknown value.
           value: The value of the field.
-          variant: Type information needed to interpret the value or re-encode it.
+          variant: Type information needed to interpret the value or re-encode
+            it.
 
         Raises:
           TypeError: If the variant is not an instance of messages.Variant.
@@ -1049,9 +1062,11 @@ class Message(six.with_metaclass(_MessageClass, object)):
 class FieldList(list):
     """List implementation that validates field values.
 
-    This list implementation overrides all methods that add values in to a list
-    in order to validate those new elements.  Attempting to add or set list
-    values that are not of the correct type will raise ValidationError.
+    This list implementation overrides all methods that add values in
+    to a list in order to validate those new elements. Attempting to
+    add or set list values that are not of the correct type will raise
+    ValidationError.
+
     """
 
     def __init__(self, field_instance, sequence):
@@ -1071,15 +1086,17 @@ class FieldList(list):
     def __getstate__(self):
         """Enable pickling.
 
-        The assigned field instance can't be pickled if it belongs to a Message
-        definition (message_definition uses a weakref), so the Message class and
-        field number are returned in that case.
+        The assigned field instance can't be pickled if it belongs to
+        a Message definition (message_definition uses a weakref), so
+        the Message class and field number are returned in that case.
 
         Returns:
           A 3-tuple containing:
             - The field instance, or None if it belongs to a Message class.
             - The Message class that the field instance belongs to, or None.
-            - The field instance number of the Message class it belongs to, or None.
+            - The field instance number of the Message class it belongs to, or
+                None.
+
         """
         message_class = self.__field.message_definition()
         if message_class is None:
@@ -1094,7 +1111,8 @@ class FieldList(list):
           state: A 3-tuple containing:
             - The field instance, or None if it belongs to a Message class.
             - The Message class that the field instance belongs to, or None.
-            - The field instance number of the Message class it belongs to, or None.
+            - The field instance number of the Message class it belongs to, or
+                None.
         """
         field_instance, message_class, number = state
         if field_instance is None:
@@ -1147,8 +1165,8 @@ class _FieldMeta(type):
 # TODO(rafek): Prevent additional field subclasses.
 class Field(six.with_metaclass(_FieldMeta, object)):
 
-    __initialized = False
-    __variant_to_type = {}
+    __initialized = False  # pylint:disable=invalid-name
+    __variant_to_type = {}  # pylint:disable=invalid-name
 
     # TODO(craigcitro): Remove this alias.
     #
@@ -1165,13 +1183,14 @@ class Field(six.with_metaclass(_FieldMeta, object)):
                  default=None):
         """Constructor.
 
-        The required and repeated parameters are mutually exclusive.  Setting both
-        to True will raise a FieldDefinitionError.
+        The required and repeated parameters are mutually exclusive.
+        Setting both to True will raise a FieldDefinitionError.
 
         Sub-class Attributes:
           Each sub-class of Field must define the following:
             VARIANTS: Set of variant types accepted by that field.
-            DEFAULT_VARIANT: Default variant type if not specified in constructor.
+            DEFAULT_VARIANT: Default variant type if not specified in
+              constructor.
 
         Args:
           number: Number of field.  Must be unique per message class.
@@ -1185,14 +1204,16 @@ class Field(six.with_metaclass(_FieldMeta, object)):
         Raises:
           InvalidVariantError when invalid variant for field is provided.
           InvalidDefaultError when invalid default for field is provided.
-          FieldDefinitionError when invalid number provided or mutually exclusive
-            fields are used.
+          FieldDefinitionError when invalid number provided or mutually
+            exclusive fields are used.
           InvalidNumberError when the field number is out of range or reserved.
+
         """
         if not isinstance(number, int) or not 1 <= number <= MAX_FIELD_NUMBER:
-            raise InvalidNumberError('Invalid number for field: %s\n'
-                                     'Number must be 1 or greater and %d or less' %
-                                     (number, MAX_FIELD_NUMBER))
+            raise InvalidNumberError(
+                'Invalid number for field: %s\n'
+                'Number must be 1 or greater and %d or less' %
+                (number, MAX_FIELD_NUMBER))
 
         if FIRST_RESERVED_FIELD_NUMBER <= number <= LAST_RESERVED_FIELD_NUMBER:
             raise InvalidNumberError('Tag number %d is a reserved number.\n'
@@ -1227,11 +1248,13 @@ class Field(six.with_metaclass(_FieldMeta, object)):
                     name = self.name
                 except AttributeError:
                     # For when raising error before name initialization.
-                    raise InvalidDefaultError('Invalid default value for %s: %r: %s' %
-                                              (self.__class__.__name__, default, err))
+                    raise InvalidDefaultError(
+                        'Invalid default value for %s: %r: %s' %
+                        (self.__class__.__name__, default, err))
                 else:
-                    raise InvalidDefaultError('Invalid default value for field %s: '
-                                              '%r: %s' % (name, default, err))
+                    raise InvalidDefaultError(
+                        'Invalid default value for field %s: '
+                        '%r: %s' % (name, default, err))
 
         self.__default = default
         self.__initialized = True
@@ -1311,14 +1334,15 @@ class Field(six.with_metaclass(_FieldMeta, object)):
                                           (self.type, self.__class__.__name__,
                                            value, type(value)))
                 else:
-                    raise ValidationError('Expected type %s for field %s, '
-                                          'found %s (type %s)' %
-                                          (self.type, name, value, type(value)))
+                    raise ValidationError(
+                        'Expected type %s for field %s, found %s (type %s)' %
+                        (self.type, name, value, type(value)))
 
     def __validate(self, value, validate_element):
         """Internal validation function.
 
-        Validate an internal value using a function to validate individual elements.
+        Validate an internal value using a function to validate
+        individual elements.
 
         Args:
           value: Value to validate.
@@ -1326,6 +1350,7 @@ class Field(six.with_metaclass(_FieldMeta, object)):
 
         Raises:
           ValidationError if value is not expected type.
+
         """
         if not self.repeated:
             validate_element(value)
@@ -1337,11 +1362,13 @@ class Field(six.with_metaclass(_FieldMeta, object)):
                         try:
                             name = self.name
                         except AttributeError:
-                            raise ValidationError('Repeated values for %s '
-                                                  'may not be None' % self.__class__.__name__)
+                            raise ValidationError(
+                                'Repeated values for %s '
+                                'may not be None' % self.__class__.__name__)
                         else:
-                            raise ValidationError('Repeated values for field %s '
-                                                  'may not be None' % name)
+                            raise ValidationError(
+                                'Repeated values for field %s '
+                                'may not be None' % name)
                     validate_element(element)
             elif value is not None:
                 try:
@@ -1350,8 +1377,8 @@ class Field(six.with_metaclass(_FieldMeta, object)):
                     raise ValidationError('%s is repeated. Found: %s' % (
                         self.__class__.__name__, value))
                 else:
-                    raise ValidationError('Field %s is repeated. Found: %s' % (name,
-                                                                               value))
+                    raise ValidationError(
+                        'Field %s is repeated. Found: %s' % (name, value))
 
     def validate(self, value):
         """Validate value assigned to field.
@@ -1367,16 +1394,18 @@ class Field(six.with_metaclass(_FieldMeta, object)):
     def validate_default_element(self, value):
         """Validate value as assigned to field default field.
 
-        Some fields may allow for delayed resolution of default types necessary
-        in the case of circular definition references.  In this case, the default
-        value might be a place holder that is resolved when needed after all the
-        message classes are defined.
+        Some fields may allow for delayed resolution of default types
+        necessary in the case of circular definition references. In
+        this case, the default value might be a place holder that is
+        resolved when needed after all the message classes are
+        defined.
 
         Args:
           value: Default value to validate.
 
         Raises:
           ValidationError if value is not expected type.
+
         """
         self.validate_element(value)
 
@@ -1395,8 +1424,9 @@ class Field(six.with_metaclass(_FieldMeta, object)):
         """Get Message definition that contains this Field definition.
 
         Returns:
-          Containing Message definition for Field.  Will return None if for
-          some reason Field is defined outside of a Message class.
+          Containing Message definition for Field. Will return None if
+          for some reason Field is defined outside of a Message class.
+
         """
         try:
             return self._message_definition()
@@ -1416,13 +1446,14 @@ class Field(six.with_metaclass(_FieldMeta, object)):
 class IntegerField(Field):
     """Field definition for integer values."""
 
-    VARIANTS = frozenset([Variant.INT32,
-                          Variant.INT64,
-                          Variant.UINT32,
-                          Variant.UINT64,
-                          Variant.SINT32,
-                          Variant.SINT64,
-                          ])
+    VARIANTS = frozenset([
+        Variant.INT32,
+        Variant.INT64,
+        Variant.UINT32,
+        Variant.UINT64,
+        Variant.SINT32,
+        Variant.SINT64,
+    ])
 
     DEFAULT_VARIANT = Variant.INT64
 
@@ -1432,9 +1463,10 @@ class IntegerField(Field):
 class FloatField(Field):
     """Field definition for float values."""
 
-    VARIANTS = frozenset([Variant.FLOAT,
-                          Variant.DOUBLE,
-                          ])
+    VARIANTS = frozenset([
+        Variant.FLOAT,
+        Variant.DOUBLE,
+    ])
 
     DEFAULT_VARIANT = Variant.DOUBLE
 
@@ -1482,16 +1514,15 @@ class StringField(Field):
                 six.text_type(value, 'ascii')
             except UnicodeDecodeError as err:
                 try:
-                    name = self.name
+                    _ = self.name
                 except AttributeError:
                     validation_error = ValidationError(
                         'Field encountered non-ASCII string %r: %s' % (value,
                                                                        err))
                 else:
                     validation_error = ValidationError(
-                        'Field %s encountered non-ASCII string %r: %s' % (self.name,
-                                                                          value,
-                                                                          err))
+                        'Field %s encountered non-ASCII string %r: %s' % (
+                            self.name, value, err))
                     validation_error.field_name = self.name
                 raise validation_error
         else:
@@ -1510,14 +1541,15 @@ class MessageField(Field):
     Normally message field are defined by passing the referenced message
     class in to the constructor.
 
-    It is possible to define a message field for a type that does not yet
-    exist by passing the name of the message in to the constructor instead
-    of a message class.  Resolution of the actual type of the message is
-    deferred until it is needed, for example, during message verification.
-    Names provided to the constructor must refer to a class within the same
-    python module as the class that is using it.  Names refer to messages
-    relative to the containing messages scope.  For example, the two fields
-    of OuterMessage refer to the same message type:
+    It is possible to define a message field for a type that does not
+    yet exist by passing the name of the message in to the constructor
+    instead of a message class. Resolution of the actual type of the
+    message is deferred until it is needed, for example, during
+    message verification. Names provided to the constructor must refer
+    to a class within the same python module as the class that is
+    using it. Names refer to messages relative to the containing
+    messages scope. For example, the two fields of OuterMessage refer
+    to the same message type:
 
       class Outer(Message):
 
@@ -1527,9 +1559,9 @@ class MessageField(Field):
         class Inner(Message):
           ...
 
-    When resolving an actual type, MessageField will traverse the entire
-    scope of nested messages to match a message name.  This makes it easy
-    for siblings to reference siblings:
+    When resolving an actual type, MessageField will traverse the
+    entire scope of nested messages to match a message name. This
+    makes it easy for siblings to reference siblings:
 
       class Outer(Message):
 
@@ -1539,6 +1571,7 @@ class MessageField(Field):
 
         class Sibling(Message):
           ...
+
     """
 
     VARIANTS = frozenset([Variant.MESSAGE])
@@ -1593,14 +1626,14 @@ class MessageField(Field):
           message_instance: Message instance to set value on.
           value: Value to set on message.
         """
-        message_type = self.type
-        if isinstance(message_type, type) and issubclass(message_type, Message):
+        t = self.type
+        if isinstance(t, type) and issubclass(t, Message):
             if self.repeated:
                 if value and isinstance(value, (list, tuple)):
-                    value = [(message_type(**v) if isinstance(v, dict) else v)
+                    value = [(t(**v) if isinstance(v, dict) else v)
                              for v in value]
             elif isinstance(value, dict):
-                value = message_type(**value)
+                value = t(**value)
         super(MessageField, self).__set__(message_instance, value)
 
     @property
@@ -1669,8 +1702,9 @@ class MessageField(Field):
 class EnumField(Field):
     """Field definition for enum values.
 
-    Enum fields may have default values that are delayed until the associated enum
-    type is resolved.  This is necessary to support certain circular references.
+    Enum fields may have default values that are delayed until the
+    associated enum type is resolved. This is necessary to support
+    certain circular references.
 
     For example:
 
@@ -1693,8 +1727,8 @@ class EnumField(Field):
           CAT = 2
           HORSE = 3
 
-        # This fields default value will be validated right away since Color is
-        # already fully resolved.
+        # This fields default value will be validated right away since Color
+        # is already fully resolved.
         color = EnumField(Message1.Color, 1, default='RED')
     """
 
@@ -1737,16 +1771,18 @@ class EnumField(Field):
     def validate_default_element(self, value):
         """Validate default element of Enum field.
 
-        Enum fields allow for delayed resolution of default values when the type
-        of the field has not been resolved.  The default value of a field may be
-        a string or an integer.  If the Enum type of the field has been resolved,
-        the default value is validated against that type.
+        Enum fields allow for delayed resolution of default values
+        when the type of the field has not been resolved. The default
+        value of a field may be a string or an integer. If the Enum
+        type of the field has been resolved, the default value is
+        validated against that type.
 
         Args:
           value: Value to validate.
 
         Raises:
           ValidationError if value is not expected message type.
+
         """
         if isinstance(value, (six.string_types, six.integer_types)):
             # Validation of the value does not happen for delayed resolution
@@ -1782,7 +1818,9 @@ class EnumField(Field):
             return self.__resolved_default
         except AttributeError:
             resolved_default = super(EnumField, self).default
-            if isinstance(resolved_default, (six.string_types, six.integer_types)):
+            if isinstance(resolved_default, (six.string_types,
+                                             six.integer_types)):
+                # pylint:disable=not-callable
                 resolved_default = self.type(resolved_default)
             self.__resolved_default = resolved_default
             return self.__resolved_default
@@ -1792,19 +1830,20 @@ class EnumField(Field):
 def find_definition(name, relative_to=None, importer=__import__):
     """Find definition by name in module-space.
 
-    The find algorthm will look for definitions by name relative to a message
-    definition or by fully qualfied name.  If no definition is found relative
-    to the relative_to parameter it will do the same search against the container
-    of relative_to.  If relative_to is a nested Message, it will search its
-    message_definition().  If that message has no message_definition() it will
-    search its module.  If relative_to is a module, it will attempt to look for
-    the containing module and search relative to it.  If the module is a top-level
-    module, it will look for the a message using a fully qualified name.  If
-    no message is found then, the search fails and DefinitionNotFoundError is
-    raised.
+    The find algorthm will look for definitions by name relative to a
+    message definition or by fully qualfied name. If no definition is
+    found relative to the relative_to parameter it will do the same
+    search against the container of relative_to. If relative_to is a
+    nested Message, it will search its message_definition(). If that
+    message has no message_definition() it will search its module. If
+    relative_to is a module, it will attempt to look for the
+    containing module and search relative to it. If the module is a
+    top-level module, it will look for the a message using a fully
+    qualified name. If no message is found then, the search fails and
+    DefinitionNotFoundError is raised.
 
-    For example, when looking for any definition 'foo.bar.ADefinition' relative to
-    an actual message definition abc.xyz.SomeMessage:
+    For example, when looking for any definition 'foo.bar.ADefinition'
+    relative to an actual message definition abc.xyz.SomeMessage:
 
       find_definition('foo.bar.ADefinition', SomeMessage)
 
@@ -1819,9 +1858,9 @@ def find_definition(name, relative_to=None, importer=__import__):
     algorithm searches any Messages or sub-modules found in its path.
     Non-Message values are not searched.
 
-    A name that begins with '.' is considered to be a fully qualified name.  The
-    name is always searched for from the topmost package.  For example, assume
-    two message types:
+    A name that begins with '.' is considered to be a fully qualified
+    name. The name is always searched for from the topmost package.
+    For example, assume two message types:
 
       abc.xyz.SomeMessage
       xyz.SomeMessage
@@ -1835,9 +1874,10 @@ def find_definition(name, relative_to=None, importer=__import__):
       http://code.google.com/apis/protocolbuffers/docs/proto.html#packages
 
     Args:
-      name: Name of definition to find.  May be fully qualified or relative name.
-      relative_to: Search for definition relative to message definition or module.
-        None will cause a fully qualified name search.
+      name: Name of definition to find.  May be fully qualified or relative
+        name.
+      relative_to: Search for definition relative to message definition or
+        module. None will cause a fully qualified name search.
       importer: Import function to use for resolving modules.
 
     Returns:
@@ -1845,13 +1885,16 @@ def find_definition(name, relative_to=None, importer=__import__):
 
     Raises:
       DefinitionNotFoundError if no definition is found in any search path.
+
     """
     # Check parameters.
     if not (relative_to is None or
             isinstance(relative_to, types.ModuleType) or
-            isinstance(relative_to, type) and issubclass(relative_to, Message)):
-        raise TypeError('relative_to must be None, Message definition or module.  '
-                        'Found: %s' % relative_to)
+            isinstance(relative_to, type) and
+            issubclass(relative_to, Message)):
+        raise TypeError(
+            'relative_to must be None, Message definition or module.'
+            '  Found: %s' % relative_to)
 
     name_path = name.split('.')
 
@@ -1897,10 +1940,10 @@ def find_definition(name, relative_to=None, importer=__import__):
                 else:
                     return None
 
-            if (not isinstance(next, types.ModuleType) and
-                not (isinstance(next, type) and
-                     issubclass(next, (Message, Enum)))):
-                return None
+            if not isinstance(next, types.ModuleType):
+                if not (isinstance(next, type) and
+                        issubclass(next, (Message, Enum))):
+                    return None
 
         return next
 
@@ -1918,8 +1961,8 @@ def find_definition(name, relative_to=None, importer=__import__):
             #   does this part of search
             if relative_to is None:
                 # Fully qualified search was done.  Nothing found.  Fail.
-                raise DefinitionNotFoundError('Could not find definition for %s'
-                                              % (name,))
+                raise DefinitionNotFoundError(
+                    'Could not find definition for %s' % name)
             else:
                 if isinstance(relative_to, types.ModuleType):
                     # Find parent module.
@@ -1927,8 +1970,8 @@ def find_definition(name, relative_to=None, importer=__import__):
                     if not module_path:
                         relative_to = None
                     else:
-                        # Should not raise ImportError.  If it does... weird and
-                        # unexepected.  Propagate.
+                        # Should not raise ImportError. If it does...
+                        # weird and unexpected. Propagate.
                         relative_to = importer(
                             '.'.join(module_path), '', '', [module_path[-1]])
                 elif (isinstance(relative_to, type) and

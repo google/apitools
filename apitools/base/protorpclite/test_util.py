@@ -26,8 +26,6 @@ services_test.proto.
 Includes additional test utilities to make sure encoding/decoding libraries
 conform.
 """
-__author__ = 'rafek@google.com (Rafe Kaplan)'
-
 import cgi
 import datetime
 import inspect
@@ -35,10 +33,10 @@ import os
 import re
 import socket
 import types
-import unittest2 as unittest
 
 import six
 from six.moves import range
+import unittest2 as unittest
 
 from apitools.base.protorpclite import message_types
 from apitools.base.protorpclite import messages
@@ -129,34 +127,39 @@ class TestCase(unittest.TestCase):
 class ModuleInterfaceTest(object):
     """Test to ensure module interface is carefully constructed.
 
-    A module interface is the set of public objects listed in the module __all__
-    attribute.  Modules that that are considered public should have this interface
-    carefully declared.  At all times, the __all__ attribute should have objects
-    intended to be publically used and all other objects in the module should be
-    considered unused.
+    A module interface is the set of public objects listed in the
+    module __all__ attribute. Modules that that are considered public
+    should have this interface carefully declared. At all times, the
+    __all__ attribute should have objects intended to be publically
+    used and all other objects in the module should be considered
+    unused.
 
-    Protected attributes (those beginning with '_') and other imported modules
-    should not be part of this set of variables.  An exception is for variables
-    that begin and end with '__' which are implicitly part of the interface
-    (eg. __name__, __file__, __all__ itself, etc.).
+    Protected attributes (those beginning with '_') and other imported
+    modules should not be part of this set of variables. An exception
+    is for variables that begin and end with '__' which are implicitly
+    part of the interface (eg. __name__, __file__, __all__ itself,
+    etc.).
 
-    Modules that are imported in to the tested modules are an exception and may
-    be left out of the __all__ definition. The test is done by checking the value
-    of what would otherwise be a public name and not allowing it to be exported
-    if it is an instance of a module.  Modules that are explicitly exported are
-    for the time being not permitted.
+    Modules that are imported in to the tested modules are an
+    exception and may be left out of the __all__ definition. The test
+    is done by checking the value of what would otherwise be a public
+    name and not allowing it to be exported if it is an instance of a
+    module. Modules that are explicitly exported are for the time
+    being not permitted.
 
-    To use this test class a module should define a new class that inherits first
-    from ModuleInterfaceTest and then from test_util.TestCase.  No other tests
-    should be added to this test case, making the order of inheritance less
-    important, but if setUp for some reason is overidden, it is important that
-    ModuleInterfaceTest is first in the list so that its setUp method is
-    invoked.
+    To use this test class a module should define a new class that
+    inherits first from ModuleInterfaceTest and then from
+    test_util.TestCase. No other tests should be added to this test
+    case, making the order of inheritance less important, but if setUp
+    for some reason is overidden, it is important that
+    ModuleInterfaceTest is first in the list so that its setUp method
+    is invoked.
 
-    Multiple inheretance is required so that ModuleInterfaceTest is not itself
-    a test, and is not itself executed as one.
+    Multiple inheritance is required so that ModuleInterfaceTest is
+    not itself a test, and is not itself executed as one.
 
-    The test class is expected to have the following class attributes defined:
+    The test class is expected to have the following class attributes
+    defined:
 
       MODULE: A reference to the module that is being validated for interface
         correctness.
@@ -193,6 +196,7 @@ class ModuleInterfaceTest(object):
 
         if __name__ == '__main__':
           unittest.main()
+
     """
 
     def setUp(self):
@@ -203,8 +207,8 @@ class ModuleInterfaceTest(object):
         """
         if not hasattr(self, 'MODULE'):
             self.fail(
-                "You must define 'MODULE' on ModuleInterfaceTest sub-class %s." %
-                type(self).__name__)
+                "You must define 'MODULE' on ModuleInterfaceTest sub-class "
+                "%s." % type(self).__name__)
 
     def testAllExist(self):
         """Test that all attributes defined in __all__ exist."""
@@ -294,11 +298,6 @@ class OptionalMessage(messages.Message):
     bytes_value = messages.BytesField(8, variant=messages.Variant.BYTES)
     enum_value = messages.EnumField(SimpleEnum, 10)
 
-    # TODO(rafek): Add support for these variants.
-    # uint32_value = messages.IntegerField(9, variant=messages.Variant.UINT32)
-    # sint32_value = messages.IntegerField(11, variant=messages.Variant.SINT32)
-    # sint64_value = messages.IntegerField(12, variant=messages.Variant.SINT64)
-
 
 class RepeatedMessage(messages.Message):
     """Contains all message types as repeated fields."""
@@ -332,12 +331,9 @@ class RepeatedMessage(messages.Message):
     bytes_value = messages.BytesField(8,
                                       variant=messages.Variant.BYTES,
                                       repeated=True)
-    #uint32_value = messages.IntegerField(9, variant=messages.Variant.UINT32)
     enum_value = messages.EnumField(SimpleEnum,
                                     10,
                                     repeated=True)
-    #sint32_value = messages.IntegerField(11, variant=messages.Variant.SINT32)
-    #sint64_value = messages.IntegerField(12, variant=messages.Variant.SINT64)
 
 
 class HasOptionalNestedMessage(messages.Message):
@@ -346,6 +342,7 @@ class HasOptionalNestedMessage(messages.Message):
     repeated_nested = messages.MessageField(OptionalMessage, 2, repeated=True)
 
 
+# pylint:disable=anomalous-unicode-escape-in-string
 class ProtoConformanceTestBase(object):
     """Protocol conformance test base class.
 
@@ -360,9 +357,9 @@ class ProtoConformanceTestBase(object):
     that protocols correctly encode and decode message transparently to the
     caller.
 
-    In order to support these test, the base class should also extend the TestCase
-    class and implement the following class attributes which define the encoded
-    version of certain protocol buffers:
+    In order to support these test, the base class should also extend
+    the TestCase class and implement the following class attributes
+    which define the encoded version of certain protocol buffers:
 
       encoded_partial:
         <OptionalMessage
@@ -542,10 +539,10 @@ class ProtoConformanceTestBase(object):
 
     def testUnexpectedField(self):
         """Test decoding and encoding unexpected fields."""
-        loaded_message = self.PROTOLIB.decode_message(OptionalMessage,
-                                                      self.unexpected_tag_message)
-        # Message should be equal to an empty message, since unknown values aren't
-        # included in equality.
+        loaded_message = self.PROTOLIB.decode_message(
+            OptionalMessage, self.unexpected_tag_message)
+        # Message should be equal to an empty message, since unknown
+        # values aren't included in equality.
         self.assertEquals(OptionalMessage(), loaded_message)
         # Verify that the encoded message matches the source, including the
         # unknown value.
@@ -612,26 +609,6 @@ class ProtoConformanceTestBase(object):
         decoded = self.PROTOLIB.decode_message(
             MyMessage, self.PROTOLIB.encode_message(message))
         self.assertEquals(decoded.value, value)
-
-
-def do_with(context, function, *args, **kwargs):
-    """Simulate a with statement.
-
-    Avoids need to import with from future.
-
-    Does not support simulation of 'as'.
-
-    Args:
-      context: Context object normally used with 'with'.
-      function: Callable to evoke.  Replaces with-block.
-    """
-    context.__enter__()
-    try:
-        function(*args, **kwargs)
-    except:
-        context.__exit__(*sys.exc_info())
-    finally:
-        context.__exit__(None, None, None)
 
 
 def pick_unused_port():

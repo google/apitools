@@ -24,13 +24,11 @@ Public functions:
   encode_message: Encodes a message in to a JSON string.
   decode_message: Merge from a JSON string in to a message.
 """
-import six
-
-__author__ = 'rafek@google.com (Rafe Kaplan)'
-
 import base64
 import binascii
 import logging
+
+import six
 
 from apitools.base.protorpclite import message_types
 from apitools.base.protorpclite import messages
@@ -67,8 +65,9 @@ def _load_json_module():
         try:
             module = __import__(module_name, {}, {}, 'json')
             if not hasattr(module, 'JSONEncoder'):
-                message = ('json library "%s" is not compatible with ProtoRPC' %
-                           module_name)
+                message = (
+                    'json library "%s" is not compatible with ProtoRPC' %
+                    module_name)
                 logging.warning(message)
                 raise ImportError(message)
             else:
@@ -77,9 +76,8 @@ def _load_json_module():
             if not first_import_error:
                 first_import_error = err
 
-    logging.error(
-        'Must use valid json library (Python 2.6 json or simplejson)')
-    raise first_import_error
+    logging.error('Must use valid json library (json or simplejson)')
+    raise first_import_error  # pylint:disable=raising-bad-type
 json = _load_json_module()
 
 
@@ -97,7 +95,8 @@ class MessageJSONEncoder(json.JSONEncoder):
           protojson_protocol: ProtoJson instance.
         """
         super(MessageJSONEncoder, self).__init__(**kwargs)
-        self.__protojson_protocol = protojson_protocol or ProtoJson.get_default()
+        self.__protojson_protocol = (
+            protojson_protocol or ProtoJson.get_default())
 
     def default(self, value):
         """Return dictionary instance from a message object.
@@ -117,8 +116,8 @@ class MessageJSONEncoder(json.JSONEncoder):
             for field in value.all_fields():
                 item = value.get_assigned_value(field.name)
                 if item not in (None, [], ()):
-                    result[field.name] = self.__protojson_protocol.encode_field(
-                        field, item)
+                    result[field.name] = (
+                        self.__protojson_protocol.encode_field(field, item))
             # Handle unrecognized fields, so they're included when a message is
             # decoded then encoded.
             for unknown_key in value.all_unrecognized_fields():
@@ -133,9 +132,11 @@ class MessageJSONEncoder(json.JSONEncoder):
 class ProtoJson(object):
     """ProtoRPC JSON implementation class.
 
-    Implementation of JSON based protocol used for serializing and deserializing
-    message objects.  Instances of remote.ProtocolConfig constructor or used with
-    remote.Protocols.add_protocol.  See the remote.py module for more details.
+    Implementation of JSON based protocol used for serializing and
+    deserializing message objects. Instances of remote.ProtocolConfig
+    constructor or used with remote.Protocols.add_protocol. See the
+    remote.py module for more details.
+
     """
 
     CONTENT_TYPE = 'application/json'
@@ -184,7 +185,8 @@ class ProtoJson(object):
         """
         message.check_initialized()
 
-        return json.dumps(message, cls=MessageJSONEncoder, protojson_protocol=self)
+        return json.dumps(message, cls=MessageJSONEncoder,
+                          protojson_protocol=self)
 
     def decode_message(self, message_type, encoded_message):
         """Merge JSON structure to Message instance.
@@ -215,8 +217,9 @@ class ProtoJson(object):
           value: The value whose variant type is being determined.
 
         Returns:
-          The messages.Variant value that best describes value's type, or None if
-          it's a type we don't know how to handle.
+          The messages.Variant value that best describes value's type,
+          or None if it's a type we don't know how to handle.
+
         """
         if isinstance(value, bool):
             return messages.Variant.BOOL
@@ -228,7 +231,9 @@ class ProtoJson(object):
             return messages.Variant.STRING
         elif isinstance(value, (list, tuple)):
             # Find the most specific variant that covers all elements.
-            variant_priority = [None, messages.Variant.INT64, messages.Variant.DOUBLE,
+            variant_priority = [None,
+                                messages.Variant.INT64,
+                                messages.Variant.DOUBLE,
                                 messages.Variant.STRING]
             chosen_priority = 0
             for v in value:
@@ -286,7 +291,7 @@ class ProtoJson(object):
                 valid_value.append(self.decode_field(field, item))
 
             if field.repeated:
-                existing_value = getattr(message, field.name)
+                _ = getattr(message, field.name)
                 setattr(message, field.name, valid_value)
             else:
                 setattr(message, field.name, valid_value[-1])
@@ -329,14 +334,14 @@ class ProtoJson(object):
               isinstance(value, (six.integer_types, six.string_types))):
             try:
                 return float(value)
-            except:
+            except:  # pylint:disable=bare-except
                 pass
 
         elif (isinstance(field, messages.IntegerField) and
               isinstance(value, six.string_types)):
             try:
                 return int(value)
-            except:
+            except:  # pylint:disable=bare-except
                 pass
 
         return value

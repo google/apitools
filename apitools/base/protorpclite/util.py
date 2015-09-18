@@ -14,17 +14,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-
 """Common utility library."""
-
 from __future__ import with_statement
-import six
 
-__author__ = ['rafek@google.com (Rafe Kaplan)',
-              'guido@google.com (Guido van Rossum)',
-              ]
-
-import cgi
 import datetime
 import functools
 import inspect
@@ -32,13 +24,16 @@ import os
 import re
 import sys
 
-__all__ = ['Error',
-           'decode_datetime',
-           'get_package_for_module',
-           'positional',
-           'TimeZoneOffset',
-           'total_seconds',
-           ]
+import six
+
+__all__ = [
+    'Error',
+    'decode_datetime',
+    'get_package_for_module',
+    'positional',
+    'TimeZoneOffset',
+    'total_seconds',
+]
 
 
 class Error(Exception):
@@ -78,8 +73,8 @@ def positional(max_positional_args):
         def fn(pos1, kwonly1=None, kwonly2=None):
           ...
 
-      If no default value is provided to a keyword argument, it becomes a required
-      keyword argument:
+      If no default value is provided to a keyword argument, it
+      becomes a required keyword argument:
 
         @positional(0)
         def fn(required_kw):
@@ -129,7 +124,8 @@ def positional(max_positional_args):
       being used as positional parameters.
 
     Raises:
-      TypeError if a keyword-only argument is provided as a positional parameter.
+      TypeError if a keyword-only argument is provided as a positional
+        parameter.
       ValueError if no maximum number of arguments is provided and the function
         has no arguments with default values.
     """
@@ -212,15 +208,15 @@ class TimeZoneOffset(datetime.tzinfo):
         """Initialize a time zone offset.
 
         Args:
-          offset: Integer or timedelta time zone offset, in minutes from UTC.  This
-            can be negative.
+          offset: Integer or timedelta time zone offset, in minutes from UTC.
+            This can be negative.
         """
         super(TimeZoneOffset, self).__init__()
         if isinstance(offset, datetime.timedelta):
             offset = total_seconds(offset) / 60
         self.__offset = offset
 
-    def utcoffset(self, dt):
+    def utcoffset(self, _):
         """Get the a timedelta with the time zone's offset from UTC.
 
         Returns:
@@ -228,15 +224,16 @@ class TimeZoneOffset(datetime.tzinfo):
         """
         return datetime.timedelta(minutes=self.__offset)
 
-    def dst(self, dt):
+    def dst(self, _):
         """Get the daylight savings time offset.
 
-        The formats that ProtoRPC uses to encode/decode time zone information don't
-        contain any information about daylight savings time.  So this always
-        returns a timedelta of 0.
+        The formats that ProtoRPC uses to encode/decode time zone
+        information don't contain any information about daylight
+        savings time. So this always returns a timedelta of 0.
 
         Returns:
           A timedelta of 0.
+
         """
         return datetime.timedelta(0)
 
