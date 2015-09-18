@@ -7,9 +7,8 @@ import os
 import platform
 import sys
 
-import protorpc
-from protorpc import message_types
-from protorpc import messages
+from apitools.base.protorpclite import message_types
+from apitools.base.protorpclite import messages
 
 from google.apputils import appcommands
 import gflags as flags
@@ -1618,7 +1617,8 @@ class ObjectAccessControlsDelete(apitools_base_cli.NewCmd):
 
     Args:
       bucket: Name of a bucket.
-      object: Name of the object.
+      object: Name of the object. For information about how to URL encode
+        object names to be path safe, see Encoding URI Path Parts.
       entity: The entity holding the permission. Can be user-userId, user-
         emailAddress, group-groupId, group-emailAddress, allUsers, or
         allAuthenticatedUsers.
@@ -1660,7 +1660,8 @@ class ObjectAccessControlsGet(apitools_base_cli.NewCmd):
 
     Args:
       bucket: Name of a bucket.
-      object: Name of the object.
+      object: Name of the object. For information about how to URL encode
+        object names to be path safe, see Encoding URI Path Parts.
       entity: The entity holding the permission. Can be user-userId, user-
         emailAddress, group-groupId, group-emailAddress, allUsers, or
         allAuthenticatedUsers.
@@ -1707,7 +1708,8 @@ class ObjectAccessControlsInsert(apitools_base_cli.NewCmd):
 
     Args:
       bucket: Name of a bucket.
-      object: Name of the object.
+      object: Name of the object. For information about how to URL encode
+        object names to be path safe, see Encoding URI Path Parts.
 
     Flags:
       generation: If present, selects a specific revision of this object (as
@@ -1749,7 +1751,8 @@ class ObjectAccessControlsList(apitools_base_cli.NewCmd):
 
     Args:
       bucket: Name of a bucket.
-      object: Name of the object.
+      object: Name of the object. For information about how to URL encode
+        object names to be path safe, see Encoding URI Path Parts.
 
     Flags:
       generation: If present, selects a specific revision of this object (as
@@ -1793,7 +1796,8 @@ class ObjectAccessControlsPatch(apitools_base_cli.NewCmd):
 
     Args:
       bucket: Name of a bucket.
-      object: Name of the object.
+      object: Name of the object. For information about how to URL encode
+        object names to be path safe, see Encoding URI Path Parts.
       entity: The entity holding the permission. Can be user-userId, user-
         emailAddress, group-groupId, group-emailAddress, allUsers, or
         allAuthenticatedUsers.
@@ -1844,7 +1848,8 @@ class ObjectAccessControlsUpdate(apitools_base_cli.NewCmd):
 
     Args:
       bucket: Name of a bucket.
-      object: Name of the object.
+      object: Name of the object. For information about how to URL encode
+        object names to be path safe, see Encoding URI Path Parts.
       entity: The entity holding the permission. Can be user-userId, user-
         emailAddress, group-groupId, group-emailAddress, allUsers, or
         allAuthenticatedUsers.
@@ -1919,7 +1924,8 @@ class ObjectsCompose(apitools_base_cli.NewCmd):
 
     Args:
       destinationBucket: Name of the bucket in which to store the new object.
-      destinationObject: Name of the new object.
+      destinationObject: Name of the new object. For information about how to
+        URL encode object names to be path safe, see Encoding URI Path Parts.
 
     Flags:
       composeRequest: A ComposeRequest resource to be passed as the request
@@ -2054,9 +2060,12 @@ class ObjectsCopy(apitools_base_cli.NewCmd):
 
     Args:
       sourceBucket: Name of the bucket in which to find the source object.
-      sourceObject: Name of the source object.
+      sourceObject: Name of the source object. For information about how to
+        URL encode object names to be path safe, see Encoding URI Path Parts.
       destinationBucket: Name of the bucket in which to store the new object.
-        Overrides the provided object metadata's bucket value, if any.
+        Overrides the provided object metadata's bucket value, if any.For
+        information about how to URL encode object names to be path safe, see
+        Encoding URI Path Parts.
       destinationObject: Name of the new object. Required when the object
         metadata is not otherwise provided. Overrides the object metadata's
         name value, if any.
@@ -2178,7 +2187,8 @@ class ObjectsDelete(apitools_base_cli.NewCmd):
 
     Args:
       bucket: Name of the bucket in which the object resides.
-      object: Name of the object.
+      object: Name of the object. For information about how to URL encode
+        object names to be path safe, see Encoding URI Path Parts.
 
     Flags:
       generation: If present, permanently deletes a specific revision of this
@@ -2272,7 +2282,8 @@ class ObjectsGet(apitools_base_cli.NewCmd):
 
     Args:
       bucket: Name of the bucket in which the object resides.
-      object: Name of the object.
+      object: Name of the object. For information about how to URL encode
+        object names to be path safe, see Encoding URI Path Parts.
 
     Flags:
       generation: If present, selects a specific revision of this object (as
@@ -2362,7 +2373,8 @@ class ObjectsInsert(apitools_base_cli.NewCmd):
         None,
         u'Name of the object. Required when the object metadata is not '
         u"otherwise provided. Overrides the object metadata's name value, if "
-        u'any.',
+        u'any. For information about how to URL encode object names to be '
+        u'path safe, see Encoding URI Path Parts.',
         flag_values=fv)
     flags.DEFINE_string(
         'object',
@@ -2428,7 +2440,8 @@ class ObjectsInsert(apitools_base_cli.NewCmd):
         object's current metageneration does not match the given value.
       name: Name of the object. Required when the object metadata is not
         otherwise provided. Overrides the object metadata's name value, if
-        any.
+        any. For information about how to URL encode object names to be path
+        safe, see Encoding URI Path Parts.
       object: A Object resource to be passed as the request body.
       predefinedAcl: Apply a predefined set of access controls to this object.
       projection: Set of properties to return. Defaults to noAcl, unless the
@@ -2630,7 +2643,8 @@ class ObjectsPatch(apitools_base_cli.NewCmd):
 
     Args:
       bucket: Name of the bucket in which the object resides.
-      object: Name of the object.
+      object: Name of the object. For information about how to URL encode
+        object names to be path safe, see Encoding URI Path Parts.
 
     Flags:
       generation: If present, selects a specific revision of this object (as
@@ -2782,12 +2796,14 @@ class ObjectsRewrite(apitools_base_cli.NewCmd):
 
     Args:
       sourceBucket: Name of the bucket in which to find the source object.
-      sourceObject: Name of the source object.
+      sourceObject: Name of the source object. For information about how to
+        URL encode object names to be path safe, see Encoding URI Path Parts.
       destinationBucket: Name of the bucket in which to store the new object.
         Overrides the provided object metadata's bucket value, if any.
       destinationObject: Name of the new object. Required when the object
         metadata is not otherwise provided. Overrides the object metadata's
-        name value, if any.
+        name value, if any. For information about how to URL encode object
+        names to be path safe, see Encoding URI Path Parts.
 
     Flags:
       destinationPredefinedAcl: Apply a predefined set of access controls to
@@ -2941,7 +2957,8 @@ class ObjectsUpdate(apitools_base_cli.NewCmd):
 
     Args:
       bucket: Name of the bucket in which the object resides.
-      object: Name of the object.
+      object: Name of the object. For information about how to URL encode
+        object names to be path safe, see Encoding URI Path Parts.
 
     Flags:
       generation: If present, selects a specific revision of this object (as
