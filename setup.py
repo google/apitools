@@ -30,7 +30,6 @@ except ImportError:
 REQUIRED_PACKAGES = [
     'httplib2>=0.8',
     'oauth2client>=1.4.8',
-    'protorpc>=0.11.0',
     'six>=1.9.0',
     ]
 

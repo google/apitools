@@ -10,11 +10,11 @@ import datetime
 import json
 import numbers
 
-from protorpc import message_types
-from protorpc import messages
-from protorpc import protojson
 import six
 
+from apitools.base.protorpclite import message_types
+from apitools.base.protorpclite import messages
+from apitools.base.protorpclite import protojson
 from apitools.base.py import encoding
 from apitools.base.py import exceptions
 from apitools.base.py import util

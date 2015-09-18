@@ -2,12 +2,12 @@ import base64
 import datetime
 import sys
 
-from protorpc import message_types
-from protorpc import messages
 import six
 from six.moves import urllib_parse
 import unittest2
 
+from apitools.base.protorpclite import message_types
+from apitools.base.protorpclite import messages
 from apitools.base.py import base_api
 from apitools.base.py import encoding
 from apitools.base.py import http_wrapper

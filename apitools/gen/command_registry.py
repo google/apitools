@@ -4,9 +4,8 @@
 import logging
 import textwrap
 
-from protorpc import descriptor
-from protorpc import messages
-
+from apitools.base.protorpclite import descriptor
+from apitools.base.protorpclite import messages
 from apitools.gen import extended_descriptor
 
 # This is a code generator; we're purposely verbose.
@@ -216,7 +215,7 @@ class CommandRegistry(object):
 
         type_name = ''
         if field.variant in (messages.Variant.MESSAGE, messages.Variant.ENUM):
-            if field.type_name.startswith('protorpc.'):
+            if field.type_name.startswith('apitools.base.protorpclite.'):
                 type_name = field.type_name
             else:
                 field_message = self.__LookupMessage(extended_message, field)
@@ -462,9 +461,8 @@ class CommandRegistry(object):
         printer('import platform')
         printer('import sys')
         printer()
-        printer('import protorpc')
-        printer('from protorpc import message_types')
-        printer('from protorpc import messages')
+        printer('from apitools.base.protorpclite import message_types')
+        printer('from apitools.base.protorpclite import messages')
         printer()
         appcommands_import = 'from google.apputils import appcommands'
         printer(appcommands_import)

@@ -9,9 +9,9 @@ as it's all done within the context of a mock.
 
 import difflib
 
-from protorpc import messages
 import six
 
+from apitools.base.protorpclite import messages
 import apitools.base.py as apitools_base
 
 

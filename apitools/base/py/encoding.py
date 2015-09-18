@@ -9,11 +9,11 @@ import logging
 import os
 import sys
 
-from protorpc import message_types
-from protorpc import messages
-from protorpc import protojson
 import six
 
+from apitools.base.protorpclite import message_types
+from apitools.base.protorpclite import messages
+from apitools.base.protorpclite import protojson
 from apitools.base.py import exceptions
 
 __all__ = [
@@ -195,7 +195,7 @@ def MessageToRepr(msg, multiline=False, **kwargs):
             def __repr__(self):
                 s = 'TimeZoneOffset(' + repr(self.offset) + ')'
                 if not kwargs.get('no_modules'):
-                    s = 'protorpc.util.' + s
+                    s = 'apitools.base.protorpclite.util.' + s
                 return s
 
         msg = datetime.datetime(

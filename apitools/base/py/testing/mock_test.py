@@ -1,7 +1,8 @@
 """Tests for apitools.base.py.testing.mock."""
 
-from protorpc import messages
 import unittest2
+
+from apitools.base.protorpclite import messages
 
 import apitools.base.py as apitools_base
 from apitools.base.py.testing import mock

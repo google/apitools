@@ -3,11 +3,11 @@ import datetime
 import json
 import sys
 
-from protorpc import message_types
-from protorpc import messages
-from protorpc import util
 import unittest2
 
+from apitools.base.protorpclite import message_types
+from apitools.base.protorpclite import messages
+from apitools.base.protorpclite import util
 from apitools.base.py import encoding
 from apitools.base.py import exceptions
 from apitools.base.py import extra_types
@@ -371,7 +371,7 @@ class EncodingTest(unittest2.TestCase):
             encoding.MessageToRepr(msg, multiline=True),
             ('%s.TimeMessage(\n    '
              'timefield=datetime.datetime(2014, 7, 2, 23, 33, 25, 541000, '
-             'tzinfo=protorpc.util.TimeZoneOffset('
+             'tzinfo=apitools.base.protorpclite.util.TimeZoneOffset('
              'datetime.timedelta(0))),\n)') % __name__)
         self.assertEqual(
             encoding.MessageToRepr(msg, multiline=True, no_modules=True),
