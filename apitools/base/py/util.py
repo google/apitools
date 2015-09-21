@@ -5,13 +5,13 @@ import collections
 import os
 import random
 
-from protorpc import messages
 import six
 from six.moves import http_client
 import six.moves.urllib.error as urllib_error
 import six.moves.urllib.parse as urllib_parse
 import six.moves.urllib.request as urllib_request
 
+from apitools.base.protorpclite import messages
 from apitools.base.py import encoding
 from apitools.base.py import exceptions
 

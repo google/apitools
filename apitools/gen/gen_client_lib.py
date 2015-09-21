@@ -209,7 +209,6 @@ class DescriptorGenerator(object):
             printer('"google-apitools>=0.4.8",')
             printer('"httplib2>=0.9",')
             printer('"oauth2client>=1.4.12",')
-            printer('"protorpc>=0.10.0",')
         printer(']')
         printer('_PACKAGE = "apitools.clients.%s"' % self.__package)
         printer()

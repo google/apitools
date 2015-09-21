@@ -107,7 +107,9 @@ class Names(object):
             return name
         # TODO(craigcitro): This is a hack to handle the case of specific
         # protorpc class names; clean this up.
-        if name.startswith('protorpc.') or name.startswith('message_types.'):
+        if name.startswith(('protorpc.', 'message_types.',
+                            'apitools.base.protorpclite.',
+                            'apitools.base.protorpclite.message_types.')):
             return name
         name = self.__StripName(name)
         name = self.__ToCamel(name, separator=separator)

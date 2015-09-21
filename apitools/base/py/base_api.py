@@ -8,13 +8,13 @@ import logging
 import pprint
 
 
-from protorpc import message_types
-from protorpc import messages
 import six
 from six.moves import http_client
 from six.moves import urllib
 
 
+from apitools.base.protorpclite import message_types
+from apitools.base.protorpclite import messages
 from apitools.base.py import credentials_lib
 from apitools.base.py import encoding
 from apitools.base.py import exceptions

@@ -16,11 +16,11 @@ import abc
 import operator
 import textwrap
 
-from protorpc import descriptor as protorpc_descriptor
-from protorpc import message_types
-from protorpc import messages
 import six
 
+from apitools.base.protorpclite import descriptor as protorpc_descriptor
+from apitools.base.protorpclite import message_types
+from apitools.base.protorpclite import messages
 import apitools.base.py as apitools_base
 
 

@@ -1,20 +1,16 @@
 #!/usr/bin/env python
-"""Extra types understood by apitools.
-
-This file will be replaced by a .proto file when we switch to proto2
-from protorpc.
-"""
+"""Extra types understood by apitools."""
 
 import collections
 import datetime
 import json
 import numbers
 
-from protorpc import message_types
-from protorpc import messages
-from protorpc import protojson
 import six
 
+from apitools.base.protorpclite import message_types
+from apitools.base.protorpclite import messages
+from apitools.base.protorpclite import protojson
 from apitools.base.py import encoding
 from apitools.base.py import exceptions
 from apitools.base.py import util
@@ -29,7 +25,6 @@ __all__ = [
     'JsonProtoDecoder',
 ]
 
-# We import from protorpc.
 # pylint:disable=invalid-name
 DateTimeMessage = message_types.DateTimeMessage
 # pylint:enable=invalid-name

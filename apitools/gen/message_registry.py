@@ -5,10 +5,10 @@ import collections
 import contextlib
 import json
 
-from protorpc import descriptor
-from protorpc import messages
 import six
 
+from apitools.base.protorpclite import descriptor
+from apitools.base.protorpclite import messages
 from apitools.gen import extended_descriptor
 from apitools.gen import util
 
@@ -57,7 +57,8 @@ class MessageRegistry(object):
         'date': TypeInfo(type_name='extra_types.DateField',
                          variant=messages.Variant.STRING),
         'date-time': TypeInfo(
-            type_name='protorpc.message_types.DateTimeMessage',
+            type_name=('apitools.base.protorpclite.message_types.'
+                       'DateTimeMessage'),
             variant=messages.Variant.MESSAGE),
     }
 
@@ -73,7 +74,7 @@ class MessageRegistry(object):
             package=self.__package, description=self.__description)
         # Add required imports
         self.__file_descriptor.additional_imports = [
-            'from protorpc import messages as _messages',
+            'from apitools.base.protorpclite import messages as _messages',
         ]
         # Map from scoped names (i.e. Foo.Bar) to MessageDescriptors.
         self.__message_registry = collections.OrderedDict()
@@ -392,10 +393,12 @@ class MessageRegistry(object):
                     return self.PRIMITIVE_TYPE_INFO_MAP[type_name]
                 raise ValueError('Unknown type/format "%s"/"%s"' % (
                     attrs['format'], type_name))
-            if (type_info.type_name.startswith('protorpc.message_types.') or
-                    type_info.type_name.startswith('message_types.')):
+            if type_info.type_name.startswith((
+                    'apitools.base.protorpclite.message_types.',
+                    'message_types.')):
                 self.__AddImport(
-                    'from protorpc import message_types as _message_types')
+                    'from apitools.base.protorpclite import message_types '
+                    'as _message_types')
             if type_info.type_name.startswith('extra_types.'):
                 self.__AddImport(
                     'from %s import extra_types' % self.__base_files_package)
