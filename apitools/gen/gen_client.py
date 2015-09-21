@@ -85,9 +85,8 @@ def _GetCodegenFromFlags(args):
     if not os.path.exists(outdir):
         os.makedirs(outdir)
 
-    root_package = args.root_package or util.GetPackage(outdir)
     return gen_client_lib.DescriptorGenerator(
-        discovery_doc, client_info, names, root_package, outdir,
+        discovery_doc, client_info, names, args.root_package, outdir,
         base_package=args.base_package,
         generate_cli=args.generate_cli,
         use_proto2=args.experimental_proto2_output,

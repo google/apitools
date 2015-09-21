@@ -45,11 +45,19 @@ class ClientGenerationTest(unittest2.TestCase):
                 self.assertEqual(0, retcode)
 
                 with tempfile.NamedTemporaryFile() as out:
-                    cmdline_args = [
-                        os.path.join(
-                            'generated', api.replace('.', '_') + '.py'),
-                        'help',
-                    ]
-                    retcode = subprocess.call(cmdline_args, stdout=out)
+                    with tempfile.NamedTemporaryFile() as err:
+                        cmdline_args = [
+                            os.path.join(
+                                'generated', api.replace('.', '_') + '.py'),
+                            'help',
+                        ]
+                        retcode = subprocess.call(
+                            cmdline_args, stdout=out, stderr=err)
+                        with open(err.name, 'rb') as f:
+                            err_output = f.read()
                 # appcommands returns 1 on help
                 self.assertEqual(1, retcode)
+                if 'Traceback (most recent call last):' in err_output:
+                    err = '\n======\n%s======\n' % err_output
+                    self.fail(
+                        'Error raised in generated client:' + err)
