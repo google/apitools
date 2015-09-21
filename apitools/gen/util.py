@@ -225,11 +225,6 @@ class ClientInfo(collections.namedtuple('ClientInfo', (
         return '%s.proto' % self.services_rule_name
 
 
-def GetPackage(path):
-    path_components = path.split(os.path.sep)
-    return '.'.join(path_components)
-
-
 def CleanDescription(description):
     """Return a version of description safe for printing in a docstring."""
     if not isinstance(description, six.string_types):
