@@ -419,7 +419,7 @@ class BaseApiClient(object):
         try:
             message = encoding.JsonToMessage(response_type, data)
         except (exceptions.InvalidDataFromServerError,
-                messages.ValidationError) as e:
+                messages.ValidationError, ValueError) as e:
             raise exceptions.InvalidDataFromServerError(
                 'Error decoding response "%s" as type %s: %s' % (
                     data, response_type.__name__, e))
