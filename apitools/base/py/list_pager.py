@@ -9,7 +9,7 @@ __all__ = [
 
 
 def YieldFromList(
-        service, request, limit=None, batch_size=100,
+        service, request, global_params=None, limit=None, batch_size=100,
         method='List', field='items', predicate=None,
         current_token_attribute='pageToken',
         next_token_attribute='nextPageToken',
@@ -22,6 +22,8 @@ def YieldFromList(
           corresponding to the service's .List() method, with all the
           attributes populated except the .maxResults and .pageToken
           attributes.
+      global_params: protorpc.messages.Message, The global query parameters to
+           provide when calling the given method.
       limit: int, The maximum number of records to yield. None if all available
           records should be yielded.
       batch_size: int, The number of items to retrieve per request.
@@ -45,7 +47,8 @@ def YieldFromList(
     setattr(request, batch_size_attribute, batch_size)
     setattr(request, current_token_attribute, None)
     while limit is None or limit:
-        response = getattr(service, method)(request)
+        response = getattr(service, method)(request,
+                                            global_params=global_params)
         items = getattr(response, field)
         if predicate:
             items = list(filter(predicate, items))
