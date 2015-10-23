@@ -331,7 +331,18 @@ class EncodingTest(unittest2.TestCase):
         self.assertEqual(
             msg, encoding.JsonToMessage(MessageWithRemappings, json_message))
 
-    def testNoRepeatedRemapping(self):
+    def testRepeatedRemapping(self):
+        # Should allow remapping if the mapping remains the same.
+        encoding.AddCustomJsonEnumMapping(MessageWithRemappings.SomeEnum,
+                                          'enum_value', 'wire_name')
+        encoding.AddCustomJsonFieldMapping(MessageWithRemappings,
+                                           'double_encoding', 'doubleEncoding')
+        encoding.AddCustomJsonFieldMapping(MessageWithRemappings,
+                                           'another_field', 'anotherField')
+        encoding.AddCustomJsonFieldMapping(MessageWithRemappings,
+                                           'repeated_field', 'repeatedField')
+
+        # Should raise errors if the remapping changes the mapping.
         self.assertRaises(
             exceptions.InvalidDataError,
             encoding.AddCustomJsonFieldMapping,
@@ -348,16 +359,6 @@ class EncodingTest(unittest2.TestCase):
             exceptions.InvalidDataError,
             encoding.AddCustomJsonEnumMapping,
             MessageWithRemappings.SomeEnum, 'second_value', 'wire_name')
-
-    def testAllowIdenticalRepeatedRemapping(self):
-        encoding.AddCustomJsonEnumMapping(MessageWithRemappings.SomeEnum,
-                                          'enum_value', 'wire_name')
-        encoding.AddCustomJsonFieldMapping(MessageWithRemappings,
-                                           'double_encoding', 'doubleEncoding')
-        encoding.AddCustomJsonFieldMapping(MessageWithRemappings,
-                                           'another_field', 'anotherField')
-        encoding.AddCustomJsonFieldMapping(MessageWithRemappings,
-                                           'repeated_field', 'repeatedField')
 
     def testMessageToRepr(self):
         # Using the same string returned by MessageToRepr, with the
