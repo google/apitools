@@ -349,6 +349,16 @@ class EncodingTest(unittest2.TestCase):
             encoding.AddCustomJsonEnumMapping,
             MessageWithRemappings.SomeEnum, 'second_value', 'wire_name')
 
+    def testAllowIdenticalRepeatedRemapping(self):
+        encoding.AddCustomJsonEnumMapping(MessageWithRemappings.SomeEnum,
+                                          'enum_value', 'wire_name')
+        encoding.AddCustomJsonFieldMapping(MessageWithRemappings,
+                                           'double_encoding', 'doubleEncoding')
+        encoding.AddCustomJsonFieldMapping(MessageWithRemappings,
+                                           'another_field', 'anotherField')
+        encoding.AddCustomJsonFieldMapping(MessageWithRemappings,
+                                           'repeated_field', 'repeatedField')
+
     def testMessageToRepr(self):
         # Using the same string returned by MessageToRepr, with the
         # module names fixed.
