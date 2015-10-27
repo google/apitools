@@ -747,7 +747,7 @@ class FieldTest(test_util.TestCase):
         """Test validation of valid values."""
         values = {
             messages.IntegerField: "10",
-            messages.FloatField: 1,
+            messages.FloatField: "blah",
             messages.BooleanField: 0,
             messages.BytesField: 10.20,
             messages.StringField: 42,
@@ -807,21 +807,23 @@ class FieldTest(test_util.TestCase):
     def testValidateElement(self):
         """Test validation of valid values."""
         values = {
-            messages.IntegerField: 10,
-            messages.FloatField: 1.5,
-            messages.BooleanField: False,
-            messages.BytesField: b'abc',
-            messages.StringField: u'abc',
+            messages.IntegerField: (10, -1, 0),
+            messages.FloatField: (1.5, -1.5, 3),   # for json it is all a number.
+            messages.BooleanField: (True, False),
+            messages.BytesField: (b'abc',),
+            messages.StringField: (u'abc',),
         }
 
         def action(field_class):
             # Optional.
             field = field_class(1)
-            field.validate_element(values[field_class])
+            for value in values[field_class]:
+                field.validate_element(value)
 
             # Required.
             field = field_class(1, required=True)
-            field.validate_element(values[field_class])
+            for value in values[field_class]:
+                field.validate_element(value)
 
             # Repeated.
             field = field_class(1, repeated=True)
@@ -831,16 +833,16 @@ class FieldTest(test_util.TestCase):
             self.assertRaises(messages.ValidationError,
                               field.validate_element,
                               ())
-            field.validate_element(values[field_class])
-            field.validate_element(values[field_class])
+            for value in values[field_class]:
+                field.validate_element(value)
 
             # Right value, but repeated.
             self.assertRaises(messages.ValidationError,
                               field.validate_element,
-                              [values[field_class]])
+                              list(values[field_class]))  # testing list
             self.assertRaises(messages.ValidationError,
                               field.validate_element,
-                              (values[field_class],))
+                              values[field_class])  # testing tuple
 
         self.ActionOnAllFieldClasses(action)
 
