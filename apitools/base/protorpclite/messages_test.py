@@ -808,7 +808,7 @@ class FieldTest(test_util.TestCase):
         """Test validation of valid values."""
         values = {
             messages.IntegerField: (10, -1, 0),
-            messages.FloatField: (1.5, -1.5, 3),   # for json it is all a number.
+            messages.FloatField: (1.5, -1.5, 3),  # for json it is all a number
             messages.BooleanField: (True, False),
             messages.BytesField: (b'abc',),
             messages.StringField: (u'abc',),
