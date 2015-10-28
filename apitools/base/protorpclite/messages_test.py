@@ -856,7 +856,6 @@ class FieldTest(test_util.TestCase):
                           field.validate_element,
                           12.0)  # should fails from float to int
 
-
     def testReadOnly(self):
         """Test that objects are all read-only."""
         def action(field_class):
