@@ -846,6 +846,16 @@ class FieldTest(test_util.TestCase):
 
         self.ActionOnAllFieldClasses(action)
 
+    def testValidateCastingElement(self):
+        field = messages.FloatField(1)
+        self.assertEquals(type(field.validate_element(12)), float)
+        self.assertEquals(type(field.validate_element(12.0)), float)
+        field = messages.IntegerField(1)
+        self.assertEquals(type(field.validate_element(12)), int)
+        self.assertRaises(messages.ValidationError,
+                          field.validate_element,
+                          12.0)  # should fails from float to int
+
     def testReadOnly(self):
         """Test that objects are all read-only."""
         def action(field_class):
