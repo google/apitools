@@ -1296,7 +1296,7 @@ class Field(six.with_metaclass(_FieldMeta, object)):
             if self.repeated:
                 value = FieldList(self, value)
             else:
-                self.validate(value)
+                value = self.validate(value)
             message_instance._Message__tags[self.number] = value
 
     def __get__(self, message_instance, message_class):
@@ -1318,6 +1318,9 @@ class Field(six.with_metaclass(_FieldMeta, object)):
         Args:
           value: Value to validate.
 
+        Returns:
+          The value casted in the expected type.
+
         Raises:
           ValidationError if value is not expected type.
         """
@@ -1325,7 +1328,7 @@ class Field(six.with_metaclass(_FieldMeta, object)):
 
             # Authorize int values as float.
             if isinstance(value, six.integer_types) and self.type == float:
-                return
+                return float(value)
 
             if value is None:
                 if self.required:
@@ -1342,6 +1345,7 @@ class Field(six.with_metaclass(_FieldMeta, object)):
                     raise ValidationError(
                         'Expected type %s for field %s, found %s (type %s)' %
                         (self.type, name, value, type(value)))
+        return value
 
     def __validate(self, value, validate_element):
         """Internal validation function.
@@ -1358,10 +1362,11 @@ class Field(six.with_metaclass(_FieldMeta, object)):
 
         """
         if not self.repeated:
-            validate_element(value)
+            return validate_element(value)
         else:
             # Must be a list or tuple, may not be a string.
             if isinstance(value, (list, tuple)):
+                result = []
                 for element in value:
                     if element is None:
                         try:
@@ -1374,7 +1379,8 @@ class Field(six.with_metaclass(_FieldMeta, object)):
                             raise ValidationError(
                                 'Repeated values for field %s '
                                 'may not be None' % name)
-                    validate_element(element)
+                    result.append(validate_element(element))
+                return result
             elif value is not None:
                 try:
                     name = self.name
@@ -1384,6 +1390,7 @@ class Field(six.with_metaclass(_FieldMeta, object)):
                 else:
                     raise ValidationError(
                         'Field %s is repeated. Found: %s' % (name, value))
+        return value
 
     def validate(self, value):
         """Validate value assigned to field.
@@ -1391,10 +1398,13 @@ class Field(six.with_metaclass(_FieldMeta, object)):
         Args:
           value: Value to validate.
 
+        Returns:
+          the value in casted in the correct type.
+
         Raises:
           ValidationError if value is not expected type.
         """
-        self.__validate(value, self.validate_element)
+        return self.__validate(value, self.validate_element)
 
     def validate_default_element(self, value):
         """Validate value as assigned to field default field.
@@ -1408,11 +1418,14 @@ class Field(six.with_metaclass(_FieldMeta, object)):
         Args:
           value: Default value to validate.
 
+        Returns:
+          the value in casted in the correct type.
+
         Raises:
           ValidationError if value is not expected type.
 
         """
-        self.validate_element(value)
+        return self.validate_element(value)
 
     def validate_default(self, value):
         """Validate default value assigned to field.
@@ -1420,10 +1433,13 @@ class Field(six.with_metaclass(_FieldMeta, object)):
         Args:
           value: Value to validate.
 
+        Returns:
+          the value in casted in the correct type.
+
         Raises:
           ValidationError if value is not expected type.
         """
-        self.__validate(value, self.validate_default_element)
+        return self.__validate(value, self.validate_default_element)
 
     def message_definition(self):
         """Get Message definition that contains this Field definition.
@@ -1531,7 +1547,8 @@ class StringField(Field):
                     validation_error.field_name = self.name
                 raise validation_error
         else:
-            super(StringField, self).validate_element(value)
+            return super(StringField, self).validate_element(value)
+        return value
 
 
 class MessageField(Field):
@@ -1794,9 +1811,9 @@ class EnumField(Field):
             # enumerated types.  Ignore if type is not yet resolved.
             if self.__type:
                 self.__type(value)
-            return
+            return value
 
-        super(EnumField, self).validate_default_element(value)
+        return super(EnumField, self).validate_default_element(value)
 
     @property
     def type(self):
