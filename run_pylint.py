@@ -96,7 +96,7 @@ def is_production_filename(filename):
                 filename.startswith('regression'))
 
 
-def get_files_for_linting(allow_limited=True):
+def get_files_for_linting(allow_limited=True, diff_base=None):
     """Gets a list of files in the repository.
 
     By default, returns all files via ``git ls-files``. However, in some cases
@@ -121,18 +121,15 @@ def get_files_for_linting(allow_limited=True):
     :returns: Tuple of the diff base using the the list of filenames to be
               linted.
     """
-    diff_base = None
+    if os.getenv('TRAVIS') == 'true':
+        # In travis, don't default to master.
+        diff_base = None
+
     if (os.getenv('TRAVIS_BRANCH') == 'master' and
             os.getenv('TRAVIS_PULL_REQUEST') != 'false'):
         # In the case of a pull request into master, we want to
         # diff against HEAD in master.
         diff_base = 'origin/master'
-    elif os.getenv('TRAVIS') is None:
-        # Only allow specified remote and branch in local dev.
-        remote = os.getenv('GCLOUD_REMOTE_FOR_LINT')
-        branch = os.getenv('GCLOUD_BRANCH_FOR_LINT')
-        if remote is not None and branch is not None:
-            diff_base = '%s/%s' % (remote, branch)
 
     if diff_base is not None and allow_limited:
         result = subprocess.check_output(['git', 'diff', '--name-only',
@@ -148,7 +145,7 @@ def get_files_for_linting(allow_limited=True):
     return result.rstrip('\n').split('\n'), diff_base
 
 
-def get_python_files(all_files=None):
+def get_python_files(all_files=None, diff_base=None):
     """Gets a list of all Python files in the repository that need linting.
 
     Relies on :func:`get_files_for_linting()` to determine which files should
@@ -167,7 +164,7 @@ def get_python_files(all_files=None):
     """
     using_restricted = False
     if all_files is None:
-        all_files, diff_base = get_files_for_linting()
+        all_files, diff_base = get_files_for_linting(diff_base=diff_base)
         using_restricted = diff_base is not None
 
     library_files = []
@@ -203,10 +200,12 @@ def lint_fileset(filenames, rcfile, description):
         print 'Skipping %s, no files to lint.' % (description,)
 
 
-def main():
+def main(argv):
     """Script entry point. Lints both sets of files."""
+    diff_base = argv[1] if len(argv) > 1 else None
     make_test_rc(PRODUCTION_RC, TEST_RC_ADDITIONS, TEST_RC)
-    library_files, non_library_files, using_restricted = get_python_files()
+    library_files, non_library_files, using_restricted = get_python_files(
+        diff_base=diff_base)
     try:
         lint_fileset(library_files, PRODUCTION_RC, 'library code')
         lint_fileset(non_library_files, TEST_RC, 'test and demo code')
@@ -224,4 +223,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv)
