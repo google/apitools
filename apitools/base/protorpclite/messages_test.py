@@ -857,7 +857,6 @@ class FieldTest(test_util.TestCase):
                           12.0)  # should fails from float to int
 
 
-
     def testReadOnly(self):
         """Test that objects are all read-only."""
         def action(field_class):
