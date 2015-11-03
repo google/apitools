@@ -237,7 +237,8 @@ class BaseApiClient(object):
     def __init__(self, url, credentials=None, get_credentials=True, http=None,
                  model=None, log_request=False, log_response=False,
                  num_retries=5, max_retry_wait=60, credentials_args=None,
-                 default_global_params=None, additional_http_headers=None):
+                 default_global_params=None, additional_http_headers=None,
+                 check_response_func=None):
         _RequireClassAttrs(self, ('_package', '_scopes', 'messages_module'))
         if default_global_params is not None:
             util.Typecheck(default_global_params, self.params_type)
@@ -263,6 +264,7 @@ class BaseApiClient(object):
         self.__include_fields = None
 
         self.additional_http_headers = additional_http_headers or {}
+        self.__check_response_func = check_response_func
 
         # TODO(craigcitro): Finish deprecating these fields.
         _ = model
@@ -374,6 +376,14 @@ class BaseApiClient(object):
             raise exceptions.InvalidDataError(
                 'Cannot have negative value for num_retries')
         self.__num_retries = value
+
+    @property
+    def check_response_func(self):
+        return self.__check_response_func
+
+    @check_response_func.setter
+    def check_response_func(self, value):
+        self.__check_response_func = value
 
     @property
     def max_retry_wait(self):
@@ -685,9 +695,14 @@ class BaseApiService(object):
             http = self.__client.http
             if upload and upload.bytes_http:
                 http = upload.bytes_http
+            opts = {
+                'retries': self.__client.num_retries,
+                'max_retry_wait': self.__client.max_retry_wait,
+            }
+            if self.__client.check_response_func:
+                opts['check_response_func'] = self.__client.check_response_func
             http_response = http_wrapper.MakeRequest(
-                http, http_request, retries=self.__client.num_retries,
-                max_retry_wait=self.__client.max_retry_wait)
+                http, http_request, **opts)
 
         return self.ProcessHttpResponse(method_config, http_response)
 
