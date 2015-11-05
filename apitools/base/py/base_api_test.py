@@ -16,6 +16,7 @@
 import base64
 import datetime
 import sys
+import contextlib
 
 import six
 from six.moves import urllib_parse
@@ -26,6 +27,16 @@ from apitools.base.protorpclite import messages
 from apitools.base.py import base_api
 from apitools.base.py import encoding
 from apitools.base.py import http_wrapper
+
+
+@contextlib.contextmanager
+def mock(module, fn_name, patch):
+    unpatch = getattr(module, fn_name)
+    setattr(module, fn_name, patch)
+    try:
+        yield
+    finally:
+        setattr(module, fn_name, unpatch)
 
 
 class SimpleMessage(messages.Message):
@@ -133,6 +144,26 @@ class BaseApiTest(unittest2.TestCase):
         http_request = http_wrapper.Request('http://www.example.com')
         new_request = client.ProcessHttpRequest(http_request)
         self.assertTrue('Request-Is-Awesome' in new_request.headers)
+
+    def testCustomCheckResponse(self):
+        def check_response():
+            pass
+
+        def fakeMakeRequest(*_, **kwargs):
+            self.assertEqual(check_response, kwargs['check_response_func'])
+            return http_wrapper.Response(
+                info={'status': '200'}, content='{"field": "abc"}',
+                request_url='http://www.google.com')
+        http_wrapper.MakeRequest = fakeMakeRequest
+        method_config = base_api.ApiMethodInfo(
+            request_type_name='SimpleMessage',
+            response_type_name='SimpleMessage')
+        client = self.__GetFakeClient()
+        client.check_response_func = check_response
+        service = FakeService(client=client)
+        request = SimpleMessage()
+        with mock(base_api.http_wrapper, 'MakeRequest', fakeMakeRequest):
+            service._RunMethod(method_config, request)
 
     def testQueryEncoding(self):
         method_config = base_api.ApiMethodInfo(
