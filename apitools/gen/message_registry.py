@@ -89,8 +89,7 @@ class MessageRegistry(object):
             package=self.__package, description=self.__description)
         # Add required imports
         self.__file_descriptor.additional_imports = [
-            'from %s.protorpclite import messages as _messages' % 
-            self.__base_files_package,
+            'from apitools.base.protorpclite import messages as _messages',
         ]
         # Map from scoped names (i.e. Foo.Bar) to MessageDescriptors.
         self.__message_registry = collections.OrderedDict()
@@ -208,7 +207,7 @@ class MessageRegistry(object):
                 message.enum_mappings.append(
                     extended_descriptor.ExtendedEnumDescriptor.JsonEnumMapping(
                         python_name=enum_value.name, json_name=enum_name))
-                self.__AddImport('from %s.py import encoding' %
+                self.__AddImport('from %s import encoding' %
                                  self.__base_files_package)
             enum_value.number = index
             enum_value.description = util.CleanDescription(
@@ -223,7 +222,7 @@ class MessageRegistry(object):
         message.name = self.__names.ClassName(schema['id'])
         message.alias_for = alias_for
         self.__DeclareDescriptor(message.name)
-        self.__AddImport('from %s.py import extra_types' %
+        self.__AddImport('from %s import extra_types' %
                          self.__base_files_package)
         self.__RegisterDescriptor(message)
 
@@ -246,7 +245,7 @@ class MessageRegistry(object):
         field_name = 'additionalProperties'
         message.fields.append(self.__FieldDescriptorFromProperties(
             field_name, len(properties) + 1, attrs))
-        self.__AddImport('from %s.py import encoding' % self.__base_files_package)
+        self.__AddImport('from %s import encoding' % self.__base_files_package)
         message.decorators.append(
             'encoding.MapUnrecognizedFields(%r)' % field_name)
 
@@ -280,7 +279,7 @@ class MessageRegistry(object):
                         type(message).JsonFieldMapping(
                             python_name=field.name, json_name=name))
                     self.__AddImport(
-                        'from %s.py import encoding' % self.__base_files_package)
+                        'from %s import encoding' % self.__base_files_package)
             if 'additionalProperties' in schema:
                 self.__AddAdditionalProperties(message, schema, properties)
         self.__RegisterDescriptor(message)
@@ -413,11 +412,11 @@ class MessageRegistry(object):
                     'apitools.base.protorpclite.message_types.',
                     'message_types.')):
                 self.__AddImport(
-                    'from %s.protorpclite import message_types '
-                    'as _message_types' % self.__base_files_package)
+                    'from apitools.base.protorpclite import message_types '
+                    'as _message_types')
             if type_info.type_name.startswith('extra_types.'):
                 self.__AddImport(
-                    'from %s.py import extra_types' % self.__base_files_package)
+                    'from %s import extra_types' % self.__base_files_package)
             return type_info
 
         if type_name in self.PRIMITIVE_TYPE_INFO_MAP:
@@ -441,7 +440,7 @@ class MessageRegistry(object):
             else:
                 return self.__GetTypeInfo(items, entry_name_hint)
         elif type_name == 'any':
-            self.__AddImport('from %s.py import extra_types' %
+            self.__AddImport('from %s import extra_types' %
                              self.__base_files_package)
             return self.PRIMITIVE_TYPE_INFO_MAP['any']
         elif type_name == 'object':
