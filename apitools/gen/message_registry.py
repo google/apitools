@@ -77,19 +77,20 @@ class MessageRegistry(object):
             variant=messages.Variant.MESSAGE),
     }
 
-    def __init__(self, client_info, names, description,
-                 root_package_dir, base_files_package):
+    def __init__(self, client_info, names, description, root_package_dir,
+                 base_files_package, protorpc_package):
         self.__names = names
         self.__client_info = client_info
         self.__package = client_info.package
         self.__description = util.CleanDescription(description)
         self.__root_package_dir = root_package_dir
         self.__base_files_package = base_files_package
+        self.__protorpc_package = protorpc_package
         self.__file_descriptor = extended_descriptor.ExtendedFileDescriptor(
             package=self.__package, description=self.__description)
         # Add required imports
         self.__file_descriptor.additional_imports = [
-            'from apitools.base.protorpclite import messages as _messages',
+            'from %s import messages as _messages' % self.__protorpc_package,
         ]
         # Map from scoped names (i.e. Foo.Bar) to MessageDescriptors.
         self.__message_registry = collections.OrderedDict()
@@ -412,8 +413,8 @@ class MessageRegistry(object):
                     'apitools.base.protorpclite.message_types.',
                     'message_types.')):
                 self.__AddImport(
-                    'from apitools.base.protorpclite import message_types '
-                    'as _message_types')
+                    'from %s import message_types as _message_types' %
+                    self.__protorpc_package)
             if type_info.type_name.startswith('extra_types.'):
                 self.__AddImport(
                     'from %s import extra_types' % self.__base_files_package)

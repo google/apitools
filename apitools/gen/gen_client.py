@@ -222,7 +222,7 @@ def main(argv=None):
         '--base_package',
         default='apitools.base.py',
         help='Base package path of apitools (defaults to apitools.base.py')
-        
+
     parser.add_argument(
         '--protorpc_package',
         default='apitools.base.protorpclite',
