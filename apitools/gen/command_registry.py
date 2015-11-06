@@ -116,7 +116,8 @@ class CommandRegistry(object):
     """Registry for CLI commands."""
 
     def __init__(self, package, version, client_info, message_registry,
-                 root_package, base_files_package, base_url, names):
+                 root_package, base_files_package, protorpc_package,
+                 base_url, names):
         self.__package = package
         self.__version = version
         self.__client_info = client_info
@@ -124,6 +125,7 @@ class CommandRegistry(object):
         self.__message_registry = message_registry
         self.__root_package = root_package
         self.__base_files_package = base_files_package
+        self.__protorpc_package = protorpc_package
         self.__base_url = base_url
         self.__command_list = []
         self.__global_flags = []
@@ -476,8 +478,8 @@ class CommandRegistry(object):
         printer('import platform')
         printer('import sys')
         printer()
-        printer('from apitools.base.protorpclite import message_types')
-        printer('from apitools.base.protorpclite import messages')
+        printer('from %s import message_types', self.__protorpc_package)
+        printer('from %s import messages', self.__protorpc_package)
         printer()
         appcommands_import = 'from google.apputils import appcommands'
         printer(appcommands_import)

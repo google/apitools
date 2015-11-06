@@ -63,8 +63,8 @@ class DescriptorGenerator(object):
     """Code generator for a given discovery document."""
 
     def __init__(self, discovery_doc, client_info, names, root_package, outdir,
-                 base_package, generate_cli=False, use_proto2=False,
-                 unelidable_request_methods=None):
+                 base_package, protorpc_package, generate_cli=False,
+                 use_proto2=False, unelidable_request_methods=None):
         self.__discovery_doc = discovery_doc
         self.__client_info = client_info
         self.__outdir = outdir
@@ -77,6 +77,7 @@ class DescriptorGenerator(object):
         self.__generate_cli = generate_cli
         self.__root_package = root_package
         self.__base_files_package = base_package
+        self.__protorpc_package = protorpc_package
         self.__names = names
         self.__base_url, self.__base_path = _ComputePaths(
             self.__package, self.__client_info.url_version,
@@ -86,7 +87,8 @@ class DescriptorGenerator(object):
         # define the services.
         self.__message_registry = message_registry.MessageRegistry(
             self.__client_info, self.__names, self.__description,
-            self.__root_package, self.__base_files_package)
+            self.__root_package, self.__base_files_package,
+            self.__protorpc_package)
         schemas = self.__discovery_doc.get('schemas', {})
         for schema_name, schema in schemas.items():
             self.__message_registry.AddDescriptorFromSchema(
@@ -105,7 +107,8 @@ class DescriptorGenerator(object):
         self.__command_registry = command_registry.CommandRegistry(
             self.__package, self.__version, self.__client_info,
             self.__message_registry, self.__root_package,
-            self.__base_files_package, self.__base_url, self.__names)
+            self.__base_files_package, self.__protorpc_package,
+            self.__base_url, self.__names)
         self.__command_registry.AddGlobalParameters(
             self.__message_registry.LookupDescriptorOrDie(
                 'StandardQueryParameters'))
