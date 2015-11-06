@@ -103,6 +103,7 @@ def _GetCodegenFromFlags(args):
     return gen_client_lib.DescriptorGenerator(
         discovery_doc, client_info, names, args.root_package, outdir,
         base_package=args.base_package,
+        protorpc_package=args.protorpc_package,
         generate_cli=args.generate_cli,
         use_proto2=args.experimental_proto2_output,
         unelidable_request_methods=args.unelidable_request_methods)
@@ -221,6 +222,11 @@ def main(argv=None):
         '--base_package',
         default='apitools.base.py',
         help='Base package path of apitools (defaults to apitools.base.py')
+        
+    parser.add_argument(
+        '--protorpc_package',
+        default='apitools.base.protorpclite',
+        help='Base package path of protorpc (defaults to apitools.base.protorpclite')
 
     parser.add_argument(
         '--outdir',
