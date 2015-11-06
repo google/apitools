@@ -226,7 +226,8 @@ def main(argv=None):
     parser.add_argument(
         '--protorpc_package',
         default='apitools.base.protorpclite',
-        help='Base package path of protorpc (defaults to apitools.base.protorpclite')
+        help=('Base package path of protorpc '
+              '(defaults to apitools.base.protorpclite'))
 
     parser.add_argument(
         '--outdir',
