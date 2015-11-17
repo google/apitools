@@ -223,6 +223,11 @@ class EncodingTest(unittest2.TestCase):
         self.assertEqual(1, len(new_msg.additional_properties))
         self.assertEqual(2, len(msg.additional_properties))
 
+    def testNumericPropertyName(self):
+        json_msg = '{"nested": {"123": "def"}}'
+        msg = encoding.JsonToMessage(HasNestedMessage, json_msg)
+        self.assertEqual(1, len(msg.nested.additional_properties))
+
     def testAdditionalMessageProperties(self):
         json_msg = '{"input": {"index": 0, "name": "output"}}'
         result = encoding.JsonToMessage(

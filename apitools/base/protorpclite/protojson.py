@@ -271,8 +271,6 @@ class ProtoJson(object):
                 # Save unknown values.
                 variant = self.__find_variant(value)
                 if variant:
-                    if key.isdigit():
-                        key = int(key)
                     message.set_unrecognized_field(key, value, variant)
                 else:
                     logging.warning(
