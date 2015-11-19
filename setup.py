@@ -29,7 +29,7 @@ except ImportError:
 # Python version and OS.
 REQUIRED_PACKAGES = [
     'httplib2>=0.8',
-    'oauth2client>=1.4.8',
+    'oauth2client>=1.5.2',
     'six>=1.9.0',
     ]
 
