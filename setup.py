@@ -55,7 +55,7 @@ py_version = platform.python_version()
 if py_version < '2.7':
     REQUIRED_PACKAGES.append('argparse>=1.2.1')
 
-_APITOOLS_VERSION = '0.4.21'
+_APITOOLS_VERSION = '0.4.13'
 
 with open('README.rst') as fileobj:
     README = fileobj.read()
