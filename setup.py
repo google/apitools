@@ -30,6 +30,7 @@ except ImportError:
 REQUIRED_PACKAGES = [
     'httplib2>=0.8',
     'oauth2client>=1.4.8',
+    'setuptools>=18.5',
     'six>=1.9.0',
     ]
 
@@ -54,7 +55,7 @@ py_version = platform.python_version()
 if py_version < '2.7':
     REQUIRED_PACKAGES.append('argparse>=1.2.1')
 
-_APITOOLS_VERSION = '0.4.12'
+_APITOOLS_VERSION = '0.4.21'
 
 with open('README.rst') as fileobj:
     README = fileobj.read()
