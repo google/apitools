@@ -106,7 +106,8 @@ def _GetCodegenFromFlags(args):
         protorpc_package=args.protorpc_package,
         generate_cli=args.generate_cli,
         use_proto2=args.experimental_proto2_output,
-        unelidable_request_methods=args.unelidable_request_methods)
+        unelidable_request_methods=args.unelidable_request_methods,
+        apitools_version=args.apitools_version)
 
 
 # TODO(craigcitro): Delete this if we don't need this functionality.
@@ -295,6 +296,12 @@ def main(argv=None):
         default=[],
         help=('Full method IDs of methods for which we should NOT try to '
               'elide the request type. (Should be a comma-separated list.'))
+
+    parser.add_argument(
+        '--apitools_version',
+        default='', dest='apitools_version',
+        help=('Apitools version used as a requirement in generated clients. '
+              'Defaults to version of apitools used to generate the clients.'))
 
     parser.add_argument(
         '--experimental_capitalize_enums',
