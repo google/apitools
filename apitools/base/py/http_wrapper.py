@@ -27,6 +27,7 @@ import socket
 import time
 
 import httplib2
+import oauth2client
 import six
 from six.moves import http_client
 from six.moves.urllib import parse
@@ -277,6 +278,13 @@ def HandleExceptionsAndRebuildHttpConnections(retry_args):
         # oauth2client, need to handle it here.
         logging.debug('Response content was invalid (%s), retrying',
                       retry_args.exc)
+    elif (isinstance(retry_args.exc,
+                     oauth2client.client.HttpAccessTokenRefreshError) and
+          (retry_args.exc.status == TOO_MANY_REQUESTS or
+           retry_args.exc.status >= 500)):
+        logging.debug(
+            'Caught transient credential refresh error (%s), retrying',
+            retry_args.exc)
     elif isinstance(retry_args.exc, exceptions.RequestError):
         logging.debug('Request returned no response, retrying')
     # API-level failures
