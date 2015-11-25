@@ -84,6 +84,14 @@ class MockTest(unittest2.TestCase):
         client = fusiontables.FusiontablesV1(get_credentials=False)
         self.assertNotEqual(type(client.column), mocked_service_type)
 
+    def testClientUnmock(self):
+        mock_client = mock.Client(fusiontables.FusiontablesV1)
+        attributes = set(mock_client.__dict__.keys())
+        mock_client = mock_client.Mock()
+        self.assertTrue(set(mock_client.__dict__.keys()) - attributes)
+        mock_client.Unmock()
+        self.assertEqual(attributes, set(mock_client.__dict__.keys()))
+
 
 class _NestedMessage(messages.Message):
     nested = messages.StringField(1)
