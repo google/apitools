@@ -202,6 +202,12 @@ def GenerateProto(args):
     _WriteProtoFiles(codegen)
 
 
+class _SplitCommaSeparatedList(argparse.Action):
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        setattr(namespace, self.dest, values.split(','))
+
+
 def main(argv=None):
     if argv is None:
         argv = sys.argv
@@ -292,7 +298,8 @@ def main(argv=None):
     parser.set_defaults(generate_cli=True)
 
     parser.add_argument(
-        '--unelidable_request_methods', nargs='*',
+        '--unelidable_request_methods',
+        action=_SplitCommaSeparatedList,
         default=[],
         help=('Full method IDs of methods for which we should NOT try to '
               'elide the request type. (Should be a comma-separated list.'))
