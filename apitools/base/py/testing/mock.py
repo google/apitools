@@ -27,7 +27,9 @@ import difflib
 import six
 
 from apitools.base.protorpclite import messages
-import apitools.base.py as apitools_base
+from apitools.base.py import base_api
+from apitools.base.py import encoding
+from apitools.base.py import exceptions
 
 
 class Error(Exception):
@@ -72,9 +74,9 @@ class UnexpectedRequestException(Error):
         expected_key, expected_request = expected_call
         received_key, received_request = received_call
 
-        expected_repr = apitools_base.MessageToRepr(
+        expected_repr = encoding.MessageToRepr(
             expected_request, multiline=True)
-        received_repr = apitools_base.MessageToRepr(
+        received_repr = encoding.MessageToRepr(
             received_request, multiline=True)
 
         expected_lines = expected_repr.splitlines()
@@ -116,7 +118,7 @@ class ExpectedRequestsException(Error):
         for (key, request) in expected_calls:
             msg += '{key}({request})\n'.format(
                 key=key,
-                request=apitools_base.MessageToRepr(request, multiline=True))
+                request=encoding.MessageToRepr(request, multiline=True))
         super(ExpectedRequestsException, self).__init__(msg)
 
 
@@ -129,13 +131,13 @@ class _ExpectedRequestResponse(object):
         self.__request = request
 
         if response and exception:
-            raise apitools_base.ConfigurationValueError(
+            raise exceptions.ConfigurationValueError(
                 'Should specify at most one of response and exception')
-        if response and isinstance(response, apitools_base.Error):
-            raise apitools_base.ConfigurationValueError(
+        if response and isinstance(response, exceptions.Error):
+            raise exceptions.ConfigurationValueError(
                 'Responses should not be an instance of Error')
-        if exception and not isinstance(exception, apitools_base.Error):
-            raise apitools_base.ConfigurationValueError(
+        if exception and not isinstance(exception, exceptions.Error):
+            raise exceptions.ConfigurationValueError(
                 'Exceptions must be instances of Error')
 
         self.__response = response
@@ -178,7 +180,7 @@ class _ExpectedRequestResponse(object):
         return self.__response
 
 
-class _MockedService(apitools_base.BaseApiService):
+class _MockedService(base_api.BaseApiService):
 
     def __init__(self, key, mocked_client, methods, real_service):
         super(_MockedService, self).__init__(mocked_client)
@@ -246,7 +248,7 @@ class _MockedMethod(object):
 
         if response is None and self.__real_method:
             response = self.__real_method(request)
-            print(apitools_base.MessageToRepr(
+            print(encoding.MessageToRepr(
                 response, multiline=True, shortstrings=True))
             return response
 
@@ -298,7 +300,7 @@ class Client(object):
             service_class = getattr(self.__client_class, name)
             if not isinstance(service_class, type):
                 continue
-            if not issubclass(service_class, apitools_base.BaseApiService):
+            if not issubclass(service_class, base_api.BaseApiService):
                 continue
             self.__real_service_classes[name] = service_class
             service = service_class(client)
