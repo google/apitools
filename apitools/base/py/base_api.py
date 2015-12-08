@@ -30,7 +30,6 @@ from six.moves import urllib
 
 from apitools.base.protorpclite import message_types
 from apitools.base.protorpclite import messages
-from apitools.base.py import credentials_lib
 from apitools.base.py import encoding
 from apitools.base.py import exceptions
 from apitools.base.py import http_wrapper
@@ -293,6 +292,8 @@ class BaseApiClient(object):
             'user_agent': self._USER_AGENT,
         }
         args.update(kwds)
+        # credentials_lib can be expensive to import so do it only if needed.
+        from apitools.base.py import credentials_lib
         # TODO(craigcitro): It's a bit dangerous to pass this
         # still-half-initialized self into this method, but we might need
         # to set attributes on it associated with our credentials.
