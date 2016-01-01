@@ -443,6 +443,7 @@ class BatchHttpRequest(object):
 
             # Disable protected access because namedtuple._replace(...)
             # is not actually meant to be protected.
+            # pylint: disable=protected-access
             self.__request_response_handlers[request_id] = (
                 self.__request_response_handlers[request_id]._replace(
                     response=response))

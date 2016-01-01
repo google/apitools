@@ -15,6 +15,8 @@
 # limitations under the License.
 #
 
+# pylint: disable=too-many-lines
+
 """Stand-alone implementation of in memory protocol messages.
 
 Public Classes:
@@ -1296,7 +1298,8 @@ class Field(six.with_metaclass(_FieldMeta, object)):
             if self.repeated:
                 value = FieldList(self, value)
             else:
-                value = self.validate(value)
+                value = (  # pylint: disable=redefined-variable-type
+                    self.validate(value))
             message_instance._Message__tags[self.number] = value
 
     def __get__(self, message_instance, message_class):
@@ -1939,35 +1942,37 @@ def find_definition(name, relative_to=None, importer=__import__):
         Returns:
           Message or Enum at the end of name_path, else None.
         """
-        next = relative_to
+        next_part = relative_to
         for node in name_path:
             # Look for attribute first.
-            attribute = getattr(next, node, None)
+            attribute = getattr(next_part, node, None)
 
             if attribute is not None:
-                next = attribute
+                next_part = attribute
             else:
                 # If module, look for sub-module.
-                if next is None or isinstance(next, types.ModuleType):
-                    if next is None:
+                if (next_part is None or
+                        isinstance(next_part, types.ModuleType)):
+                    if next_part is None:
                         module_name = node
                     else:
-                        module_name = '%s.%s' % (next.__name__, node)
+                        module_name = '%s.%s' % (next_part.__name__, node)
 
                     try:
                         fromitem = module_name.split('.')[-1]
-                        next = importer(module_name, '', '', [str(fromitem)])
+                        next_part = importer(module_name, '', '',
+                                             [str(fromitem)])
                     except ImportError:
                         return None
                 else:
                     return None
 
-            if not isinstance(next, types.ModuleType):
-                if not (isinstance(next, type) and
-                        issubclass(next, (Message, Enum))):
+            if not isinstance(next_part, types.ModuleType):
+                if not (isinstance(next_part, type) and
+                        issubclass(next_part, (Message, Enum))):
                     return None
 
-        return next
+        return next_part
 
     while True:
         found = search_path()

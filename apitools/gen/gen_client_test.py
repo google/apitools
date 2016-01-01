@@ -15,11 +15,12 @@
 
 """Test for gen_client module."""
 
-from apitools.gen import gen_client
-from apitools.gen import test_utils
+import os
 
 import unittest2
-import os
+
+from apitools.gen import gen_client
+from apitools.gen import test_utils
 
 
 def GetDocPath(name):

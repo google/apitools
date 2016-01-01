@@ -37,6 +37,7 @@ from apitools.base.py import exceptions
 from apitools.base.py import util
 
 try:
+    # pylint: disable=wrong-import-order
     import gflags
     FLAGS = gflags.FLAGS
 except ImportError:
@@ -412,6 +413,7 @@ class GaeAssertionCredentials(oauth2client.client.AssertionCredentials):
         Args:
           _: (ignored) A function matching httplib2.Http.request's signature.
         """
+        # pylint: disable=import-error
         from google.appengine.api import app_identity
         try:
             token, _ = app_identity.get_access_token(self._scopes)
@@ -534,6 +536,7 @@ def _GetServiceAccountCredentials(
         # pylint: enable=protected-access
         return credentials
     if service_account_name is not None:
+        # pylint: disable=redefined-variable-type
         credentials = ServiceAccountCredentialsFromFile(
             service_account_name, service_account_keyfile, scopes,
             service_account_kwargs={'user_agent': user_agent})

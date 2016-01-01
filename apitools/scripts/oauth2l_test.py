@@ -30,6 +30,7 @@ import apitools.base.py as apitools_base
 _OAUTH2L_MAIN_RUN = False
 
 if six.PY2:
+    # pylint: disable=wrong-import-position,wrong-import-order
     import gflags as flags
     from google.apputils import appcommands
     from apitools.scripts import oauth2l

@@ -14,17 +14,17 @@
 # limitations under the License.
 
 """Tests for http_wrapper."""
+import socket
+
 import httplib2
 import oauth2client
-import socket
+from six.moves import http_client
 import unittest2
 
 from mock import patch
 
 from apitools.base.py import exceptions
 from apitools.base.py import http_wrapper
-
-from six.moves import http_client
 
 
 class _MockHttpRequest(object):
