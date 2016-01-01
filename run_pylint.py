@@ -42,23 +42,14 @@ IGNORED_FILES = [
 PRODUCTION_RC = 'default.pylintrc'
 TEST_RC = 'reduced.pylintrc'
 TEST_DISABLED_MESSAGES = [
-    'attribute-defined-outside-init',
     'exec-used',
-    'import-error',
     'invalid-name',
     'missing-docstring',
-    'no-init',
-    'no-self-use',
     'protected-access',
-    'superfluous-parens',
-    'too-few-public-methods',
-    'too-many-locals',
-    'too-many-public-methods',
-    'unbalanced-tuple-unpacking',
 ]
 TEST_RC_ADDITIONS = {
     'MESSAGES CONTROL': {
-        'disable': ', '.join(TEST_DISABLED_MESSAGES),
+        'disable': ',\n'.join(TEST_DISABLED_MESSAGES),
     },
 }
 
@@ -86,7 +77,7 @@ def make_test_rc(base_rc_filename, additions_dict, target_filename):
             curr_val = curr_section.get(opt)
             if curr_val is None:
                 raise KeyError('Expected to be adding to existing option.')
-            curr_section[opt] = '%s, %s' % (curr_val, opt_val)
+            curr_section[opt] = '%s\n%s' % (curr_val, opt_val)
 
     with open(target_filename, 'w') as file_obj:
         test_cfg.write(file_obj)
@@ -123,10 +114,6 @@ def get_files_for_linting(allow_limited=True, diff_base=None):
     since origin/master will be equivalent to the currently checked out code.
     One could potentially use ${TRAVIS_COMMIT_RANGE} to find a diff base but
     this value is not dependable.
-
-    To allow faster local ``tox`` runs, the environment variables
-    ``GCLOUD_REMOTE_FOR_LINT`` and ``GCLOUD_BRANCH_FOR_LINT`` can be set to
-    specify a remote branch to diff against.
 
     :type allow_limited: boolean
     :param allow_limited: Boolean indicating if a reduced set of files can

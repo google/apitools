@@ -178,6 +178,7 @@ class DownloadsTest(unittest.TestCase):
         request = storage.StorageObjectsGetRequest(
             bucket=self._DEFAULT_BUCKET, object=object_name)
         response = self.__client.objects.Get(request)
+        # pylint: disable=attribute-defined-outside-init
         self.__buffer = six.StringIO()
         download_data = json.dumps({
             'auto_transfer': False,

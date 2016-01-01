@@ -223,8 +223,8 @@ class ServiceRegistry(object):
             printer()
             printer('MESSAGES_MODULE = messages')
             printer()
-            client_info_items = client_info._asdict(
-            ).items()  # pylint:disable=protected-access
+            # pylint: disable=protected-access
+            client_info_items = client_info._asdict().items()
             for attr, val in client_info_items:
                 if attr == 'scopes' and not val:
                     val = ['https://www.googleapis.com/auth/userinfo.email']

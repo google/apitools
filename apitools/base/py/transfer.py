@@ -988,6 +988,7 @@ class Upload(_Transfer):
             # https://code.google.com/p/httplib2/issues/detail?id=176 which can
             # cause httplib2 to skip bytes on 401's for file objects.
             # Rework this solution to be more general.
+            # pylint: disable=redefined-variable-type
             body_stream = body_stream.read(self.chunksize)
         else:
             end = min(start + self.chunksize, self.total_size)

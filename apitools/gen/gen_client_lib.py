@@ -139,6 +139,7 @@ class DescriptorGenerator(object):
         if api_methods:
             self.__services_registry.AddServiceFromResource(
                 'api', {'methods': api_methods})
+        # pylint: disable=protected-access
         self.__client_info = self.__client_info._replace(
             scopes=self.__services_registry.scopes)
 

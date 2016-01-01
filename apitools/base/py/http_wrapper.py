@@ -240,6 +240,7 @@ def RebuildHttpConnections(http):
 
 
 def RethrowExceptionHandler(*unused_args):
+    # pylint: disable=misplaced-bare-raise
     raise
 
 
@@ -295,7 +296,7 @@ def HandleExceptionsAndRebuildHttpConnections(retry_args):
         logging.debug('Response returned a retry-after header, retrying')
         retry_after = retry_args.exc.retry_after
     else:
-        raise
+        raise  # pylint: disable=misplaced-bare-raise
     RebuildHttpConnections(retry_args.http)
     logging.debug('Retrying request to url %s after exception %s',
                   retry_args.http_request.url, retry_args.exc)

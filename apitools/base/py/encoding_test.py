@@ -187,6 +187,7 @@ class EncodingTest(unittest2.TestCase):
             '{"nested": {"additional_properties": []}}',
             encoding.MessageToJson(
                 msg, include_fields=['nested.additional_properties']))
+        # pylint: disable=redefined-variable-type
         msg = ExtraNestedMessage(nested=msg)
         self.assertEqual(
             '{"nested": {"nested": null}}',

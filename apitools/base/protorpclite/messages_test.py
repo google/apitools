@@ -37,6 +37,7 @@ from apitools.base.protorpclite import test_util
 # pylint:disable=redefined-outer-name
 # pylint:disable=undefined-variable
 # pylint:disable=unused-variable
+# pylint:disable=too-many-lines
 
 
 class ModuleInterfaceTest(test_util.ModuleInterfaceTest,
@@ -850,6 +851,7 @@ class FieldTest(test_util.TestCase):
         field = messages.FloatField(1)
         self.assertEquals(type(field.validate_element(12)), float)
         self.assertEquals(type(field.validate_element(12.0)), float)
+        # pylint: disable=redefined-variable-type
         field = messages.IntegerField(1)
         self.assertEquals(type(field.validate_element(12)), int)
         self.assertRaises(messages.ValidationError,
@@ -1657,6 +1659,7 @@ class MessageTest(test_util.TestCase):
             messages.ValidationError,
             "Field val is repeated. Found: <SubMessage>",
             setattr, message, 'val', SubMessage())
+        # pylint: disable=redefined-variable-type
         message.val = [SubMessage()]
         message_field.validate(message)
 
@@ -1943,6 +1946,7 @@ class FindDefinitionTest(test_util.TestCase):
         return message_class
 
     # pylint:disable=unused-argument
+    # pylint:disable=redefined-builtin
     def Importer(self, module, globals='', locals='', fromlist=None):
         """Importer function.
 

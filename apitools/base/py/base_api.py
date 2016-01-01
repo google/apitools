@@ -205,7 +205,7 @@ class _UrlBuilder(object):
         # non-ASCII, we may silently fail to encode correctly. We should
         # figure out who is responsible for owning the object -> str
         # conversion.
-        return urllib.parse.urlencode(self.query_params, doseq=True)
+        return urllib.parse.urlencode(self.query_params, True)
 
     @property
     def url(self):

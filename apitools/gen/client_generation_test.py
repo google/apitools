@@ -20,9 +20,10 @@ import os
 import subprocess
 import tempfile
 
+import unittest2
+
 from apitools.gen import test_utils
 
-import unittest2
 
 _API_LIST = [
     'drive.v2',
