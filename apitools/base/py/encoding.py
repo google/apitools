@@ -157,7 +157,7 @@ def MessageToRepr(msg, multiline=False, **kwargs):
 
     """
 
-    # TODO(user): craigcitro suggests a pretty-printer from apitools/gen.
+    # TODO(jasmuth): craigcitro suggests a pretty-printer from apitools/gen.
 
     indent = kwargs.get('indent', 0)
 
@@ -328,12 +328,15 @@ class _ProtoJsonApiTools(protojson.ProtoJson):
         if isinstance(message, messages.FieldList):
             return '[%s]' % (', '.join(self.encode_message(x)
                                        for x in message))
-        message_type = type(message)
-        if message_type in _CUSTOM_MESSAGE_CODECS:
+
+        # pylint: disable=unidiomatic-typecheck
+        if type(message) in _CUSTOM_MESSAGE_CODECS:
             return _CUSTOM_MESSAGE_CODECS[type(message)].encoder(message)
+
         message = _EncodeUnknownFields(message)
         result = super(_ProtoJsonApiTools, self).encode_message(message)
-        return _EncodeCustomFieldNames(message, result)
+        result = _EncodeCustomFieldNames(message, result)
+        return json.dumps(json.loads(result), sort_keys=True)
 
     def encode_field(self, field, value):
         """Encode the given value as JSON.
@@ -396,7 +399,7 @@ def _DecodeUnknownMessages(message, encoded_message, pair_type):
     field_type = pair_type.value.type
     new_values = []
     all_field_names = [x.name for x in message.all_fields()]
-    for name, value_dict in encoded_message.items():
+    for name, value_dict in six.iteritems(encoded_message):
         if name in all_field_names:
             continue
         value = PyValueToMessage(field_type, value_dict)
@@ -573,8 +576,8 @@ def AddCustomJsonEnumMapping(enum_type, python_name, json_name,
 
     Args:
       enum_type: (messages.Enum) An enum type
-      python_name: (string) Python name for this value.
-      json_name: (string) JSON name to be used on the wire.
+      python_name: (basestring) Python name for this value.
+      json_name: (basestring) JSON name to be used on the wire.
       package: (basestring, optional) Package prefix for this enum, if
           present. We strip this off the enum name in order to generate
           unique keys.
@@ -600,8 +603,8 @@ def AddCustomJsonFieldMapping(message_type, python_name, json_name,
 
     Args:
       message_type: (messages.Message) A message type
-      python_name: (string) Python name for this value.
-      json_name: (string) JSON name to be used on the wire.
+      python_name: (basestring) Python name for this value.
+      json_name: (basestring) JSON name to be used on the wire.
       package: (basestring, optional) Package prefix for this message, if
           present. We strip this off the message name in order to generate
           unique keys.
