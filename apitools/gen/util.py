@@ -293,34 +293,37 @@ class SimplePrettyPrinter(object):
             print('', file=self.__out)
 
 
-def NormalizeDiscoveryUrl(discovery_url):
+def _NormalizeDiscoveryUrls(discovery_url):
     """Expands a few abbreviations into full discovery urls."""
     if discovery_url.startswith('http'):
-        return discovery_url
+        return [discovery_url]
     elif '.' not in discovery_url:
         raise ValueError('Unrecognized value "%s" for discovery url')
     api_name, _, api_version = discovery_url.partition('.')
-    return 'https://www.googleapis.com/discovery/v1/apis/%s/%s/rest' % (
-        api_name, api_version)
+    return [
+        'https://www.googleapis.com/discovery/v1/apis/%s/%s/rest' % (
+            api_name, api_version),
+        'https://%s.googleapis.com/$discovery/rest?version=%s' % (
+            api_name, api_version),
+    ]
 
 
 def FetchDiscoveryDoc(discovery_url, retries=5):
     """Fetch the discovery document at the given url."""
-    discovery_url = NormalizeDiscoveryUrl(discovery_url)
+    discovery_urls = _NormalizeDiscoveryUrls(discovery_url)
     discovery_doc = None
     last_exception = None
-    for _ in range(retries):
-        try:
-            discovery_doc = json.loads(
-                urllib_request.urlopen(discovery_url).read())
-            break
-        except (urllib_error.HTTPError,
-                urllib_error.URLError) as last_exception:
-            logging.warning(
-                'Attempting to fetch discovery doc again after "%s"',
-                last_exception)
+    for url in discovery_urls:
+        for _ in range(retries):
+            try:
+                discovery_doc = json.loads(urllib_request.urlopen(url).read())
+                break
+            except (urllib_error.HTTPError, urllib_error.URLError) as e:
+                logging.warning(
+                    'Attempting to fetch discovery doc again after "%s"', e)
+                last_exception = e
     if discovery_doc is None:
         raise CommunicationError(
-            'Could not find discovery doc at url "%s": %s' % (
-                discovery_url, last_exception))
+            'Could not find discovery doc at any of %s: %s' % (
+                discovery_urls, last_exception))
     return discovery_doc
