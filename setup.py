@@ -47,7 +47,7 @@ TESTING_PACKAGES = [
 
 CONSOLE_SCRIPTS = [
     'gen_client = apitools.gen.gen_client:main',
-    'oauth2l = apitools.scripts.oauth2l:run_main [cli]',
+    'oauth2l = apitools.scripts.oauth2l:main',
 ]
 
 py_version = platform.python_version()
@@ -70,9 +70,7 @@ setuptools.setup(
     author_email='craigcitro@google.com',
     # Contained modules and scripts.
     packages=setuptools.find_packages(),
-    entry_points={
-        'console_scripts': CONSOLE_SCRIPTS,
-        },
+    entry_points={'console_scripts': CONSOLE_SCRIPTS},
     install_requires=REQUIRED_PACKAGES,
     tests_require=REQUIRED_PACKAGES + CLI_PACKAGES + TESTING_PACKAGES,
     extras_require={
