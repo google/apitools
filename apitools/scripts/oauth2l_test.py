@@ -79,7 +79,7 @@ class Oauth2lFormattingTest(unittest2.TestCase):
         return ['--credentials_format=' + credentials_format, 'userinfo.email']
 
     def testFormatBare(self):
-        with mock.patch.object(oauth2l, 'FetchCredentials',
+        with mock.patch.object(oauth2l, '_FetchCredentials',
                                return_value=self.credentials,
                                autospec=True) as mock_credentials:
             output = _GetCommandOutput('fetch', self._Args('bare'))
@@ -87,7 +87,7 @@ class Oauth2lFormattingTest(unittest2.TestCase):
             self.assertEqual(1, mock_credentials.call_count)
 
     def testFormatHeader(self):
-        with mock.patch.object(oauth2l, 'FetchCredentials',
+        with mock.patch.object(oauth2l, '_FetchCredentials',
                                return_value=self.credentials,
                                autospec=True) as mock_credentials:
             output = _GetCommandOutput('fetch', self._Args('header'))
@@ -96,7 +96,7 @@ class Oauth2lFormattingTest(unittest2.TestCase):
             self.assertEqual(1, mock_credentials.call_count)
 
     def testHeaderCommand(self):
-        with mock.patch.object(oauth2l, 'FetchCredentials',
+        with mock.patch.object(oauth2l, '_FetchCredentials',
                                return_value=self.credentials,
                                autospec=True) as mock_credentials:
             output = _GetCommandOutput('header', ['userinfo.email'])
@@ -105,7 +105,7 @@ class Oauth2lFormattingTest(unittest2.TestCase):
             self.assertEqual(1, mock_credentials.call_count)
 
     def testFormatJson(self):
-        with mock.patch.object(oauth2l, 'FetchCredentials',
+        with mock.patch.object(oauth2l, '_FetchCredentials',
                                return_value=self.credentials,
                                autospec=True) as mock_credentials:
             output = _GetCommandOutput('fetch', self._Args('json'))
@@ -119,7 +119,7 @@ class Oauth2lFormattingTest(unittest2.TestCase):
             self.assertEqual(1, mock_credentials.call_count)
 
     def testFormatJsonCompact(self):
-        with mock.patch.object(oauth2l, 'FetchCredentials',
+        with mock.patch.object(oauth2l, '_FetchCredentials',
                                return_value=self.credentials,
                                autospec=True) as mock_credentials:
             output = _GetCommandOutput('fetch', self._Args('json_compact'))
@@ -133,7 +133,7 @@ class Oauth2lFormattingTest(unittest2.TestCase):
             self.assertEqual(1, mock_credentials.call_count)
 
     def testFormatPretty(self):
-        with mock.patch.object(oauth2l, 'FetchCredentials',
+        with mock.patch.object(oauth2l, '_FetchCredentials',
                                return_value=self.credentials,
                                autospec=True) as mock_credentials:
             output = _GetCommandOutput('fetch', self._Args('pretty'))
@@ -217,20 +217,17 @@ class TestFetch(unittest2.TestCase):
                 self.assertEqual(1, mock_validate.call_count)
 
     def testMissingClientSecrets(self):
-        args = mock.MagicMock()
-        args.client_secrets = '/non/existent/file'
         self.assertRaises(
             ValueError,
-            oauth2l.GetClientInfoFromFlags, args)
+            oauth2l.GetClientInfoFromFlags, '/non/existent/file')
 
     def testWrongClientSecretsFormat(self):
-        args = mock.MagicMock()
-        args.client_secrets = os.path.join(
+        client_secrets = os.path.join(
             os.path.dirname(__file__),
             'testdata/noninstalled_client_secrets.json')
         self.assertRaises(
             ValueError,
-            oauth2l.GetClientInfoFromFlags, args)
+            oauth2l.GetClientInfoFromFlags, client_secrets)
 
     def testCustomClientInfo(self):
         client_secrets_path = os.path.join(

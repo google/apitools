@@ -85,13 +85,13 @@ def GetDefaultClientInfo():
     }
 
 
-def GetClientInfoFromFlags(args):
+def GetClientInfoFromFlags(client_secrets):
     """Fetch client info from args."""
-    if args.client_secrets:
-        client_secrets_path = os.path.expanduser(args.client_secrets)
+    if client_secrets:
+        client_secrets_path = os.path.expanduser(client_secrets)
         if not os.path.exists(client_secrets_path):
             raise ValueError(
-                'Cannot find file: {0}'.format(args.client_secrets))
+                'Cannot find file: {0}'.format(client_secrets))
         with open(client_secrets_path) as client_secrets_file:
             client_secrets = json.load(client_secrets_file)
         if 'installed' not in client_secrets:
@@ -167,9 +167,9 @@ def _ValidateToken(access_token):
     return bool(_GetTokenScopes(access_token))
 
 
-def FetchCredentials(args, client_info=None, credentials_filename=None):
+def _FetchCredentials(args, client_info=None, credentials_filename=None):
     """Fetch a credential for the given client_info and scopes."""
-    client_info = client_info or GetClientInfoFromFlags(args)
+    client_info = client_info or GetClientInfoFromFlags(args.client_secrets)
     scopes = _ExpandScopes(args.scope)
     if not scopes:
         raise ValueError('No scopes provided')
@@ -188,7 +188,7 @@ def FetchCredentials(args, client_info=None, credentials_filename=None):
     return credentials
 
 
-def Email(args):
+def _Email(args):
     """Print the email address for this token, if possible."""
     userinfo = apitools_base.GetUserinfo(
         oauth2client.client.AccessTokenCredentials(args.access_token,
@@ -198,18 +198,18 @@ def Email(args):
         print(user_email)
 
 
-def Fetch(args):
+def _Fetch(args):
     """Fetch a valid access token and display it."""
-    credentials = FetchCredentials(args)
+    credentials = _FetchCredentials(args)
     print(_Format(args.credentials_format.lower(), credentials))
 
 
-def Header(args):
+def _Header(args):
     """Fetch an access token and display it formatted as an HTTP header."""
-    print(_Format('header', FetchCredentials(args)))
+    print(_Format('header', _FetchCredentials(args)))
 
 
-def Scopes(args):
+def _Scopes(args):
     """Print the list of scopes for a valid token."""
     scopes = _GetTokenScopes(args.access_token)
     if not scopes:
@@ -218,7 +218,7 @@ def Scopes(args):
         print(scope)
 
 
-def Userinfo(args):
+def _Userinfo(args):
     """Print the userinfo for this token, if possible."""
     userinfo = apitools_base.GetUserinfo(
         oauth2client.client.AccessTokenCredentials(args.access_token,
@@ -229,7 +229,7 @@ def Userinfo(args):
         print(_CompactJson(userinfo))
 
 
-def Validate(args):
+def _Validate(args):
     """Validate an access token. Exits with 0 if valid, 1 otherwise."""
     return 1 - (_ValidateToken(args.access_token))
 
@@ -260,18 +260,18 @@ def _GetParser():
     subparsers = parser.add_subparsers(dest='command')
 
     # email
-    email = subparsers.add_parser('email', help=Email.__doc__,
+    email = subparsers.add_parser('email', help=_Email.__doc__,
                                   parents=[shared_flags])
-    email.set_defaults(func=Email)
+    email.set_defaults(func=_Email)
     email.add_argument(
         'access_token',
         help=('Access token to print associated email address for. Must have '
               'the userinfo.email scope.'))
 
     # fetch
-    fetch = subparsers.add_parser('fetch', help=Fetch.__doc__,
+    fetch = subparsers.add_parser('fetch', help=_Fetch.__doc__,
                                   parents=[shared_flags])
-    fetch.set_defaults(func=Fetch)
+    fetch.set_defaults(func=_Fetch)
     fetch.add_argument(
         '-f', '--credentials_format',
         default='pretty', choices=sorted(_FORMATS),
@@ -282,26 +282,26 @@ def _GetParser():
         help='Scope to fetch. May be provided multiple times.')
 
     # header
-    header = subparsers.add_parser('header', help=Header.__doc__,
+    header = subparsers.add_parser('header', help=_Header.__doc__,
                                    parents=[shared_flags])
-    header.set_defaults(func=Header)
+    header.set_defaults(func=_Header)
     header.add_argument(
         'scope',
         nargs='*',
         help='Scope to header. May be provided multiple times.')
 
     # scopes
-    scopes = subparsers.add_parser('scopes', help=Scopes.__doc__,
+    scopes = subparsers.add_parser('scopes', help=_Scopes.__doc__,
                                    parents=[shared_flags])
-    scopes.set_defaults(func=Scopes)
+    scopes.set_defaults(func=_Scopes)
     scopes.add_argument(
         'access_token',
         help=('Scopes associated with this token will be printed.'))
 
     # userinfo
-    userinfo = subparsers.add_parser('userinfo', help=Userinfo.__doc__,
+    userinfo = subparsers.add_parser('userinfo', help=_Userinfo.__doc__,
                                      parents=[shared_flags])
-    userinfo.set_defaults(func=Userinfo)
+    userinfo.set_defaults(func=_Userinfo)
     userinfo.add_argument(
         '-f', '--format',
         default='json', choices=('json', 'json_compact'),
@@ -312,9 +312,9 @@ def _GetParser():
               'the userinfo.email scope.'))
 
     # validate
-    validate = subparsers.add_parser('validate', help=Validate.__doc__,
+    validate = subparsers.add_parser('validate', help=_Validate.__doc__,
                                      parents=[shared_flags])
-    validate.set_defaults(func=Validate)
+    validate.set_defaults(func=_Validate)
     validate.add_argument(
         'access_token',
         help='Access token to validate.')
