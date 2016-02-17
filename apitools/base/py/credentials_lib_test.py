@@ -13,29 +13,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import re
-
 import mock
 import six
-from six.moves import http_client
 import unittest2
 
 from apitools.base.py import credentials_lib
 from apitools.base.py import util
-
-
-def CreateUriValidator(uri_regexp, content=''):
-    def CheckUri(uri, headers=None):
-        if 'X-Google-Metadata-Request' not in headers:
-            raise ValueError('Missing required header')
-        if uri_regexp.match(uri):
-            message = content
-            status = http_client.OK
-        else:
-            message = 'Expected uri matching pattern %s' % uri_regexp.pattern
-            status = http_client.BAD_REQUEST
-        return type('HttpResponse', (object,), {'status': status})(), message
-    return CheckUri
 
 
 class CredentialsLibTest(unittest2.TestCase):
@@ -63,13 +46,11 @@ class CredentialsLibTest(unittest2.TestCase):
             with mock.patch.object(util, 'DetectGce',
                                    autospec=True) as mock_detect:
                 mock_detect.return_value = True
-                validator = CreateUriValidator(
-                    re.compile(r'.*/%s/.*' % service_account_name),
-                    content='{"access_token": "token"}')
                 credentials = credentials_lib.GceAssertionCredentials(
                     scopes, **kwargs)
-                self.assertIsNone(credentials._refresh(validator))
+                self.assertIsNone(credentials._refresh(None))
             self.assertEqual(3, opener_mock.call_count)
+        return credentials
 
     def testGceServiceAccounts(self):
         scopes = ['scope1']
@@ -77,6 +58,27 @@ class CredentialsLibTest(unittest2.TestCase):
         self._GetServiceCreds(scopes=scopes)
         self._GetServiceCreds(service_account_name='my_service_account',
                               scopes=scopes)
+
+    def testGetServiceAccount(self):
+        # We'd also like to test the metadata calls, which requires
+        # having some knowledge about how HTTP calls are made (so that
+        # we can mock them). It's unfortunate, but there's no way
+        # around it.
+        creds = self._GetServiceCreds()
+        opener = mock.MagicMock()
+        opener.open = mock.MagicMock()
+        opener.open.return_value = six.StringIO('default/\nanother')
+        with mock.patch.object(six.moves.urllib.request, 'build_opener',
+                               return_value=opener,
+                               autospec=True) as build_opener:
+            creds.GetServiceAccount('default')
+            self.assertEqual(1, build_opener.call_count)
+            self.assertEqual(1, opener.open.call_count)
+            req = opener.open.call_args[0][0]
+            self.assertTrue(req.get_full_url().startswith(
+                'http://metadata.google.internal/'))
+            # The urllib module does weird things with header case.
+            self.assertEqual('Google', req.get_header('Metadata-flavor'))
 
 
 class TestGetRunFlowFlags(unittest2.TestCase):
