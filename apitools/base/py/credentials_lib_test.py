@@ -26,7 +26,7 @@ from apitools.base.py import util
 
 def CreateUriValidator(uri_regexp, content=''):
     def CheckUri(uri, headers=None):
-        if 'X-Google-Metadata-Request' not in headers:
+        if 'Metadata-Flavor' not in headers:
             raise ValueError('Missing required header')
         if uri_regexp.match(uri):
             message = content
