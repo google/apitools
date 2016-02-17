@@ -25,9 +25,6 @@ import threading
 import httplib2
 import oauth2client
 import oauth2client.client
-import oauth2client.gce
-import oauth2client.locked_file
-import oauth2client.multistore_file
 import oauth2client.service_account
 from oauth2client import tools  # for gflags declarations
 from six.moves import http_client
@@ -36,8 +33,17 @@ from six.moves import urllib
 from apitools.base.py import exceptions
 from apitools.base.py import util
 
+# Note: we try the oauth2client imports two ways, to accomodate layout
+# changes in oauth2client 2.0+. We can remove these once we no longer
+# support oauth2client < 2.0.
+#
+# pylint: disable=wrong-import-order,ungrouped-imports
 try:
-    # pylint: disable=wrong-import-order
+    from oauth2client import gce, locked_file, multistore_file
+except ImportError:
+    from oauth2client.contrib import gce, locked_file, multistore_file
+
+try:
     import gflags
     FLAGS = gflags.FLAGS
 except ImportError:
@@ -174,7 +180,7 @@ def _GceMetadataRequest(relative_url, use_metadata_ip=False):
     return response
 
 
-class GceAssertionCredentials(oauth2client.gce.AppAssertionCredentials):
+class GceAssertionCredentials(gce.AppAssertionCredentials):
 
     """Assertion credentials for GCE instances."""
 
@@ -231,11 +237,11 @@ class GceAssertionCredentials(oauth2client.gce.AppAssertionCredentials):
         }
         with cache_file_lock:
             if _EnsureFileExists(cache_filename):
-                locked_file = oauth2client.locked_file.LockedFile(
+                cache_file = locked_file.LockedFile(
                     cache_filename, 'r+b', 'rb')
                 try:
-                    locked_file.open_and_lock()
-                    cached_creds_str = locked_file.file_handle().read()
+                    cache_file.open_and_lock()
+                    cached_creds_str = cache_file.file_handle().read()
                     if cached_creds_str:
                         # Cached credentials metadata dict.
                         cached_creds = json.loads(cached_creds_str)
@@ -245,7 +251,7 @@ class GceAssertionCredentials(oauth2client.gce.AppAssertionCredentials):
                                     (None, cached_creds['scopes'])):
                                 scopes = cached_creds['scopes']
                 finally:
-                    locked_file.unlock_and_close()
+                    cache_file.unlock_and_close()
         return scopes
 
     def _WriteCacheFile(self, cache_filename, scopes):
@@ -260,21 +266,21 @@ class GceAssertionCredentials(oauth2client.gce.AppAssertionCredentials):
         """
         with cache_file_lock:
             if _EnsureFileExists(cache_filename):
-                locked_file = oauth2client.locked_file.LockedFile(
+                cache_file = locked_file.LockedFile(
                     cache_filename, 'r+b', 'rb')
                 try:
-                    locked_file.open_and_lock()
-                    if locked_file.is_locked():
+                    cache_file.open_and_lock()
+                    if cache_file.is_locked():
                         creds = {  # Credentials metadata dict.
                             'scopes': sorted(list(scopes)),
                             'svc_acct_name': self.__service_account_name}
-                        locked_file.file_handle().write(
+                        cache_file.file_handle().write(
                             json.dumps(creds, encoding='ascii'))
                         # If it's not locked, the locking process will
                         # write the same data to the file, so just
                         # continue.
                 finally:
-                    locked_file.unlock_and_close()
+                    cache_file.unlock_and_close()
 
     def _ScopesFromMetadataServer(self, scopes):
         if not util.DetectGce():
@@ -449,7 +455,7 @@ def _GetRunFlowFlags(args=None):
 # TODO(craigcitro): Switch this from taking a path to taking a stream.
 def CredentialsFromFile(path, client_info, oauth2client_args=None):
     """Read credentials from a file."""
-    credential_store = oauth2client.multistore_file.get_credential_storage(
+    credential_store = multistore_file.get_credential_storage(
         path,
         client_info['client_id'],
         client_info['user_agent'],
