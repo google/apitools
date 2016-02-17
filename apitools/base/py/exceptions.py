@@ -58,7 +58,9 @@ class HttpError(CommunicationError):
         self.url = url
 
     def __str__(self):
-        content = self.content.decode('ascii', 'replace')
+        content = self.content
+        if isinstance(content, bytes):
+            content = self.content.decode('ascii', 'replace')
         return 'HttpError accessing <%s>: response: <%s>, content <%s>' % (
             self.url, self.response, content)
 
