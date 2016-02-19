@@ -243,7 +243,7 @@ class DescriptorGenerator(object):
         with printer.Indent(indent='    '):
             match = re.search(
                 r'^(?P<major>\d+)\.(?P<minor>\d+)\..*$', self.apitools_version)
-            printer('"google-apitools>=%s,~%s.%s",',
+            printer('"google-apitools>=%s,~=%s.%s",',
                     self.apitools_version,
                     match.group('major'), match.group('minor'))
             printer('"httplib2>=0.9",')
