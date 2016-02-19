@@ -21,7 +21,6 @@ Relevant links:
 """
 
 import datetime
-import re
 
 from six.moves import urllib_parse
 
@@ -241,11 +240,11 @@ class DescriptorGenerator(object):
         printer('import setuptools')
         printer('REQUIREMENTS = [')
         with printer.Indent(indent='    '):
-            match = re.search(
-                r'^(?P<major>\d+)\.(?P<minor>\d+)\..*$', self.apitools_version)
+            parts = self.apitools_version.split('.')
+            major = parts.pop(0)
+            minor = parts.pop(0)
             printer('"google-apitools>=%s,~=%s.%s",',
-                    self.apitools_version,
-                    match.group('major'), match.group('minor'))
+                    self.apitools_version, major, minor)
             printer('"httplib2>=0.9",')
             printer('"oauth2client>=1.4.12",')
         printer(']')
