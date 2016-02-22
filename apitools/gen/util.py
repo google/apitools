@@ -319,7 +319,7 @@ def FetchDiscoveryDoc(discovery_url, retries=5):
                 discovery_doc = json.loads(urllib_request.urlopen(url).read())
                 break
             except (urllib_error.HTTPError, urllib_error.URLError) as e:
-                logging.warning(
+                logging.info(
                     'Attempting to fetch discovery doc again after "%s"', e)
                 last_exception = e
     if discovery_doc is None:
