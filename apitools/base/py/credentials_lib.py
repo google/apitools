@@ -39,9 +39,19 @@ from apitools.base.py import util
 #
 # pylint: disable=wrong-import-order,ungrouped-imports
 try:
-    from oauth2client import gce, locked_file, multistore_file
+    from oauth2client.contrib import gce
 except ImportError:
-    from oauth2client.contrib import gce, locked_file, multistore_file
+    from oauth2client import gce
+
+try:
+    from oauth2client.contrib import locked_file
+except ImportError:
+    from oauth2client import locked_file
+
+try:
+    from oauth2client.contrib import multistore_file
+except ImportError:
+    from oauth2client import multistore_file
 
 try:
     import gflags
