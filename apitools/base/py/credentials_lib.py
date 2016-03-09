@@ -39,9 +39,19 @@ from apitools.base.py import util
 #
 # pylint: disable=wrong-import-order,ungrouped-imports
 try:
-    from oauth2client import gce, locked_file, multistore_file
+    from oauth2client.contrib import gce
 except ImportError:
-    from oauth2client.contrib import gce, locked_file, multistore_file
+    from oauth2client import gce
+
+try:
+    from oauth2client.contrib import locked_file
+except ImportError:
+    from oauth2client import locked_file
+
+try:
+    from oauth2client.contrib import multistore_file
+except ImportError:
+    from oauth2client import multistore_file
 
 try:
     import gflags
@@ -461,6 +471,22 @@ class GaeAssertionCredentials(oauth2client.client.AssertionCredentials):
         except app_identity.Error as e:
             raise exceptions.CredentialsError(str(e))
         self.access_token = token
+
+    def sign_blob(self, blob):
+        """Cryptographically sign a blob (of bytes).
+
+        This method is provided to support a common interface, but
+        the actual key used for a Google Compute Engine service account
+        is not available, so it can't be used to sign content.
+
+        Args:
+            blob: bytes, Message to be signed.
+
+        Raises:
+            NotImplementedError, always.
+        """
+        raise NotImplementedError(
+            'Compute Engine service accounts cannot sign blobs')
 
 
 def _GetRunFlowFlags(args=None):
