@@ -472,6 +472,22 @@ class GaeAssertionCredentials(oauth2client.client.AssertionCredentials):
             raise exceptions.CredentialsError(str(e))
         self.access_token = token
 
+    def sign_blob(self, blob):
+        """Cryptographically sign a blob (of bytes).
+
+        This method is provided to support a common interface, but
+        the actual key used for a Google Compute Engine service account
+        is not available, so it can't be used to sign content.
+
+        Args:
+            blob: bytes, Message to be signed.
+
+        Raises:
+            NotImplementedError, always.
+        """
+        raise NotImplementedError(
+            'Compute Engine service accounts cannot sign blobs')
+
 
 def _GetRunFlowFlags(args=None):
     # There's one rare situation where gsutil will not have argparse
