@@ -257,7 +257,10 @@ class GceAssertionCredentials(gce.AppAssertionCredentials):
         if cache_filename and not cached_scopes:
             self._WriteCacheFile(cache_filename, scopes)
 
-        super(GceAssertionCredentials, self).__init__(scopes, **kwds)
+        # We check the scopes above, but don't need them again after
+        # this point; in addition, the parent class spits out a
+        # warning if we pass them here, so we purposely drop them.
+        super(GceAssertionCredentials, self).__init__(**kwds)
 
     @classmethod
     def Get(cls, *args, **kwds):
