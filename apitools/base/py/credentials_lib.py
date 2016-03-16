@@ -21,6 +21,7 @@ import datetime
 import json
 import os
 import threading
+import warnings
 
 import httplib2
 import oauth2client
@@ -258,9 +259,12 @@ class GceAssertionCredentials(gce.AppAssertionCredentials):
             self._WriteCacheFile(cache_filename, scopes)
 
         # We check the scopes above, but don't need them again after
-        # this point; in addition, the parent class spits out a
-        # warning if we pass them here, so we purposely drop them.
-        super(GceAssertionCredentials, self).__init__(**kwds)
+        # this point. Newer versions of oauth2client let us drop them
+        # here, but since we support older versions as well, we just
+        # catch and squelch the warning.
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')
+            super(GceAssertionCredentials, self).__init__(scopes, **kwds)
 
     @classmethod
     def Get(cls, *args, **kwds):
