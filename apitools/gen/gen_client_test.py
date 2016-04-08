@@ -28,8 +28,8 @@ def GetTestDataPath(name):
 
 
 def _GetContent(file_path):
-  with open(file_path) as f:
-    return f.read()
+    with open(file_path) as f:
+        return f.read()
 
 
 @test_utils.RunOnlyOnPython27
@@ -54,8 +54,9 @@ class ClientGenCliTest(unittest2.TestCase):
                 '--root_package', 'google.apis',
                 'client'
             ])
-            expected_files = (set(['dns_v1.py']) |  # CLI files
-                set(['dns_v1_client.py', 'dns_v1_messages.py', '__init__.py'])) 
+            expected_files = (
+                set(['dns_v1.py']) |  # CLI files
+                set(['dns_v1_client.py', 'dns_v1_messages.py', '__init__.py']))
             self.assertEquals(expected_files, set(os.listdir(tmp_dir_path)))
             for expected_file in expected_files:
                 self.assertMultiLineEqual(
