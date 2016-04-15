@@ -48,81 +48,6 @@ class FusiontablesV1(base_api.BaseApiClient):
 
     def __init__(self, client):
       super(FusiontablesV1.ColumnService, self).__init__(client)
-      self._method_configs = {
-          'Delete': base_api.ApiMethodInfo(
-              http_method=u'DELETE',
-              method_id=u'fusiontables.column.delete',
-              ordered_params=[u'tableId', u'columnId'],
-              path_params=[u'columnId', u'tableId'],
-              query_params=[],
-              relative_path=u'tables/{tableId}/columns/{columnId}',
-              request_field='',
-              request_type_name=u'FusiontablesColumnDeleteRequest',
-              response_type_name=u'FusiontablesColumnDeleteResponse',
-              supports_download=False,
-          ),
-          'Get': base_api.ApiMethodInfo(
-              http_method=u'GET',
-              method_id=u'fusiontables.column.get',
-              ordered_params=[u'tableId', u'columnId'],
-              path_params=[u'columnId', u'tableId'],
-              query_params=[],
-              relative_path=u'tables/{tableId}/columns/{columnId}',
-              request_field='',
-              request_type_name=u'FusiontablesColumnGetRequest',
-              response_type_name=u'Column',
-              supports_download=False,
-          ),
-          'Insert': base_api.ApiMethodInfo(
-              http_method=u'POST',
-              method_id=u'fusiontables.column.insert',
-              ordered_params=[u'tableId'],
-              path_params=[u'tableId'],
-              query_params=[],
-              relative_path=u'tables/{tableId}/columns',
-              request_field=u'column',
-              request_type_name=u'FusiontablesColumnInsertRequest',
-              response_type_name=u'Column',
-              supports_download=False,
-          ),
-          'List': base_api.ApiMethodInfo(
-              http_method=u'GET',
-              method_id=u'fusiontables.column.list',
-              ordered_params=[u'tableId'],
-              path_params=[u'tableId'],
-              query_params=[u'maxResults', u'pageToken'],
-              relative_path=u'tables/{tableId}/columns',
-              request_field='',
-              request_type_name=u'FusiontablesColumnListRequest',
-              response_type_name=u'ColumnList',
-              supports_download=False,
-          ),
-          'Patch': base_api.ApiMethodInfo(
-              http_method=u'PATCH',
-              method_id=u'fusiontables.column.patch',
-              ordered_params=[u'tableId', u'columnId'],
-              path_params=[u'columnId', u'tableId'],
-              query_params=[],
-              relative_path=u'tables/{tableId}/columns/{columnId}',
-              request_field=u'column',
-              request_type_name=u'FusiontablesColumnPatchRequest',
-              response_type_name=u'Column',
-              supports_download=False,
-          ),
-          'Update': base_api.ApiMethodInfo(
-              http_method=u'PUT',
-              method_id=u'fusiontables.column.update',
-              ordered_params=[u'tableId', u'columnId'],
-              path_params=[u'columnId', u'tableId'],
-              query_params=[],
-              relative_path=u'tables/{tableId}/columns/{columnId}',
-              request_field=u'column',
-              request_type_name=u'FusiontablesColumnUpdateRequest',
-              response_type_name=u'Column',
-              supports_download=False,
-          ),
-          }
-
       self._upload_configs = {
           }
 
@@ -139,6 +64,19 @@ class FusiontablesV1(base_api.BaseApiClient):
       return self._RunMethod(
           config, request, global_params=global_params)
 
+    Delete.method_config = lambda: base_api.ApiMethodInfo(
+        http_method=u'DELETE',
+        method_id=u'fusiontables.column.delete',
+        ordered_params=[u'tableId', u'columnId'],
+        path_params=[u'columnId', u'tableId'],
+        query_params=[],
+        relative_path=u'tables/{tableId}/columns/{columnId}',
+        request_field='',
+        request_type_name=u'FusiontablesColumnDeleteRequest',
+        response_type_name=u'FusiontablesColumnDeleteResponse',
+        supports_download=False,
+    )
+
     def Get(self, request, global_params=None):
       """Retrieves a specific column by its id.
 
@@ -151,6 +89,19 @@ class FusiontablesV1(base_api.BaseApiClient):
       config = self.GetMethodConfig('Get')
       return self._RunMethod(
           config, request, global_params=global_params)
+
+    Get.method_config = lambda: base_api.ApiMethodInfo(
+        http_method=u'GET',
+        method_id=u'fusiontables.column.get',
+        ordered_params=[u'tableId', u'columnId'],
+        path_params=[u'columnId', u'tableId'],
+        query_params=[],
+        relative_path=u'tables/{tableId}/columns/{columnId}',
+        request_field='',
+        request_type_name=u'FusiontablesColumnGetRequest',
+        response_type_name=u'Column',
+        supports_download=False,
+    )
 
     def Insert(self, request, global_params=None):
       """Adds a new column to the table.
@@ -165,6 +116,19 @@ class FusiontablesV1(base_api.BaseApiClient):
       return self._RunMethod(
           config, request, global_params=global_params)
 
+    Insert.method_config = lambda: base_api.ApiMethodInfo(
+        http_method=u'POST',
+        method_id=u'fusiontables.column.insert',
+        ordered_params=[u'tableId'],
+        path_params=[u'tableId'],
+        query_params=[],
+        relative_path=u'tables/{tableId}/columns',
+        request_field=u'column',
+        request_type_name=u'FusiontablesColumnInsertRequest',
+        response_type_name=u'Column',
+        supports_download=False,
+    )
+
     def List(self, request, global_params=None):
       """Retrieves a list of columns.
 
@@ -177,6 +141,19 @@ class FusiontablesV1(base_api.BaseApiClient):
       config = self.GetMethodConfig('List')
       return self._RunMethod(
           config, request, global_params=global_params)
+
+    List.method_config = lambda: base_api.ApiMethodInfo(
+        http_method=u'GET',
+        method_id=u'fusiontables.column.list',
+        ordered_params=[u'tableId'],
+        path_params=[u'tableId'],
+        query_params=[u'maxResults', u'pageToken'],
+        relative_path=u'tables/{tableId}/columns',
+        request_field='',
+        request_type_name=u'FusiontablesColumnListRequest',
+        response_type_name=u'ColumnList',
+        supports_download=False,
+    )
 
     def Patch(self, request, global_params=None):
       """Updates the name or type of an existing column. This method supports patch semantics.
@@ -191,6 +168,19 @@ class FusiontablesV1(base_api.BaseApiClient):
       return self._RunMethod(
           config, request, global_params=global_params)
 
+    Patch.method_config = lambda: base_api.ApiMethodInfo(
+        http_method=u'PATCH',
+        method_id=u'fusiontables.column.patch',
+        ordered_params=[u'tableId', u'columnId'],
+        path_params=[u'columnId', u'tableId'],
+        query_params=[],
+        relative_path=u'tables/{tableId}/columns/{columnId}',
+        request_field=u'column',
+        request_type_name=u'FusiontablesColumnPatchRequest',
+        response_type_name=u'Column',
+        supports_download=False,
+    )
+
     def Update(self, request, global_params=None):
       """Updates the name or type of an existing column.
 
@@ -204,6 +194,19 @@ class FusiontablesV1(base_api.BaseApiClient):
       return self._RunMethod(
           config, request, global_params=global_params)
 
+    Update.method_config = lambda: base_api.ApiMethodInfo(
+        http_method=u'PUT',
+        method_id=u'fusiontables.column.update',
+        ordered_params=[u'tableId', u'columnId'],
+        path_params=[u'columnId', u'tableId'],
+        query_params=[],
+        relative_path=u'tables/{tableId}/columns/{columnId}',
+        request_field=u'column',
+        request_type_name=u'FusiontablesColumnUpdateRequest',
+        response_type_name=u'Column',
+        supports_download=False,
+    )
+
   class QueryService(base_api.BaseApiService):
     """Service class for the query resource."""
 
@@ -211,33 +214,6 @@ class FusiontablesV1(base_api.BaseApiClient):
 
     def __init__(self, client):
       super(FusiontablesV1.QueryService, self).__init__(client)
-      self._method_configs = {
-          'Sql': base_api.ApiMethodInfo(
-              http_method=u'POST',
-              method_id=u'fusiontables.query.sql',
-              ordered_params=[u'sql'],
-              path_params=[],
-              query_params=[u'hdrs', u'sql', u'typed'],
-              relative_path=u'query',
-              request_field='',
-              request_type_name=u'FusiontablesQuerySqlRequest',
-              response_type_name=u'Sqlresponse',
-              supports_download=True,
-          ),
-          'SqlGet': base_api.ApiMethodInfo(
-              http_method=u'GET',
-              method_id=u'fusiontables.query.sqlGet',
-              ordered_params=[u'sql'],
-              path_params=[],
-              query_params=[u'hdrs', u'sql', u'typed'],
-              relative_path=u'query',
-              request_field='',
-              request_type_name=u'FusiontablesQuerySqlGetRequest',
-              response_type_name=u'Sqlresponse',
-              supports_download=True,
-          ),
-          }
-
       self._upload_configs = {
           }
 
@@ -257,6 +233,19 @@ class FusiontablesV1(base_api.BaseApiClient):
           config, request, global_params=global_params,
           download=download)
 
+    Sql.method_config = lambda: base_api.ApiMethodInfo(
+        http_method=u'POST',
+        method_id=u'fusiontables.query.sql',
+        ordered_params=[u'sql'],
+        path_params=[],
+        query_params=[u'hdrs', u'sql', u'typed'],
+        relative_path=u'query',
+        request_field='',
+        request_type_name=u'FusiontablesQuerySqlRequest',
+        response_type_name=u'Sqlresponse',
+        supports_download=True,
+    )
+
     def SqlGet(self, request, global_params=None, download=None):
       """Executes an SQL SELECT/SHOW/DESCRIBE statement.
 
@@ -273,6 +262,19 @@ class FusiontablesV1(base_api.BaseApiClient):
           config, request, global_params=global_params,
           download=download)
 
+    SqlGet.method_config = lambda: base_api.ApiMethodInfo(
+        http_method=u'GET',
+        method_id=u'fusiontables.query.sqlGet',
+        ordered_params=[u'sql'],
+        path_params=[],
+        query_params=[u'hdrs', u'sql', u'typed'],
+        relative_path=u'query',
+        request_field='',
+        request_type_name=u'FusiontablesQuerySqlGetRequest',
+        response_type_name=u'Sqlresponse',
+        supports_download=True,
+    )
+
   class StyleService(base_api.BaseApiService):
     """Service class for the style resource."""
 
@@ -280,81 +282,6 @@ class FusiontablesV1(base_api.BaseApiClient):
 
     def __init__(self, client):
       super(FusiontablesV1.StyleService, self).__init__(client)
-      self._method_configs = {
-          'Delete': base_api.ApiMethodInfo(
-              http_method=u'DELETE',
-              method_id=u'fusiontables.style.delete',
-              ordered_params=[u'tableId', u'styleId'],
-              path_params=[u'styleId', u'tableId'],
-              query_params=[],
-              relative_path=u'tables/{tableId}/styles/{styleId}',
-              request_field='',
-              request_type_name=u'FusiontablesStyleDeleteRequest',
-              response_type_name=u'FusiontablesStyleDeleteResponse',
-              supports_download=False,
-          ),
-          'Get': base_api.ApiMethodInfo(
-              http_method=u'GET',
-              method_id=u'fusiontables.style.get',
-              ordered_params=[u'tableId', u'styleId'],
-              path_params=[u'styleId', u'tableId'],
-              query_params=[],
-              relative_path=u'tables/{tableId}/styles/{styleId}',
-              request_field='',
-              request_type_name=u'FusiontablesStyleGetRequest',
-              response_type_name=u'StyleSetting',
-              supports_download=False,
-          ),
-          'Insert': base_api.ApiMethodInfo(
-              http_method=u'POST',
-              method_id=u'fusiontables.style.insert',
-              ordered_params=[u'tableId'],
-              path_params=[u'tableId'],
-              query_params=[],
-              relative_path=u'tables/{tableId}/styles',
-              request_field='<request>',
-              request_type_name=u'StyleSetting',
-              response_type_name=u'StyleSetting',
-              supports_download=False,
-          ),
-          'List': base_api.ApiMethodInfo(
-              http_method=u'GET',
-              method_id=u'fusiontables.style.list',
-              ordered_params=[u'tableId'],
-              path_params=[u'tableId'],
-              query_params=[u'maxResults', u'pageToken'],
-              relative_path=u'tables/{tableId}/styles',
-              request_field='',
-              request_type_name=u'FusiontablesStyleListRequest',
-              response_type_name=u'StyleSettingList',
-              supports_download=False,
-          ),
-          'Patch': base_api.ApiMethodInfo(
-              http_method=u'PATCH',
-              method_id=u'fusiontables.style.patch',
-              ordered_params=[u'tableId', u'styleId'],
-              path_params=[u'styleId', u'tableId'],
-              query_params=[],
-              relative_path=u'tables/{tableId}/styles/{styleId}',
-              request_field='<request>',
-              request_type_name=u'StyleSetting',
-              response_type_name=u'StyleSetting',
-              supports_download=False,
-          ),
-          'Update': base_api.ApiMethodInfo(
-              http_method=u'PUT',
-              method_id=u'fusiontables.style.update',
-              ordered_params=[u'tableId', u'styleId'],
-              path_params=[u'styleId', u'tableId'],
-              query_params=[],
-              relative_path=u'tables/{tableId}/styles/{styleId}',
-              request_field='<request>',
-              request_type_name=u'StyleSetting',
-              response_type_name=u'StyleSetting',
-              supports_download=False,
-          ),
-          }
-
       self._upload_configs = {
           }
 
@@ -371,6 +298,19 @@ class FusiontablesV1(base_api.BaseApiClient):
       return self._RunMethod(
           config, request, global_params=global_params)
 
+    Delete.method_config = lambda: base_api.ApiMethodInfo(
+        http_method=u'DELETE',
+        method_id=u'fusiontables.style.delete',
+        ordered_params=[u'tableId', u'styleId'],
+        path_params=[u'styleId', u'tableId'],
+        query_params=[],
+        relative_path=u'tables/{tableId}/styles/{styleId}',
+        request_field='',
+        request_type_name=u'FusiontablesStyleDeleteRequest',
+        response_type_name=u'FusiontablesStyleDeleteResponse',
+        supports_download=False,
+    )
+
     def Get(self, request, global_params=None):
       """Gets a specific style.
 
@@ -383,6 +323,19 @@ class FusiontablesV1(base_api.BaseApiClient):
       config = self.GetMethodConfig('Get')
       return self._RunMethod(
           config, request, global_params=global_params)
+
+    Get.method_config = lambda: base_api.ApiMethodInfo(
+        http_method=u'GET',
+        method_id=u'fusiontables.style.get',
+        ordered_params=[u'tableId', u'styleId'],
+        path_params=[u'styleId', u'tableId'],
+        query_params=[],
+        relative_path=u'tables/{tableId}/styles/{styleId}',
+        request_field='',
+        request_type_name=u'FusiontablesStyleGetRequest',
+        response_type_name=u'StyleSetting',
+        supports_download=False,
+    )
 
     def Insert(self, request, global_params=None):
       """Adds a new style for the table.
@@ -397,6 +350,19 @@ class FusiontablesV1(base_api.BaseApiClient):
       return self._RunMethod(
           config, request, global_params=global_params)
 
+    Insert.method_config = lambda: base_api.ApiMethodInfo(
+        http_method=u'POST',
+        method_id=u'fusiontables.style.insert',
+        ordered_params=[u'tableId'],
+        path_params=[u'tableId'],
+        query_params=[],
+        relative_path=u'tables/{tableId}/styles',
+        request_field='<request>',
+        request_type_name=u'StyleSetting',
+        response_type_name=u'StyleSetting',
+        supports_download=False,
+    )
+
     def List(self, request, global_params=None):
       """Retrieves a list of styles.
 
@@ -409,6 +375,19 @@ class FusiontablesV1(base_api.BaseApiClient):
       config = self.GetMethodConfig('List')
       return self._RunMethod(
           config, request, global_params=global_params)
+
+    List.method_config = lambda: base_api.ApiMethodInfo(
+        http_method=u'GET',
+        method_id=u'fusiontables.style.list',
+        ordered_params=[u'tableId'],
+        path_params=[u'tableId'],
+        query_params=[u'maxResults', u'pageToken'],
+        relative_path=u'tables/{tableId}/styles',
+        request_field='',
+        request_type_name=u'FusiontablesStyleListRequest',
+        response_type_name=u'StyleSettingList',
+        supports_download=False,
+    )
 
     def Patch(self, request, global_params=None):
       """Updates an existing style. This method supports patch semantics.
@@ -423,6 +402,19 @@ class FusiontablesV1(base_api.BaseApiClient):
       return self._RunMethod(
           config, request, global_params=global_params)
 
+    Patch.method_config = lambda: base_api.ApiMethodInfo(
+        http_method=u'PATCH',
+        method_id=u'fusiontables.style.patch',
+        ordered_params=[u'tableId', u'styleId'],
+        path_params=[u'styleId', u'tableId'],
+        query_params=[],
+        relative_path=u'tables/{tableId}/styles/{styleId}',
+        request_field='<request>',
+        request_type_name=u'StyleSetting',
+        response_type_name=u'StyleSetting',
+        supports_download=False,
+    )
+
     def Update(self, request, global_params=None):
       """Updates an existing style.
 
@@ -436,6 +428,19 @@ class FusiontablesV1(base_api.BaseApiClient):
       return self._RunMethod(
           config, request, global_params=global_params)
 
+    Update.method_config = lambda: base_api.ApiMethodInfo(
+        http_method=u'PUT',
+        method_id=u'fusiontables.style.update',
+        ordered_params=[u'tableId', u'styleId'],
+        path_params=[u'styleId', u'tableId'],
+        query_params=[],
+        relative_path=u'tables/{tableId}/styles/{styleId}',
+        request_field='<request>',
+        request_type_name=u'StyleSetting',
+        response_type_name=u'StyleSetting',
+        supports_download=False,
+    )
+
   class TableService(base_api.BaseApiService):
     """Service class for the table resource."""
 
@@ -443,117 +448,6 @@ class FusiontablesV1(base_api.BaseApiClient):
 
     def __init__(self, client):
       super(FusiontablesV1.TableService, self).__init__(client)
-      self._method_configs = {
-          'Copy': base_api.ApiMethodInfo(
-              http_method=u'POST',
-              method_id=u'fusiontables.table.copy',
-              ordered_params=[u'tableId'],
-              path_params=[u'tableId'],
-              query_params=[u'copyPresentation'],
-              relative_path=u'tables/{tableId}/copy',
-              request_field='',
-              request_type_name=u'FusiontablesTableCopyRequest',
-              response_type_name=u'Table',
-              supports_download=False,
-          ),
-          'Delete': base_api.ApiMethodInfo(
-              http_method=u'DELETE',
-              method_id=u'fusiontables.table.delete',
-              ordered_params=[u'tableId'],
-              path_params=[u'tableId'],
-              query_params=[],
-              relative_path=u'tables/{tableId}',
-              request_field='',
-              request_type_name=u'FusiontablesTableDeleteRequest',
-              response_type_name=u'FusiontablesTableDeleteResponse',
-              supports_download=False,
-          ),
-          'Get': base_api.ApiMethodInfo(
-              http_method=u'GET',
-              method_id=u'fusiontables.table.get',
-              ordered_params=[u'tableId'],
-              path_params=[u'tableId'],
-              query_params=[],
-              relative_path=u'tables/{tableId}',
-              request_field='',
-              request_type_name=u'FusiontablesTableGetRequest',
-              response_type_name=u'Table',
-              supports_download=False,
-          ),
-          'ImportRows': base_api.ApiMethodInfo(
-              http_method=u'POST',
-              method_id=u'fusiontables.table.importRows',
-              ordered_params=[u'tableId'],
-              path_params=[u'tableId'],
-              query_params=[u'delimiter', u'encoding', u'endLine', u'isStrict', u'startLine'],
-              relative_path=u'tables/{tableId}/import',
-              request_field='',
-              request_type_name=u'FusiontablesTableImportRowsRequest',
-              response_type_name=u'Import',
-              supports_download=False,
-          ),
-          'ImportTable': base_api.ApiMethodInfo(
-              http_method=u'POST',
-              method_id=u'fusiontables.table.importTable',
-              ordered_params=[u'name'],
-              path_params=[],
-              query_params=[u'delimiter', u'encoding', u'name'],
-              relative_path=u'tables/import',
-              request_field='',
-              request_type_name=u'FusiontablesTableImportTableRequest',
-              response_type_name=u'Table',
-              supports_download=False,
-          ),
-          'Insert': base_api.ApiMethodInfo(
-              http_method=u'POST',
-              method_id=u'fusiontables.table.insert',
-              ordered_params=[],
-              path_params=[],
-              query_params=[],
-              relative_path=u'tables',
-              request_field='<request>',
-              request_type_name=u'Table',
-              response_type_name=u'Table',
-              supports_download=False,
-          ),
-          'List': base_api.ApiMethodInfo(
-              http_method=u'GET',
-              method_id=u'fusiontables.table.list',
-              ordered_params=[],
-              path_params=[],
-              query_params=[u'maxResults', u'pageToken'],
-              relative_path=u'tables',
-              request_field='',
-              request_type_name=u'FusiontablesTableListRequest',
-              response_type_name=u'TableList',
-              supports_download=False,
-          ),
-          'Patch': base_api.ApiMethodInfo(
-              http_method=u'PATCH',
-              method_id=u'fusiontables.table.patch',
-              ordered_params=[u'tableId'],
-              path_params=[u'tableId'],
-              query_params=[u'replaceViewDefinition'],
-              relative_path=u'tables/{tableId}',
-              request_field=u'table',
-              request_type_name=u'FusiontablesTablePatchRequest',
-              response_type_name=u'Table',
-              supports_download=False,
-          ),
-          'Update': base_api.ApiMethodInfo(
-              http_method=u'PUT',
-              method_id=u'fusiontables.table.update',
-              ordered_params=[u'tableId'],
-              path_params=[u'tableId'],
-              query_params=[u'replaceViewDefinition'],
-              relative_path=u'tables/{tableId}',
-              request_field=u'table',
-              request_type_name=u'FusiontablesTableUpdateRequest',
-              response_type_name=u'Table',
-              supports_download=False,
-          ),
-          }
-
       self._upload_configs = {
           'ImportRows': base_api.ApiUploadInfo(
               accept=['application/octet-stream'],
@@ -586,6 +480,19 @@ class FusiontablesV1(base_api.BaseApiClient):
       return self._RunMethod(
           config, request, global_params=global_params)
 
+    Copy.method_config = lambda: base_api.ApiMethodInfo(
+        http_method=u'POST',
+        method_id=u'fusiontables.table.copy',
+        ordered_params=[u'tableId'],
+        path_params=[u'tableId'],
+        query_params=[u'copyPresentation'],
+        relative_path=u'tables/{tableId}/copy',
+        request_field='',
+        request_type_name=u'FusiontablesTableCopyRequest',
+        response_type_name=u'Table',
+        supports_download=False,
+    )
+
     def Delete(self, request, global_params=None):
       """Deletes a table.
 
@@ -599,6 +506,19 @@ class FusiontablesV1(base_api.BaseApiClient):
       return self._RunMethod(
           config, request, global_params=global_params)
 
+    Delete.method_config = lambda: base_api.ApiMethodInfo(
+        http_method=u'DELETE',
+        method_id=u'fusiontables.table.delete',
+        ordered_params=[u'tableId'],
+        path_params=[u'tableId'],
+        query_params=[],
+        relative_path=u'tables/{tableId}',
+        request_field='',
+        request_type_name=u'FusiontablesTableDeleteRequest',
+        response_type_name=u'FusiontablesTableDeleteResponse',
+        supports_download=False,
+    )
+
     def Get(self, request, global_params=None):
       """Retrieves a specific table by its id.
 
@@ -611,6 +531,19 @@ class FusiontablesV1(base_api.BaseApiClient):
       config = self.GetMethodConfig('Get')
       return self._RunMethod(
           config, request, global_params=global_params)
+
+    Get.method_config = lambda: base_api.ApiMethodInfo(
+        http_method=u'GET',
+        method_id=u'fusiontables.table.get',
+        ordered_params=[u'tableId'],
+        path_params=[u'tableId'],
+        query_params=[],
+        relative_path=u'tables/{tableId}',
+        request_field='',
+        request_type_name=u'FusiontablesTableGetRequest',
+        response_type_name=u'Table',
+        supports_download=False,
+    )
 
     def ImportRows(self, request, global_params=None, upload=None):
       """Import more rows into a table.
@@ -629,6 +562,19 @@ class FusiontablesV1(base_api.BaseApiClient):
           config, request, global_params=global_params,
           upload=upload, upload_config=upload_config)
 
+    ImportRows.method_config = lambda: base_api.ApiMethodInfo(
+        http_method=u'POST',
+        method_id=u'fusiontables.table.importRows',
+        ordered_params=[u'tableId'],
+        path_params=[u'tableId'],
+        query_params=[u'delimiter', u'encoding', u'endLine', u'isStrict', u'startLine'],
+        relative_path=u'tables/{tableId}/import',
+        request_field='',
+        request_type_name=u'FusiontablesTableImportRowsRequest',
+        response_type_name=u'Import',
+        supports_download=False,
+    )
+
     def ImportTable(self, request, global_params=None, upload=None):
       """Import a new table.
 
@@ -646,6 +592,19 @@ class FusiontablesV1(base_api.BaseApiClient):
           config, request, global_params=global_params,
           upload=upload, upload_config=upload_config)
 
+    ImportTable.method_config = lambda: base_api.ApiMethodInfo(
+        http_method=u'POST',
+        method_id=u'fusiontables.table.importTable',
+        ordered_params=[u'name'],
+        path_params=[],
+        query_params=[u'delimiter', u'encoding', u'name'],
+        relative_path=u'tables/import',
+        request_field='',
+        request_type_name=u'FusiontablesTableImportTableRequest',
+        response_type_name=u'Table',
+        supports_download=False,
+    )
+
     def Insert(self, request, global_params=None):
       """Creates a new table.
 
@@ -658,6 +617,19 @@ class FusiontablesV1(base_api.BaseApiClient):
       config = self.GetMethodConfig('Insert')
       return self._RunMethod(
           config, request, global_params=global_params)
+
+    Insert.method_config = lambda: base_api.ApiMethodInfo(
+        http_method=u'POST',
+        method_id=u'fusiontables.table.insert',
+        ordered_params=[],
+        path_params=[],
+        query_params=[],
+        relative_path=u'tables',
+        request_field='<request>',
+        request_type_name=u'Table',
+        response_type_name=u'Table',
+        supports_download=False,
+    )
 
     def List(self, request, global_params=None):
       """Retrieves a list of tables a user owns.
@@ -672,6 +644,19 @@ class FusiontablesV1(base_api.BaseApiClient):
       return self._RunMethod(
           config, request, global_params=global_params)
 
+    List.method_config = lambda: base_api.ApiMethodInfo(
+        http_method=u'GET',
+        method_id=u'fusiontables.table.list',
+        ordered_params=[],
+        path_params=[],
+        query_params=[u'maxResults', u'pageToken'],
+        relative_path=u'tables',
+        request_field='',
+        request_type_name=u'FusiontablesTableListRequest',
+        response_type_name=u'TableList',
+        supports_download=False,
+    )
+
     def Patch(self, request, global_params=None):
       """Updates an existing table. Unless explicitly requested, only the name, description, and attribution will be updated. This method supports patch semantics.
 
@@ -684,6 +669,19 @@ class FusiontablesV1(base_api.BaseApiClient):
       config = self.GetMethodConfig('Patch')
       return self._RunMethod(
           config, request, global_params=global_params)
+
+    Patch.method_config = lambda: base_api.ApiMethodInfo(
+        http_method=u'PATCH',
+        method_id=u'fusiontables.table.patch',
+        ordered_params=[u'tableId'],
+        path_params=[u'tableId'],
+        query_params=[u'replaceViewDefinition'],
+        relative_path=u'tables/{tableId}',
+        request_field=u'table',
+        request_type_name=u'FusiontablesTablePatchRequest',
+        response_type_name=u'Table',
+        supports_download=False,
+    )
 
     def Update(self, request, global_params=None):
       """Updates an existing table. Unless explicitly requested, only the name, description, and attribution will be updated.
@@ -698,6 +696,19 @@ class FusiontablesV1(base_api.BaseApiClient):
       return self._RunMethod(
           config, request, global_params=global_params)
 
+    Update.method_config = lambda: base_api.ApiMethodInfo(
+        http_method=u'PUT',
+        method_id=u'fusiontables.table.update',
+        ordered_params=[u'tableId'],
+        path_params=[u'tableId'],
+        query_params=[u'replaceViewDefinition'],
+        relative_path=u'tables/{tableId}',
+        request_field=u'table',
+        request_type_name=u'FusiontablesTableUpdateRequest',
+        response_type_name=u'Table',
+        supports_download=False,
+    )
+
   class TaskService(base_api.BaseApiService):
     """Service class for the task resource."""
 
@@ -705,45 +716,6 @@ class FusiontablesV1(base_api.BaseApiClient):
 
     def __init__(self, client):
       super(FusiontablesV1.TaskService, self).__init__(client)
-      self._method_configs = {
-          'Delete': base_api.ApiMethodInfo(
-              http_method=u'DELETE',
-              method_id=u'fusiontables.task.delete',
-              ordered_params=[u'tableId', u'taskId'],
-              path_params=[u'tableId', u'taskId'],
-              query_params=[],
-              relative_path=u'tables/{tableId}/tasks/{taskId}',
-              request_field='',
-              request_type_name=u'FusiontablesTaskDeleteRequest',
-              response_type_name=u'FusiontablesTaskDeleteResponse',
-              supports_download=False,
-          ),
-          'Get': base_api.ApiMethodInfo(
-              http_method=u'GET',
-              method_id=u'fusiontables.task.get',
-              ordered_params=[u'tableId', u'taskId'],
-              path_params=[u'tableId', u'taskId'],
-              query_params=[],
-              relative_path=u'tables/{tableId}/tasks/{taskId}',
-              request_field='',
-              request_type_name=u'FusiontablesTaskGetRequest',
-              response_type_name=u'Task',
-              supports_download=False,
-          ),
-          'List': base_api.ApiMethodInfo(
-              http_method=u'GET',
-              method_id=u'fusiontables.task.list',
-              ordered_params=[u'tableId'],
-              path_params=[u'tableId'],
-              query_params=[u'maxResults', u'pageToken', u'startIndex'],
-              relative_path=u'tables/{tableId}/tasks',
-              request_field='',
-              request_type_name=u'FusiontablesTaskListRequest',
-              response_type_name=u'TaskList',
-              supports_download=False,
-          ),
-          }
-
       self._upload_configs = {
           }
 
@@ -760,6 +732,19 @@ class FusiontablesV1(base_api.BaseApiClient):
       return self._RunMethod(
           config, request, global_params=global_params)
 
+    Delete.method_config = lambda: base_api.ApiMethodInfo(
+        http_method=u'DELETE',
+        method_id=u'fusiontables.task.delete',
+        ordered_params=[u'tableId', u'taskId'],
+        path_params=[u'tableId', u'taskId'],
+        query_params=[],
+        relative_path=u'tables/{tableId}/tasks/{taskId}',
+        request_field='',
+        request_type_name=u'FusiontablesTaskDeleteRequest',
+        response_type_name=u'FusiontablesTaskDeleteResponse',
+        supports_download=False,
+    )
+
     def Get(self, request, global_params=None):
       """Retrieves a specific task by its id.
 
@@ -772,6 +757,19 @@ class FusiontablesV1(base_api.BaseApiClient):
       config = self.GetMethodConfig('Get')
       return self._RunMethod(
           config, request, global_params=global_params)
+
+    Get.method_config = lambda: base_api.ApiMethodInfo(
+        http_method=u'GET',
+        method_id=u'fusiontables.task.get',
+        ordered_params=[u'tableId', u'taskId'],
+        path_params=[u'tableId', u'taskId'],
+        query_params=[],
+        relative_path=u'tables/{tableId}/tasks/{taskId}',
+        request_field='',
+        request_type_name=u'FusiontablesTaskGetRequest',
+        response_type_name=u'Task',
+        supports_download=False,
+    )
 
     def List(self, request, global_params=None):
       """Retrieves a list of tasks.
@@ -786,6 +784,19 @@ class FusiontablesV1(base_api.BaseApiClient):
       return self._RunMethod(
           config, request, global_params=global_params)
 
+    List.method_config = lambda: base_api.ApiMethodInfo(
+        http_method=u'GET',
+        method_id=u'fusiontables.task.list',
+        ordered_params=[u'tableId'],
+        path_params=[u'tableId'],
+        query_params=[u'maxResults', u'pageToken', u'startIndex'],
+        relative_path=u'tables/{tableId}/tasks',
+        request_field='',
+        request_type_name=u'FusiontablesTaskListRequest',
+        response_type_name=u'TaskList',
+        supports_download=False,
+    )
+
   class TemplateService(base_api.BaseApiService):
     """Service class for the template resource."""
 
@@ -793,81 +804,6 @@ class FusiontablesV1(base_api.BaseApiClient):
 
     def __init__(self, client):
       super(FusiontablesV1.TemplateService, self).__init__(client)
-      self._method_configs = {
-          'Delete': base_api.ApiMethodInfo(
-              http_method=u'DELETE',
-              method_id=u'fusiontables.template.delete',
-              ordered_params=[u'tableId', u'templateId'],
-              path_params=[u'tableId', u'templateId'],
-              query_params=[],
-              relative_path=u'tables/{tableId}/templates/{templateId}',
-              request_field='',
-              request_type_name=u'FusiontablesTemplateDeleteRequest',
-              response_type_name=u'FusiontablesTemplateDeleteResponse',
-              supports_download=False,
-          ),
-          'Get': base_api.ApiMethodInfo(
-              http_method=u'GET',
-              method_id=u'fusiontables.template.get',
-              ordered_params=[u'tableId', u'templateId'],
-              path_params=[u'tableId', u'templateId'],
-              query_params=[],
-              relative_path=u'tables/{tableId}/templates/{templateId}',
-              request_field='',
-              request_type_name=u'FusiontablesTemplateGetRequest',
-              response_type_name=u'Template',
-              supports_download=False,
-          ),
-          'Insert': base_api.ApiMethodInfo(
-              http_method=u'POST',
-              method_id=u'fusiontables.template.insert',
-              ordered_params=[u'tableId'],
-              path_params=[u'tableId'],
-              query_params=[],
-              relative_path=u'tables/{tableId}/templates',
-              request_field='<request>',
-              request_type_name=u'Template',
-              response_type_name=u'Template',
-              supports_download=False,
-          ),
-          'List': base_api.ApiMethodInfo(
-              http_method=u'GET',
-              method_id=u'fusiontables.template.list',
-              ordered_params=[u'tableId'],
-              path_params=[u'tableId'],
-              query_params=[u'maxResults', u'pageToken'],
-              relative_path=u'tables/{tableId}/templates',
-              request_field='',
-              request_type_name=u'FusiontablesTemplateListRequest',
-              response_type_name=u'TemplateList',
-              supports_download=False,
-          ),
-          'Patch': base_api.ApiMethodInfo(
-              http_method=u'PATCH',
-              method_id=u'fusiontables.template.patch',
-              ordered_params=[u'tableId', u'templateId'],
-              path_params=[u'tableId', u'templateId'],
-              query_params=[],
-              relative_path=u'tables/{tableId}/templates/{templateId}',
-              request_field='<request>',
-              request_type_name=u'Template',
-              response_type_name=u'Template',
-              supports_download=False,
-          ),
-          'Update': base_api.ApiMethodInfo(
-              http_method=u'PUT',
-              method_id=u'fusiontables.template.update',
-              ordered_params=[u'tableId', u'templateId'],
-              path_params=[u'tableId', u'templateId'],
-              query_params=[],
-              relative_path=u'tables/{tableId}/templates/{templateId}',
-              request_field='<request>',
-              request_type_name=u'Template',
-              response_type_name=u'Template',
-              supports_download=False,
-          ),
-          }
-
       self._upload_configs = {
           }
 
@@ -884,6 +820,19 @@ class FusiontablesV1(base_api.BaseApiClient):
       return self._RunMethod(
           config, request, global_params=global_params)
 
+    Delete.method_config = lambda: base_api.ApiMethodInfo(
+        http_method=u'DELETE',
+        method_id=u'fusiontables.template.delete',
+        ordered_params=[u'tableId', u'templateId'],
+        path_params=[u'tableId', u'templateId'],
+        query_params=[],
+        relative_path=u'tables/{tableId}/templates/{templateId}',
+        request_field='',
+        request_type_name=u'FusiontablesTemplateDeleteRequest',
+        response_type_name=u'FusiontablesTemplateDeleteResponse',
+        supports_download=False,
+    )
+
     def Get(self, request, global_params=None):
       """Retrieves a specific template by its id.
 
@@ -896,6 +845,19 @@ class FusiontablesV1(base_api.BaseApiClient):
       config = self.GetMethodConfig('Get')
       return self._RunMethod(
           config, request, global_params=global_params)
+
+    Get.method_config = lambda: base_api.ApiMethodInfo(
+        http_method=u'GET',
+        method_id=u'fusiontables.template.get',
+        ordered_params=[u'tableId', u'templateId'],
+        path_params=[u'tableId', u'templateId'],
+        query_params=[],
+        relative_path=u'tables/{tableId}/templates/{templateId}',
+        request_field='',
+        request_type_name=u'FusiontablesTemplateGetRequest',
+        response_type_name=u'Template',
+        supports_download=False,
+    )
 
     def Insert(self, request, global_params=None):
       """Creates a new template for the table.
@@ -910,6 +872,19 @@ class FusiontablesV1(base_api.BaseApiClient):
       return self._RunMethod(
           config, request, global_params=global_params)
 
+    Insert.method_config = lambda: base_api.ApiMethodInfo(
+        http_method=u'POST',
+        method_id=u'fusiontables.template.insert',
+        ordered_params=[u'tableId'],
+        path_params=[u'tableId'],
+        query_params=[],
+        relative_path=u'tables/{tableId}/templates',
+        request_field='<request>',
+        request_type_name=u'Template',
+        response_type_name=u'Template',
+        supports_download=False,
+    )
+
     def List(self, request, global_params=None):
       """Retrieves a list of templates.
 
@@ -922,6 +897,19 @@ class FusiontablesV1(base_api.BaseApiClient):
       config = self.GetMethodConfig('List')
       return self._RunMethod(
           config, request, global_params=global_params)
+
+    List.method_config = lambda: base_api.ApiMethodInfo(
+        http_method=u'GET',
+        method_id=u'fusiontables.template.list',
+        ordered_params=[u'tableId'],
+        path_params=[u'tableId'],
+        query_params=[u'maxResults', u'pageToken'],
+        relative_path=u'tables/{tableId}/templates',
+        request_field='',
+        request_type_name=u'FusiontablesTemplateListRequest',
+        response_type_name=u'TemplateList',
+        supports_download=False,
+    )
 
     def Patch(self, request, global_params=None):
       """Updates an existing template. This method supports patch semantics.
@@ -936,6 +924,19 @@ class FusiontablesV1(base_api.BaseApiClient):
       return self._RunMethod(
           config, request, global_params=global_params)
 
+    Patch.method_config = lambda: base_api.ApiMethodInfo(
+        http_method=u'PATCH',
+        method_id=u'fusiontables.template.patch',
+        ordered_params=[u'tableId', u'templateId'],
+        path_params=[u'tableId', u'templateId'],
+        query_params=[],
+        relative_path=u'tables/{tableId}/templates/{templateId}',
+        request_field='<request>',
+        request_type_name=u'Template',
+        response_type_name=u'Template',
+        supports_download=False,
+    )
+
     def Update(self, request, global_params=None):
       """Updates an existing template.
 
@@ -948,3 +949,16 @@ class FusiontablesV1(base_api.BaseApiClient):
       config = self.GetMethodConfig('Update')
       return self._RunMethod(
           config, request, global_params=global_params)
+
+    Update.method_config = lambda: base_api.ApiMethodInfo(
+        http_method=u'PUT',
+        method_id=u'fusiontables.template.update',
+        ordered_params=[u'tableId', u'templateId'],
+        path_params=[u'tableId', u'templateId'],
+        query_params=[],
+        relative_path=u'tables/{tableId}/templates/{templateId}',
+        request_field='<request>',
+        request_type_name=u'Template',
+        response_type_name=u'Template',
+        supports_download=False,
+    )

@@ -104,22 +104,6 @@ class ServiceRegistry(object):
             with printer.Indent():
                 printer('super(%s.%s, self).__init__(client)',
                         client_class_name, class_name)
-                printer('self._method_configs = {')
-                with printer.Indent(indent='    '):
-                    for method_name, method_info in method_info_map.items():
-                        printer("'%s': base_api.ApiMethodInfo(", method_name)
-                        with printer.Indent(indent='    '):
-                            attrs = sorted(
-                                x.name for x in method_info.all_fields())
-                            for attr in attrs:
-                                if attr in ('upload_config', 'description'):
-                                    continue
-                                value = getattr(method_info, attr)
-                                if value is not None:
-                                    printer('%s=%r,', attr, value)
-                        printer('),')
-                    printer('}')
-                printer()
                 printer('self._upload_configs = {')
                 with printer.Indent(indent='    '):
                     for method_name, method_info in method_info_map.items():
@@ -165,6 +149,20 @@ class ServiceRegistry(object):
                         for line in arg_lines[:-1]:
                             printer('%s,', line)
                         printer('%s)', arg_lines[-1])
+                printer()
+                printer('{0}.method_config = lambda: base_api.ApiMethodInfo('
+                        .format(method_name))
+                with printer.Indent(indent='    '):
+                    method_info = method_info_map[method_name]
+                    attrs = sorted(
+                        x.name for x in method_info.all_fields())
+                    for attr in attrs:
+                        if attr in ('upload_config', 'description'):
+                            continue
+                        value = getattr(method_info, attr)
+                        if value is not None:
+                            printer('%s=%r,', attr, value)
+                printer(')')
 
     def __WriteProtoServiceDeclaration(self, printer, name, method_info_map):
         """Write a single service declaration to a proto file."""

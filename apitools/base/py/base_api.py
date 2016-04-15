@@ -472,7 +472,23 @@ class BaseApiService(object):
         return self.__client
 
     def GetMethodConfig(self, method):
-        return self._method_configs[method]
+        """Returns service cached method config for given method."""
+        method_config = self._method_configs.get(method)
+        if method_config:
+            return method_config
+        func = getattr(self, method, None)
+        if func is None:
+            raise KeyError(method)
+        method_config = getattr(func, 'method_config', None)
+        if method_config is None:
+            raise KeyError(method)
+        self._method_configs[method] = config = method_config()
+        return config
+
+    @classmethod
+    def GetMethodsList(cls):
+        return [f.__name__ for f in six.itervalues(cls.__dict__)
+                if getattr(f, 'method_config', None)]
 
     def GetUploadConfig(self, method):
         return self._upload_configs.get(method)
