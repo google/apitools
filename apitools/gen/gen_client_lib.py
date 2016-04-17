@@ -22,8 +22,6 @@ Relevant links:
 
 import datetime
 
-from six.moves import urllib_parse
-
 from apitools.gen import command_registry
 from apitools.gen import message_registry
 from apitools.gen import service_registry
@@ -54,16 +52,6 @@ def _StandardQueryParametersSchema(discovery_doc):
     return standard_query_schema
 
 
-def _ComputePaths(package, version, discovery_doc):
-    full_path = urllib_parse.urljoin(
-        discovery_doc['rootUrl'], discovery_doc['servicePath'])
-    api_path_component = '/'.join((package, version, ''))
-    if api_path_component not in full_path:
-        return full_path, ''
-    prefix, _, suffix = full_path.rpartition(api_path_component)
-    return prefix + api_path_component, suffix
-
-
 class DescriptorGenerator(object):
 
     """Code generator for a given discovery document."""
@@ -86,9 +74,6 @@ class DescriptorGenerator(object):
         self.__base_files_package = base_package
         self.__protorpc_package = protorpc_package
         self.__names = names
-        self.__base_url, self.__base_path = _ComputePaths(
-            self.__package, self.__client_info.url_version,
-            self.__discovery_doc)
 
         # Order is important here: we need the schemas before we can
         # define the services.
@@ -115,7 +100,7 @@ class DescriptorGenerator(object):
             self.__package, self.__version, self.__client_info,
             self.__message_registry, self.__root_package,
             self.__base_files_package, self.__protorpc_package,
-            self.__base_url, self.__names)
+            self.__names)
         self.__command_registry.AddGlobalParameters(
             self.__message_registry.LookupDescriptorOrDie(
                 'StandardQueryParameters'))
@@ -124,8 +109,6 @@ class DescriptorGenerator(object):
             self.__client_info,
             self.__message_registry,
             self.__command_registry,
-            self.__base_url,
-            self.__base_path,
             self.__names,
             self.__root_package,
             self.__base_files_package,

@@ -35,8 +35,7 @@ class ServiceRegistry(object):
     """Registry for service types."""
 
     def __init__(self, client_info, message_registry, command_registry,
-                 base_url, base_path, names,
-                 root_package, base_files_package,
+                 names, root_package, base_files_package,
                  unelidable_request_methods):
         self.__client_info = client_info
         self.__package = client_info.package
@@ -44,8 +43,6 @@ class ServiceRegistry(object):
         self.__service_method_info_map = collections.OrderedDict()
         self.__message_registry = message_registry
         self.__command_registry = command_registry
-        self.__base_url = base_url
-        self.__base_path = base_path
         self.__root_package = root_package
         self.__base_files_package = base_files_package
         self.__unelidable_request_methods = unelidable_request_methods
@@ -222,13 +219,20 @@ class ServiceRegistry(object):
                 client_info.package, client_info.version)
             printer()
             printer('MESSAGES_MODULE = messages')
+            printer('BASE_URL = {0!r}'.format(client_info.base_url))
             printer()
-            # pylint: disable=protected-access
-            client_info_items = client_info._asdict().items()
-            for attr, val in client_info_items:
-                if attr == 'scopes' and not val:
-                    val = ['https://www.googleapis.com/auth/userinfo.email']
-                printer('_%s = %r' % (attr.upper(), val))
+            printer('_PACKAGE = {0!r}'.format(client_info.package))
+            printer('_SCOPES = {0!r}'.format(
+                client_info.scopes or
+                ['https://www.googleapis.com/auth/userinfo.email']))
+            printer('_VERSION = {0!r}'.format(client_info.version))
+            printer('_CLIENT_ID = {0!r}'.format(client_info.client_id))
+            printer('_CLIENT_SECRET = {0!r}'.format(client_info.client_secret))
+            printer('_USER_AGENT = {0!r}'.format(client_info.user_agent))
+            printer('_CLIENT_CLASS_NAME = {0!r}'.format(
+                client_info.client_class_name))
+            printer('_URL_VERSION = {0!r}'.format(client_info.url_version))
+            printer('_API_KEY = {0!r}'.format(client_info.api_key))
             printer()
             printer("def __init__(self, url='', credentials=None,")
             with printer.Indent(indent='             '):
@@ -238,7 +242,7 @@ class ServiceRegistry(object):
                 printer('additional_http_headers=None):')
             with printer.Indent():
                 printer('"""Create a new %s handle."""', client_info.package)
-                printer('url = url or %r', self.__base_url)
+                printer('url = url or self.BASE_URL')
                 printer(
                     'super(%s, self).__init__(', client_info.client_class_name)
                 printer('    url, credentials=credentials,')
@@ -368,7 +372,8 @@ class ServiceRegistry(object):
                             request_field):
         """Compute the base_api.ApiMethodInfo for this method."""
         relative_path = self.__names.NormalizeRelativePath(
-            ''.join((self.__base_path, method_description['path'])))
+            ''.join((self.__client_info.base_path,
+                     method_description['path'])))
         method_id = method_description['id']
         ordered_params = []
         for param_name in method_description.get('parameterOrder', []):
