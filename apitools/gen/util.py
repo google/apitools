@@ -26,6 +26,7 @@ import os
 import re
 
 import six
+from six.moves import urllib_parse
 import six.moves.urllib.error as urllib_error
 import six.moves.urllib.request as urllib_request
 
@@ -170,9 +171,20 @@ def NormalizeVersion(version):
     return version.replace('.', '_')
 
 
+def _ComputePaths(package, version, discovery_doc):
+    full_path = urllib_parse.urljoin(
+        discovery_doc['rootUrl'], discovery_doc['servicePath'])
+    api_path_component = '/'.join((package, version, ''))
+    if api_path_component not in full_path:
+        return full_path, ''
+    prefix, _, suffix = full_path.rpartition(api_path_component)
+    return prefix + api_path_component, suffix
+
+
 class ClientInfo(collections.namedtuple('ClientInfo', (
         'package', 'scopes', 'version', 'client_id', 'client_secret',
-        'user_agent', 'client_class_name', 'url_version', 'api_key'))):
+        'user_agent', 'client_class_name', 'url_version', 'api_key',
+        'base_url', 'base_path'))):
 
     """Container for client-related info and names."""
 
@@ -183,15 +195,22 @@ class ClientInfo(collections.namedtuple('ClientInfo', (
         scopes = set(
             discovery_doc.get('auth', {}).get('oauth2', {}).get('scopes', {}))
         scopes.update(scope_ls)
+        package = discovery_doc['name']
+        url_version = discovery_doc['version']
+        base_url, base_path = _ComputePaths(package, url_version,
+                                            discovery_doc)
+
         client_info = {
-            'package': discovery_doc['name'],
+            'package': package,
             'version': NormalizeVersion(discovery_doc['version']),
-            'url_version': discovery_doc['version'],
+            'url_version': url_version,
             'scopes': sorted(list(scopes)),
             'client_id': client_id,
             'client_secret': client_secret,
             'user_agent': user_agent,
             'api_key': api_key,
+            'base_url': base_url,
+            'base_path': base_path,
         }
         client_class_name = '%s%s' % (
             names.ClassName(client_info['package']),

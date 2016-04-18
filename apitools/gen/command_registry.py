@@ -116,8 +116,7 @@ class CommandRegistry(object):
     """Registry for CLI commands."""
 
     def __init__(self, package, version, client_info, message_registry,
-                 root_package, base_files_package, protorpc_package,
-                 base_url, names):
+                 root_package, base_files_package, protorpc_package, names):
         self.__package = package
         self.__version = version
         self.__client_info = client_info
@@ -126,7 +125,6 @@ class CommandRegistry(object):
         self.__root_package = root_package
         self.__base_files_package = base_files_package
         self.__protorpc_package = protorpc_package
-        self.__base_url = base_url
         self.__command_list = []
         self.__global_flags = []
 
@@ -305,7 +303,7 @@ class CommandRegistry(object):
             printer('flags.DEFINE_string(')
             with printer.Indent('    '):
                 printer("'api_endpoint',")
-                printer('%r,', self.__base_url)
+                printer('%r,', self.__client_info.base_url)
                 printer("'URL of the API endpoint to use.',")
                 printer("short_name='%s_url')", self.__package)
             printer('flags.DEFINE_string(')
