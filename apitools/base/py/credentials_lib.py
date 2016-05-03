@@ -570,16 +570,21 @@ def GetUserinfo(credentials, http=None):  # pylint: disable=invalid-name
       aren't available.
     """
     http = http or httplib2.Http()
-    url_root = 'https://www.googleapis.com/oauth2/v2/tokeninfo'
-    query_args = {'access_token': credentials.access_token}
-    url = '?'.join((url_root, urllib.parse.urlencode(query_args)))
+    url = _GetUserinfoUrl(credentials)
     # We ignore communication woes here (i.e. SSL errors, socket
     # timeout), as handling these should be done in a common location.
     response, content = http.request(url)
     if response.status == http_client.BAD_REQUEST:
         credentials.refresh(http)
+        url = _GetUserinfoUrl(credentials)
         response, content = http.request(url)
     return json.loads(content or '{}')  # Save ourselves from an empty reply.
+
+
+def _GetUserinfoUrl(credentials):
+    url_root = 'https://www.googleapis.com/oauth2/v2/tokeninfo'
+    query_args = {'access_token': credentials.access_token}
+    return '?'.join((url_root, urllib.parse.urlencode(query_args)))
 
 
 @_RegisterCredentialsMethod
