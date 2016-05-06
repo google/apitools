@@ -28,6 +28,9 @@ import unittest2
 RunOnlyOnPython27 = unittest2.skipUnless(
     sys.version_info[:2] == (2, 7), 'Only runs in Python 2.7')
 
+SkipOnWindows = unittest2.skipIf(
+    os.name == 'nt', 'Does not run on windows')
+
 
 @contextlib.contextmanager
 def TempDir(change_to=False):

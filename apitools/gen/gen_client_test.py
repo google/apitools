@@ -23,8 +23,8 @@ from apitools.gen import gen_client
 from apitools.gen import test_utils
 
 
-def GetTestDataPath(name):
-    return os.path.join(os.path.dirname(__file__), 'testdata', name)
+def GetTestDataPath(*path):
+    return os.path.join(os.path.dirname(__file__), 'testdata', *path)
 
 
 def _GetContent(file_path):
@@ -48,10 +48,11 @@ class ClientGenCliTest(unittest2.TestCase):
             gen_client.main([
                 gen_client.__file__,
                 '--generate_cli',
-                '--infile', GetTestDataPath('dns_v1.json'),
+                '--init-file', 'empty',
+                '--infile', GetTestDataPath('dns', 'dns_v1.json'),
                 '--outdir', tmp_dir_path,
                 '--overwrite',
-                '--root_package', 'google.apis',
+                '--root_package', 'dns',
                 'client'
             ])
             expected_files = (
@@ -60,7 +61,7 @@ class ClientGenCliTest(unittest2.TestCase):
             self.assertEquals(expected_files, set(os.listdir(tmp_dir_path)))
             for expected_file in expected_files:
                 self.assertMultiLineEqual(
-                    _GetContent(GetTestDataPath('gen_' + expected_file)),
+                    _GetContent(GetTestDataPath('dns', expected_file)),
                     _GetContent(os.path.join(tmp_dir_path, expected_file)))
 
     def testGenClient_SimpleDocNoInit(self):
@@ -109,7 +110,7 @@ __path__ = pkgutil.extend_path(__path__, __name__)
             gen_client.main([
                 gen_client.__file__,
                 '--nogenerate_cli',
-                '--infile', GetTestDataPath('dns_v1.json'),
+                '--infile', GetTestDataPath('dns', 'dns_v1.json'),
                 '--outdir', tmp_dir_path,
                 '--overwrite',
                 '--apitools_version', '0.4.12',
@@ -125,7 +126,7 @@ __path__ = pkgutil.extend_path(__path__, __name__)
             gen_client.main([
                 gen_client.__file__,
                 '--nogenerate_cli',
-                '--infile', GetTestDataPath('dns_v1.json'),
+                '--infile', GetTestDataPath('dns', 'dns_v1.json'),
                 '--outdir', tmp_dir_path,
                 '--overwrite',
                 '--apitools_version', '0.5.0',
@@ -141,7 +142,7 @@ __path__ = pkgutil.extend_path(__path__, __name__)
             gen_client.main([
                 gen_client.__file__,
                 '--nogenerate_cli',
-                '--infile', GetTestDataPath('dns_v1.json'),
+                '--infile', GetTestDataPath('dns', 'dns_v1.json'),
                 '--outdir', tmp_dir_path,
                 '--overwrite',
                 '--root_package', 'google.apis',
@@ -156,7 +157,7 @@ __path__ = pkgutil.extend_path(__path__, __name__)
             gen_client.main([
                 gen_client.__file__,
                 '--nogenerate_cli',
-                '--infile', GetTestDataPath('dns_v1.json'),
+                '--infile', GetTestDataPath('dns', 'dns_v1.json'),
                 '--outdir', tmp_dir_path,
                 '--overwrite',
                 '--root_package', 'google.apis',
