@@ -58,6 +58,7 @@ class DescriptorGenerator(object):
 
     def __init__(self, discovery_doc, client_info, names, root_package, outdir,
                  base_package, protorpc_package, generate_cli=False,
+                 init_wildcards_file=True,
                  use_proto2=False, unelidable_request_methods=None,
                  apitools_version=''):
         self.__discovery_doc = discovery_doc
@@ -70,6 +71,7 @@ class DescriptorGenerator(object):
         self.__version = self.__client_info.version
         self.__revision = discovery_doc.get('revision', '1')
         self.__generate_cli = generate_cli
+        self.__init_wildcards_file = init_wildcards_file
         self.__root_package = root_package
         self.__base_files_package = base_package
         self.__protorpc_package = protorpc_package
@@ -166,25 +168,29 @@ class DescriptorGenerator(object):
     def WriteInit(self, out):
         """Write a simple __init__.py for the generated client."""
         printer = self._GetPrinter(out)
-        printer('"""Common imports for generated %s client library."""',
-                self.__client_info.package)
-        printer('# pylint:disable=wildcard-import')
+        if self.__init_wildcards_file:
+            printer('"""Common imports for generated %s client library."""',
+                    self.__client_info.package)
+            printer('# pylint:disable=wildcard-import')
+        else:
+            printer('"""Package marker file."""')
         printer()
         printer('import pkgutil')
         printer()
-        printer('from %s import *', self.__base_files_package)
-        if self.__root_package == '.':
-            import_prefix = ''
-        else:
-            import_prefix = '%s.' % self.__root_package
-        if self.__generate_cli:
+        if self.__init_wildcards_file:
+            printer('from %s import *', self.__base_files_package)
+            if self.__root_package == '.':
+                import_prefix = ''
+            else:
+                import_prefix = '%s.' % self.__root_package
+            if self.__generate_cli:
+                printer('from %s%s import *',
+                        import_prefix, self.__client_info.cli_rule_name)
             printer('from %s%s import *',
-                    import_prefix, self.__client_info.cli_rule_name)
-        printer('from %s%s import *',
-                import_prefix, self.__client_info.client_rule_name)
-        printer('from %s%s import *',
-                import_prefix, self.__client_info.messages_rule_name)
-        printer()
+                    import_prefix, self.__client_info.client_rule_name)
+            printer('from %s%s import *',
+                    import_prefix, self.__client_info.messages_rule_name)
+            printer()
         printer('__path__ = pkgutil.extend_path(__path__, __name__)')
 
     def WriteIntermediateInit(self, out):
