@@ -105,7 +105,7 @@ def _GetCodegenFromFlags(args):
         base_package=args.base_package,
         protorpc_package=args.protorpc_package,
         generate_cli=args.generate_cli,
-        init_wildcards_file=args.init_file == 'wildcards',
+        init_wildcards_file=(args.init_file == 'wildcards'),
         use_proto2=args.experimental_proto2_output,
         unelidable_request_methods=args.unelidable_request_methods,
         apitools_version=args.apitools_version)
