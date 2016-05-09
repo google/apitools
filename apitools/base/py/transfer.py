@@ -758,20 +758,24 @@ class Upload(_Transfer):
         # NOTE: We encode the body, but can't use
         #       `email.message.Message.as_string` because it prepends
         #       `> ` to `From ` lines.
-        # NOTE: We must use six.StringIO() instead of io.StringIO() since the
-        #       `email` library uses cStringIO in Py2 and io.StringIO in Py3.
-        fp = six.StringIO()
-        g = email_generator.Generator(fp, mangle_from_=False)
+        fp = six.BytesIO()
+        if six.PY3:
+            generator_class = email_generator.BytesGenerator
+        else:
+            generator_class = email_generator.Generator
+        g = generator_class(fp, mangle_from_=False)
         g.flatten(msg_root, unixfrom=False)
         http_request.body = fp.getvalue()
 
         multipart_boundary = msg_root.get_boundary()
         http_request.headers['content-type'] = (
             'multipart/related; boundary=%r' % multipart_boundary)
+        if isinstance(multipart_boundary, six.text_type):
+            multipart_boundary = multipart_boundary.encode('ascii')
 
         body_components = http_request.body.split(multipart_boundary)
-        headers, _, _ = body_components[-2].partition('\n\n')
-        body_components[-2] = '\n\n'.join([headers, '<media body>\n\n--'])
+        headers, _, _ = body_components[-2].partition(b'\n\n')
+        body_components[-2] = b'\n\n'.join([headers, b'<media body>\n\n--'])
         http_request.loggable_body = multipart_boundary.join(body_components)
 
     def __ConfigureResumableRequest(self, http_request):
