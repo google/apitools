@@ -237,7 +237,7 @@ class BaseApiClient(object):
                  model=None, log_request=False, log_response=False,
                  num_retries=5, max_retry_wait=60, credentials_args=None,
                  default_global_params=None, additional_http_headers=None,
-                 check_response_func=None):
+                 check_response_func=None, retry_func=None):
         _RequireClassAttrs(self, ('_package', '_scopes', 'messages_module'))
         if default_global_params is not None:
             util.Typecheck(default_global_params, self.params_type)
@@ -263,7 +263,8 @@ class BaseApiClient(object):
         self.__include_fields = None
 
         self.additional_http_headers = additional_http_headers or {}
-        self.__check_response_func = check_response_func
+        self.check_response_func = check_response_func
+        self.retry_func = retry_func
 
         # TODO(craigcitro): Finish deprecating these fields.
         _ = model
@@ -377,14 +378,6 @@ class BaseApiClient(object):
             raise exceptions.InvalidDataError(
                 'Cannot have negative value for num_retries')
         self.__num_retries = value
-
-    @property
-    def check_response_func(self):
-        return self.__check_response_func
-
-    @check_response_func.setter
-    def check_response_func(self, value):
-        self.__check_response_func = value
 
     @property
     def max_retry_wait(self):
@@ -702,6 +695,8 @@ class BaseApiService(object):
             }
             if self.__client.check_response_func:
                 opts['check_response_func'] = self.__client.check_response_func
+            if self.__client.retry_func:
+                opts['retry_func'] = self.__client.retry_func
             http_response = http_wrapper.MakeRequest(
                 http, http_request, **opts)
 

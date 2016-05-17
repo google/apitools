@@ -64,7 +64,7 @@ _REDIRECT_STATUS_CODES = (
 # num_retries: Number of retries consumed; used for exponential backoff.
 ExceptionRetryArgs = collections.namedtuple(
     'ExceptionRetryArgs', ['http', 'http_request', 'exc', 'num_retries',
-                           'max_retry_wait'])
+                           'max_retry_wait', 'total_wait_sec'])
 
 
 @contextlib.contextmanager
@@ -320,8 +320,8 @@ def MakeRequest(http, http_request, retries=7, max_retry_wait=60,
       max_retry_wait: (int, default 60) Maximum number of seconds to wait
           when retrying.
       redirections: (int, default 5) Number of redirects to follow.
-      retry_func: Function to handle retries on exceptions. Arguments are
-          (Httplib2.Http, Request, Exception, int num_retries).
+      retry_func: Function to handle retries on exceptions. Argument is an
+          ExceptionRetryArgs tuple.
       check_response_func: Function to validate the HTTP response.
           Arguments are (Response, response content, url).
 
@@ -333,6 +333,7 @@ def MakeRequest(http, http_request, retries=7, max_retry_wait=60,
 
     """
     retry = 0
+    first_req_time = time.time()
     while True:
         try:
             return _MakeRequestNoRetry(
@@ -345,8 +346,9 @@ def MakeRequest(http, http_request, retries=7, max_retry_wait=60,
             if retry >= retries:
                 raise
             else:
-                retry_func(ExceptionRetryArgs(
-                    http, http_request, e, retry, max_retry_wait))
+                total_wait_sec = time.time() - first_req_time
+                retry_func(ExceptionRetryArgs(http, http_request, e, retry,
+                                              max_retry_wait, total_wait_sec))
 
 
 def _MakeRequestNoRetry(http, http_request, redirections=5,
