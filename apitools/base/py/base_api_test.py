@@ -165,6 +165,26 @@ class BaseApiTest(unittest2.TestCase):
         with mock(base_api.http_wrapper, 'MakeRequest', fakeMakeRequest):
             service._RunMethod(method_config, request)
 
+    def testCustomRetryFunc(self):
+        def retry_func():
+            pass
+
+        def fakeMakeRequest(*_, **kwargs):
+            self.assertEqual(retry_func, kwargs['retry_func'])
+            return http_wrapper.Response(
+                info={'status': '200'}, content='{"field": "abc"}',
+                request_url='http://www.google.com')
+        http_wrapper.MakeRequest = fakeMakeRequest
+        method_config = base_api.ApiMethodInfo(
+            request_type_name='SimpleMessage',
+            response_type_name='SimpleMessage')
+        client = self.__GetFakeClient()
+        client.retry_func = retry_func
+        service = FakeService(client=client)
+        request = SimpleMessage()
+        with mock(base_api.http_wrapper, 'MakeRequest', fakeMakeRequest):
+            service._RunMethod(method_config, request)
+
     def testQueryEncoding(self):
         method_config = base_api.ApiMethodInfo(
             request_type_name='MessageWithTime', query_params=['timestamp'])

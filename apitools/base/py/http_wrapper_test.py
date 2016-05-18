@@ -77,7 +77,8 @@ class HttpWrapperTest(unittest2.TestCase):
 
             retry_args = http_wrapper.ExceptionRetryArgs(
                 http={'connections': {}}, http_request=_MockHttpRequest(),
-                exc=exception_arg, num_retries=0, max_retry_wait=0)
+                exc=exception_arg, num_retries=0, max_retry_wait=0,
+                total_wait_sec=0)
 
             # Disable time.sleep for this handler as it is called with
             # a minimum value of 1 second.
