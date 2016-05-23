@@ -39,6 +39,7 @@ class ClientGenerationTest(unittest2.TestCase):
         super(ClientGenerationTest, self).setUp()
         self.gen_client_binary = 'gen_client'
 
+    @test_utils.SkipOnWindows
     @test_utils.RunOnlyOnPython27
     def testGeneration(self):
         for api in _API_LIST:
