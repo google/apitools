@@ -39,24 +39,18 @@ def _CopyLocalFile(filename):
         out.write(src_data)
 
 
-_DISCOVERY_DOC = None
-
-
 def _GetDiscoveryDocFromFlags(args):
     """Get the discovery doc from flags."""
-    global _DISCOVERY_DOC  # pylint: disable=global-statement
-    if _DISCOVERY_DOC is None:
-        if args.discovery_url:
-            try:
-                discovery_doc = util.FetchDiscoveryDoc(args.discovery_url)
-            except exceptions.CommunicationError:
-                raise exceptions.GeneratedClientError(
-                    'Could not fetch discovery doc')
-        else:
-            infile = os.path.expanduser(args.infile) or '/dev/stdin'
-            discovery_doc = json.load(open(infile))
-        _DISCOVERY_DOC = discovery_doc
-    return _DISCOVERY_DOC
+    if args.discovery_url:
+        try:
+            return util.FetchDiscoveryDoc(args.discovery_url)
+        except exceptions.CommunicationError:
+            raise exceptions.GeneratedClientError(
+                'Could not fetch discovery doc')
+
+    infile = os.path.expanduser(args.infile) or '/dev/stdin'
+    with open(infile) as f:
+        return json.load(f)
 
 
 def _GetCodegenFromFlags(args):

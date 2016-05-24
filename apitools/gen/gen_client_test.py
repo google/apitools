@@ -43,26 +43,35 @@ class ClientGenCliTest(unittest2.TestCase):
                 self.assertIn('usage:', err_output)
                 self.assertIn('error: too few arguments', err_output)
 
-    def testGenClient_SimpleDoc(self):
+    def _CheckGeneratedFiles(self, api_name):
         with test_utils.TempDir() as tmp_dir_path:
             gen_client.main([
                 gen_client.__file__,
                 '--generate_cli',
                 '--init-file', 'empty',
-                '--infile', GetTestDataPath('dns', 'dns_v1.json'),
+                '--infile',
+                GetTestDataPath(api_name, api_name + '_v1.json'),
                 '--outdir', tmp_dir_path,
                 '--overwrite',
-                '--root_package', 'dns',
+                '--root_package', api_name,
                 'client'
             ])
             expected_files = (
-                set(['dns_v1.py']) |  # CLI files
-                set(['dns_v1_client.py', 'dns_v1_messages.py', '__init__.py']))
+                set([api_name + '_v1.py']) |  # CLI files
+                set([api_name + '_v1_client.py',
+                     api_name + '_v1_messages.py',
+                     '__init__.py']))
             self.assertEquals(expected_files, set(os.listdir(tmp_dir_path)))
             for expected_file in expected_files:
                 self.assertMultiLineEqual(
-                    _GetContent(GetTestDataPath('dns', expected_file)),
+                    _GetContent(GetTestDataPath(api_name, expected_file)),
                     _GetContent(os.path.join(tmp_dir_path, expected_file)))
+
+    def testGenClient_DnsDoc(self):
+        self._CheckGeneratedFiles('dns')
+
+    def testGenClient_IamDoc(self):
+        self._CheckGeneratedFiles('iam')
 
     def testGenClient_SimpleDocNoInit(self):
         with test_utils.TempDir() as tmp_dir_path:
@@ -70,7 +79,7 @@ class ClientGenCliTest(unittest2.TestCase):
                 gen_client.__file__,
                 '--generate_cli',
                 '--init-file', 'none',
-                '--infile', GetTestDataPath('dns_v1.json'),
+                '--infile', GetTestDataPath('dns', 'dns_v1.json'),
                 '--outdir', tmp_dir_path,
                 '--overwrite',
                 '--root_package', 'google.apis',
@@ -87,7 +96,7 @@ class ClientGenCliTest(unittest2.TestCase):
                 gen_client.__file__,
                 '--generate_cli',
                 '--init-file', 'empty',
-                '--infile', GetTestDataPath('dns_v1.json'),
+                '--infile', GetTestDataPath('dns', 'dns_v1.json'),
                 '--outdir', tmp_dir_path,
                 '--overwrite',
                 '--root_package', 'google.apis',
