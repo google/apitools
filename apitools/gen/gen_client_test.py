@@ -43,37 +43,6 @@ class ClientGenCliTest(unittest2.TestCase):
                 self.assertIn('usage:', err_output)
                 self.assertIn('error: too few arguments', err_output)
 
-    def _CheckGeneratedFiles(self, api_name, api_version):
-        prefix = api_name + '_' + api_version
-        with test_utils.TempDir() as tmp_dir_path:
-            gen_client.main([
-                gen_client.__file__,
-                '--generate_cli',
-                '--init-file', 'empty',
-                '--infile',
-                GetTestDataPath(api_name, prefix + '.json'),
-                '--outdir', tmp_dir_path,
-                '--overwrite',
-                '--root_package', api_name,
-                'client'
-            ])
-            expected_files = (
-                set([prefix + '.py']) |  # CLI files
-                set([prefix + '_client.py',
-                     prefix + '_messages.py',
-                     '__init__.py']))
-            self.assertEquals(expected_files, set(os.listdir(tmp_dir_path)))
-            for expected_file in expected_files:
-                self.assertMultiLineEqual(
-                    _GetContent(GetTestDataPath(api_name, expected_file)),
-                    _GetContent(os.path.join(tmp_dir_path, expected_file)))
-
-    def testGenClient_DnsDoc(self):
-        self._CheckGeneratedFiles('dns', 'v1')
-
-    def testGenClient_IamDoc(self):
-        self._CheckGeneratedFiles('iam', 'v1')
-
     def testGenClient_SimpleDocNoInit(self):
         with test_utils.TempDir() as tmp_dir_path:
             gen_client.main([
