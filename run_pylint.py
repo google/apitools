@@ -33,7 +33,9 @@ import sys
 
 IGNORED_DIRECTORIES = [
     'apitools/gen/testdata',
-    'samples/storage_sample/storage',
+    'samples/dns_sample/dns_v1',
+    'samples/iam_sample/iam_v1',
+    'samples/storage_sample/storage_v1',
     'venv',
 ]
 IGNORED_FILES = [
