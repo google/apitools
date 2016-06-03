@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import os
+import difflib
 
 import unittest2
 
@@ -32,6 +33,13 @@ def _GetContent(file_path):
 @test_utils.RunOnlyOnPython27
 class ClientGenCliTest(unittest2.TestCase):
 
+    def AssertDiffEqual(self, expected, actual):
+        """Like unittest.assertEqual with a diff in the exception message."""
+        if expected != actual:
+            unified_diff = difflib.unified_diff(
+                expected.splitlines(), actual.splitlines())
+            raise AssertionError('\n'.join(unified_diff))
+
     def _CheckGeneratedFiles(self, api_name, api_version):
         prefix = api_name + '_' + api_version
         with test_utils.TempDir() as tmp_dir_path:
@@ -43,7 +51,8 @@ class ClientGenCliTest(unittest2.TestCase):
                 GetSampleClientPath(api_name, prefix + '.json'),
                 '--outdir', tmp_dir_path,
                 '--overwrite',
-                '--root_package', api_name,
+                '--root_package',
+                'samples.{0}_sample.{0}_{1}'.format(api_name, api_version),
                 'client'
             ])
             expected_files = (
@@ -53,7 +62,7 @@ class ClientGenCliTest(unittest2.TestCase):
                      '__init__.py']))
             self.assertEquals(expected_files, set(os.listdir(tmp_dir_path)))
             for expected_file in expected_files:
-                self.assertMultiLineEqual(
+                self.AssertDiffEqual(
                     _GetContent(GetSampleClientPath(
                         api_name, prefix, expected_file)),
                     _GetContent(os.path.join(tmp_dir_path, expected_file)))

@@ -82,6 +82,7 @@ class ApiMethodInfo(messages.Message):
 
     Fields:
       relative_path: Relative path for this method.
+      flat_path: Expanded version (if any) of relative_path.
       method_id: ID for this method.
       http_method: HTTP verb to use for this method.
       path_params: (repeated) path parameters for this method.
@@ -102,17 +103,18 @@ class ApiMethodInfo(messages.Message):
     """
 
     relative_path = messages.StringField(1)
-    method_id = messages.StringField(2)
-    http_method = messages.StringField(3)
-    path_params = messages.StringField(4, repeated=True)
-    query_params = messages.StringField(5, repeated=True)
-    ordered_params = messages.StringField(6, repeated=True)
-    description = messages.StringField(7)
-    request_type_name = messages.StringField(8)
-    response_type_name = messages.StringField(9)
-    request_field = messages.StringField(10, default='')
-    upload_config = messages.MessageField(ApiUploadInfo, 11)
-    supports_download = messages.BooleanField(12, default=False)
+    flat_path = messages.StringField(2)
+    method_id = messages.StringField(3)
+    http_method = messages.StringField(4)
+    path_params = messages.StringField(5, repeated=True)
+    query_params = messages.StringField(6, repeated=True)
+    ordered_params = messages.StringField(7, repeated=True)
+    description = messages.StringField(8)
+    request_type_name = messages.StringField(9)
+    response_type_name = messages.StringField(10)
+    request_field = messages.StringField(11, default='')
+    upload_config = messages.MessageField(ApiUploadInfo, 12)
+    supports_download = messages.BooleanField(13, default=False)
 REQUEST_IS_BODY = '<request>'
 
 
