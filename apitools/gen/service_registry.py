@@ -114,8 +114,9 @@ class ServiceRegistry(object):
                             for attr in attrs:
                                 if attr in ('upload_config', 'description'):
                                     continue
-                                printer(
-                                    '%s=%r,', attr, getattr(method_info, attr))
+                                value = getattr(method_info, attr)
+                                if value is not None:
+                                    printer('%s=%r,', attr, value)
                         printer('),')
                     printer('}')
                 printer()
@@ -393,6 +394,12 @@ class ServiceRegistry(object):
             response_type_name=self.__names.ClassName(response),
             request_field=request_field,
         )
+        flat_path = method_description.get('flatPath', None)
+        if flat_path is not None:
+            flat_path = self.__names.NormalizeRelativePath(
+                self.__client_info.base_path + flat_path)
+            if flat_path != relative_path:
+                method_info.flat_path = flat_path
         if method_description.get('supportsMediaUpload', False):
             method_info.upload_config = self.__ComputeUploadConfig(
                 method_description.get('mediaUpload'), method_id)

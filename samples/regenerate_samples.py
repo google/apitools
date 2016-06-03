@@ -33,14 +33,15 @@ def _Generate(samples):
         if ext != '.json':
             raise RuntimeError('Expected .json discovery doc [{0}]'
                                .format(sample))
-        api_name, _ = name.split('_')
+        api_name, api_version = name.split('_')
         args = [
             _GEN_CLIENT_BINARY,
             '--infile', sample,
             '--init-file', 'empty',
             '--outdir={0}'.format(os.path.join(sample_dir, name)),
             '--overwrite',
-            '--root_package', api_name,
+            '--root_package',
+            'samples.{0}_sample.{0}_{1}'.format(api_name, api_version),
             'client',
         ]
         subprocess.check_call(args)

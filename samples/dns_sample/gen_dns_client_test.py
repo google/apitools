@@ -15,18 +15,14 @@
 
 """Test for generated sample module."""
 
-import os
-import sys
 import unittest2
 import six
 
 from apitools.base.py import list_pager
 from apitools.base.py.testing import mock
 
-sys.path.append(os.path.join(os.path.dirname(__file__), 'testdata'))
-
-from dns import dns_v1_client  # nopep8
-from dns import dns_v1_messages  # nopep8
+from samples.dns_sample.dns_v1 import dns_v1_client
+from samples.dns_sample.dns_v1 import dns_v1_messages
 
 
 class DnsGenClientSanityTest(unittest2.TestCase):
@@ -56,6 +52,12 @@ class DnsGenClientTest(unittest2.TestCase):
         self.mocked_dns_v1 = mock.Client(dns_v1_client.DnsV1)
         self.mocked_dns_v1.Mock()
         self.addCleanup(self.mocked_dns_v1.Unmock)
+
+    def testFlatPath(self):
+        get_method_config = self.mocked_dns_v1.projects.GetMethodConfig('Get')
+        self.assertIsNone(get_method_config.flat_path)
+        self.assertEquals('projects/{project}',
+                          get_method_config.relative_path)
 
     def testRecordSetList(self):
         response_record_set = dns_v1_messages.ResourceRecordSet(
