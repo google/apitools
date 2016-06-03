@@ -642,5 +642,5 @@ def _GetApplicationDefaultCredentials(
     # ADC will work.
     cp = 'https://www.googleapis.com/auth/cloud-platform'
     if not isinstance(credentials, gc) or cp in scopes:
-        return credentials
+        return credentials.create_scoped(scopes)
     return None

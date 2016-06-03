@@ -47,7 +47,6 @@ TESTING_PACKAGES = [
 
 CONSOLE_SCRIPTS = [
     'gen_client = apitools.gen.gen_client:main',
-    'oauth2l = apitools.scripts.oauth2l:main',
 ]
 
 py_version = platform.python_version()
