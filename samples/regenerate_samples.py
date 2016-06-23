@@ -22,6 +22,7 @@ _GEN_CLIENT_BINARY = 'gen_client'
 _SAMPLES = [
     'dns_sample/dns_v1.json',
     'iam_sample/iam_v1.json',
+    'fusiontables_sample/fusiontables_v1.json',
     'storage_sample/storage_v1.json',
 ]
 
