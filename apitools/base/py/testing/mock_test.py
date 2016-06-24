@@ -21,7 +21,8 @@ from apitools.base.protorpclite import messages
 
 import apitools.base.py as apitools_base
 from apitools.base.py.testing import mock
-from apitools.base.py.testing import testclient as fusiontables
+from samples.fusiontables_sample.fusiontables_v1 import \
+    fusiontables_v1_client as fusiontables
 
 
 class MockTest(unittest2.TestCase):
