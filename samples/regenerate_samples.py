@@ -23,6 +23,7 @@ _SAMPLES = [
     'dns_sample/dns_v1.json',
     'iam_sample/iam_v1.json',
     'fusiontables_sample/fusiontables_v1.json',
+    'servicemanagement_sample/servicemanagement_v1.json',
     'storage_sample/storage_v1.json',
 ]
 
