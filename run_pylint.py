@@ -36,6 +36,7 @@ IGNORED_DIRECTORIES = [
     'samples/dns_sample/dns_v1',
     'samples/fusiontables_sample/fusiontables_v1',
     'samples/iam_sample/iam_v1',
+    'samples/servicemanagement_sample/servicemanagement_v1',
     'samples/storage_sample/storage_v1',
     'venv',
 ]
