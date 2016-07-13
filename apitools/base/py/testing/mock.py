@@ -203,6 +203,7 @@ class _MockedMethod(object):
         self.__key = key
         self.__mocked_client = mocked_client
         self.__real_method = real_method
+        self.method_config = real_method.method_config
 
     def Expect(self, request, response=None, exception=None, **unused_kwargs):
         """Add an expectation on the mocked method.
@@ -312,7 +313,7 @@ class Client(object):
                                   self.__client_class._URL_VERSION)
             mocked_service = _MockedService(
                 api_name + '.' + collection_name, self,
-                service._method_configs.keys(),
+                service.GetMethodsList(),
                 service if self.__real_client else None)
             mocked_constructor = _MakeMockedServiceConstructor(mocked_service)
             setattr(self.__client_class, name, mocked_constructor)
