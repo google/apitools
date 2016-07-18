@@ -56,6 +56,7 @@ class RequestResponseAndHandler(collections.namedtuple(
 
 
 class BatchApiRequest(object):
+    """Batches multiple api requests into a single request."""
 
     class ApiCall(object):
 

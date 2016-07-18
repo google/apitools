@@ -1166,6 +1166,7 @@ class _FieldMeta(type):
 
 # TODO(rafek): Prevent additional field subclasses.
 class Field(six.with_metaclass(_FieldMeta, object)):
+    """Definition for message field."""
 
     __initialized = False  # pylint:disable=invalid-name
     __variant_to_type = {}  # pylint:disable=invalid-name

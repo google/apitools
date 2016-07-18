@@ -130,6 +130,7 @@ def positional(max_positional_args):
         has no arguments with default values.
     """
     def positional_decorator(wrapped):
+        """Creates a function wraper to enforce number of arguments."""
         @functools.wraps(wrapped)
         def positional_wrapper(*args, **kwargs):
             if len(args) > max_positional_args:

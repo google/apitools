@@ -226,6 +226,7 @@ class CommandRegistry(object):
         return command_name
 
     def __GetConversion(self, extended_field, extended_message):
+        """Returns a template for field type."""
         field = extended_field.field_descriptor
 
         type_name = ''
@@ -262,6 +263,7 @@ class CommandRegistry(object):
         return field.label == descriptor.FieldDescriptor.Label.REPEATED
 
     def __FlagInfoFromField(self, extended_field, extended_message, fv=''):
+        """Creates FlagInfo object for given field."""
         field = extended_field.field_descriptor
         flag_info = FlagInfo()
         flag_info.name = str(field.name)
@@ -290,6 +292,7 @@ class CommandRegistry(object):
         return flag_info
 
     def __PrintFlagDeclarations(self, printer):
+        """Writes out command line flag declarations."""
         package = self.__client_info.package
         function_name = '_Declare%sFlags' % (package[0].upper() + package[1:])
         printer()
@@ -331,6 +334,7 @@ class CommandRegistry(object):
         printer('%s()', function_name)
 
     def __PrintGetGlobalParams(self, printer):
+        """Writes out GetGlobalParamsFromFlags function."""
         printer('def GetGlobalParamsFromFlags():')
         with printer.Indent():
             printer('"""Return a StandardQueryParameters based on flags."""')
@@ -348,6 +352,7 @@ class CommandRegistry(object):
         printer()
 
     def __PrintGetClient(self, printer):
+        """Writes out GetClientFromFlags function."""
         printer('def GetClientFromFlags():')
         with printer.Indent():
             printer('"""Return a client object, configured from flags."""')
@@ -393,6 +398,7 @@ class CommandRegistry(object):
             printer('"""')
 
     def __PrintFlag(self, printer, flag_info):
+        """Writes out given flag definition."""
         printer('flags.DEFINE_%s(', flag_info.type)
         with printer.Indent(indent='    '):
             printer('%r,', flag_info.name)
@@ -414,6 +420,7 @@ class CommandRegistry(object):
             printer('flags.MarkFlagAsRequired(%r)', flag_info.name)
 
     def __PrintPyShell(self, printer):
+        """Writes out PyShell class."""
         printer('class PyShell(appcommands.Cmd):')
         printer()
         with printer.Indent():
