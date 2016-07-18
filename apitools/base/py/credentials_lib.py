@@ -335,6 +335,7 @@ class GceAssertionCredentials(gce.AppAssertionCredentials):
                     cache_file.unlock_and_close()
 
     def _ScopesFromMetadataServer(self, scopes):
+        """Returns instance scopes based on GCE metadata server."""
         if not util.DetectGce():
             raise exceptions.ResourceUnavailableError(
                 'GCE credentials requested outside a GCE instance')
@@ -497,6 +498,7 @@ class GaeAssertionCredentials(oauth2client.client.AssertionCredentials):
 
 
 def _GetRunFlowFlags(args=None):
+    """Retrieves command line flags based on gflags module."""
     # There's one rare situation where gsutil will not have argparse
     # available, but doesn't need anything depending on argparse anyway,
     # since they're bringing their own credentials. So we just allow this
@@ -591,6 +593,7 @@ def _GetUserinfoUrl(credentials):
 def _GetServiceAccountCredentials(
         client_info, service_account_name=None, service_account_keyfile=None,
         service_account_json_keyfile=None, **unused_kwds):
+    """Returns ServiceAccountCredentials from give file."""
     if ((service_account_name and not service_account_keyfile) or
             (service_account_keyfile and not service_account_name)):
         raise exceptions.CredentialsError(
@@ -623,6 +626,7 @@ def _GetGceServiceAccount(client_info, **unused_kwds):
 def _GetApplicationDefaultCredentials(
         client_info, skip_application_default_credentials=False,
         **unused_kwds):
+    """Returns ADC with right scopes."""
     scopes = client_info['scope'].split()
     if skip_application_default_credentials:
         return None

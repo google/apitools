@@ -235,7 +235,7 @@ def _Validate(args):
 
 
 def _GetParser():
-
+    """Returns argparse argument parser."""
     shared_flags = argparse.ArgumentParser(add_help=False)
     shared_flags.add_argument(
         '--client_secrets',

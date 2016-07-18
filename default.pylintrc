@@ -238,9 +238,6 @@ bad-names=
 # <http://go/python-style#Deprecated_Language_Features>
 bad-functions=input,apply,reduce
 
-# TEMPORARY
-no-docstring-rgx=.*
-
 
 [TYPECHECK]
 
