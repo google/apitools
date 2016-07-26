@@ -16,6 +16,7 @@
 """Tests for apitools.base.py.testing.mock."""
 
 import unittest2
+import six
 
 from apitools.base.protorpclite import messages
 
@@ -23,6 +24,16 @@ import apitools.base.py as apitools_base
 from apitools.base.py.testing import mock
 from samples.fusiontables_sample.fusiontables_v1 import \
     fusiontables_v1_client as fusiontables
+from samples.fusiontables_sample.fusiontables_v1 import \
+    fusiontables_v1_messages as fusiontables_messages
+
+
+def _GetApiServices(api_client_class):
+    return dict(
+        (name, potential_service)
+        for name, potential_service in six.iteritems(api_client_class.__dict__)
+        if (isinstance(potential_service, type) and
+            issubclass(potential_service, apitools_base.BaseApiService)))
 
 
 class MockTest(unittest2.TestCase):
@@ -87,11 +98,33 @@ class MockTest(unittest2.TestCase):
 
     def testClientUnmock(self):
         mock_client = mock.Client(fusiontables.FusiontablesV1)
+        self.assertFalse(isinstance(mock_client, fusiontables.FusiontablesV1))
         attributes = set(mock_client.__dict__.keys())
         mock_client = mock_client.Mock()
+        self.assertTrue(isinstance(mock_client, fusiontables.FusiontablesV1))
         self.assertTrue(set(mock_client.__dict__.keys()) - attributes)
         mock_client.Unmock()
+        self.assertFalse(isinstance(mock_client, fusiontables.FusiontablesV1))
         self.assertEqual(attributes, set(mock_client.__dict__.keys()))
+
+    def testMockHasMessagesModule(self):
+        with mock.Client(fusiontables.FusiontablesV1) as mock_client:
+            self.assertEquals(fusiontables_messages,
+                              mock_client.MESSAGES_MODULE)
+
+    def testMockPreservesServiceMethods(self):
+        services = _GetApiServices(fusiontables.FusiontablesV1)
+        with mock.Client(fusiontables.FusiontablesV1):
+            mocked_services = _GetApiServices(fusiontables.FusiontablesV1)
+            self.assertEquals(services.keys(), mocked_services.keys())
+            for name, service in six.iteritems(services):
+                mocked_service = mocked_services[name]
+                methods = service.GetMethodsList()
+                for method in methods:
+                    mocked_method = getattr(mocked_service, method)
+                    mocked_method_config = mocked_method.method_config()
+                    method_config = getattr(service, method).method_config()
+                    self.assertEquals(method_config, mocked_method_config)
 
 
 class _NestedMessage(messages.Message):
