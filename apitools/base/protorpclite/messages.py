@@ -300,7 +300,8 @@ class _EnumClass(_DefinitionClass):
 
     def __init__(cls, name, bases, dct):
         # Can only define one level of sub-classes below Enum.
-        if not (bases == (object,) or tuple(base.__name__ in bases) == ('Enum',)):
+        if not (bases == (object,) or
+                tuple(base.__name__ for base in bases) == ('Enum',)):
             raise EnumDefinitionError(
                 'Enum type %s may only inherit from Enum' % name)
 
