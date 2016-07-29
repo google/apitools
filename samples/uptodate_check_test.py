@@ -70,8 +70,14 @@ class ClientGenCliTest(unittest2.TestCase):
     def testGenClient_DnsDoc(self):
         self._CheckGeneratedFiles('dns', 'v1')
 
+    def testGenClient_FusiontablesDoc(self):
+        self._CheckGeneratedFiles('fusiontables', 'v1')
+
     def testGenClient_IamDoc(self):
         self._CheckGeneratedFiles('iam', 'v1')
+
+    def testGenClient_ServicemanagementDoc(self):
+        self._CheckGeneratedFiles('servicemanagement', 'v1')
 
     def testGenClient_StorageDoc(self):
         self._CheckGeneratedFiles('storage', 'v1')
