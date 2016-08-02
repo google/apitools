@@ -180,21 +180,6 @@ class _ExpectedRequestResponse(object):
         return self.__response
 
 
-class _MockedService(base_api.BaseApiService):
-
-    def __init__(self, key, mocked_client, methods, real_service):
-        super(_MockedService, self).__init__(mocked_client)
-        self.__dict__.update(real_service.__dict__)
-        for method in methods:
-            real_method = None
-            if real_service:
-                real_method = getattr(real_service, method)
-            setattr(self, method,
-                    _MockedMethod(key + '.' + method,
-                                  mocked_client,
-                                  real_method))
-
-
 class _MockedMethod(object):
 
     """A mocked API service method."""
@@ -256,10 +241,22 @@ class _MockedMethod(object):
         return response
 
 
-def _MakeMockedServiceConstructor(mocked_service):
-    def Constructor(unused_self, unused_client):
-        return mocked_service
-    return Constructor
+def _MakeMockedService(api_name, collection_name,
+                       mock_client, service, real_service):
+    class MockedService(base_api.BaseApiService):
+        def __init__(self, real_client):
+            super(MockedService, self).__init__(real_client)
+
+    for method in service.GetMethodsList():
+        real_method = None
+        if real_service:
+            real_method = getattr(real_service, method)
+        setattr(MockedService,
+                method,
+                _MockedMethod(api_name + '.' + collection_name + '.' + method,
+                              mock_client,
+                              real_method))
+    return MockedService
 
 
 class Client(object):
@@ -283,6 +280,7 @@ class Client(object):
         if not real_client:
             real_client = client_class(get_credentials=False)
 
+        self.__orig_class = self.__class__
         self.__client_class = client_class
         self.__real_service_classes = {}
         self.__real_client = real_client
@@ -297,6 +295,11 @@ class Client(object):
         """Stub out the client class with mocked services."""
         client = self.__real_client or self.__client_class(
             get_credentials=False)
+
+        class Patched(self.__class__, self.__client_class):
+            pass
+        self.__class__ = Patched
+
         for name in dir(self.__client_class):
             service_class = getattr(self.__client_class, name)
             if not isinstance(service_class, type):
@@ -304,21 +307,19 @@ class Client(object):
             if not issubclass(service_class, base_api.BaseApiService):
                 continue
             self.__real_service_classes[name] = service_class
-            service = service_class(client)
             # pylint: disable=protected-access
-            # Some liberty is allowed with mocking.
             collection_name = service_class._NAME
             # pylint: enable=protected-access
             api_name = '%s_%s' % (self.__client_class._PACKAGE,
                                   self.__client_class._URL_VERSION)
-            mocked_service = _MockedService(
-                api_name + '.' + collection_name, self,
-                service.GetMethodsList(),
-                service if self.__real_client else None)
-            mocked_constructor = _MakeMockedServiceConstructor(mocked_service)
-            setattr(self.__client_class, name, mocked_constructor)
+            mocked_service_class = _MakeMockedService(
+                api_name, collection_name, self,
+                service_class,
+                service_class(client) if self.__real_client else None)
 
-            setattr(self, collection_name, mocked_service)
+            setattr(self.__client_class, name, mocked_service_class)
+
+            setattr(self, collection_name, mocked_service_class(self))
 
         self.__real_include_fields = self.__client_class.IncludeFields
         self.__client_class.IncludeFields = self.IncludeFields
@@ -332,6 +333,7 @@ class Client(object):
         return True
 
     def Unmock(self):
+        self.__class__ = self.__orig_class
         for name, service_class in self.__real_service_classes.items():
             setattr(self.__client_class, name, service_class)
             delattr(self, service_class._NAME)
