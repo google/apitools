@@ -324,6 +324,10 @@ class Client(object):
         self.__real_include_fields = self.__client_class.IncludeFields
         self.__client_class.IncludeFields = self.IncludeFields
 
+        # pylint: disable=attribute-defined-outside-init
+        self._url = client._url
+        self._http = client._http
+
         return self
 
     def __exit__(self, exc_type, value, traceback):
@@ -338,6 +342,8 @@ class Client(object):
             setattr(self.__client_class, name, service_class)
             delattr(self, service_class._NAME)
         self.__real_service_classes = {}
+        del self._url
+        del self._http
 
         if self._request_responses:
             raise ExpectedRequestsException(

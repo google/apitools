@@ -15,6 +15,7 @@
 
 """Tests for apitools.base.py.testing.mock."""
 
+import httplib2
 import unittest2
 import six
 
@@ -111,6 +112,32 @@ class MockTest(unittest2.TestCase):
         with mock.Client(fusiontables.FusiontablesV1) as mock_client:
             self.assertEquals(fusiontables_messages,
                               mock_client.MESSAGES_MODULE)
+
+    def testMockHasUrlProperty(self):
+        with mock.Client(fusiontables.FusiontablesV1) as mock_client:
+            self.assertEquals(fusiontables.FusiontablesV1.BASE_URL,
+                              mock_client.url)
+        self.assertFalse(hasattr(mock_client, 'url'))
+
+    def testMockHasOverrideUrlProperty(self):
+        real_client = fusiontables.FusiontablesV1(url='http://localhost:8080',
+                                                  get_credentials=False)
+        with mock.Client(fusiontables.FusiontablesV1,
+                         real_client) as mock_client:
+            self.assertEquals('http://localhost:8080/', mock_client.url)
+
+    def testMockHasHttpProperty(self):
+        with mock.Client(fusiontables.FusiontablesV1) as mock_client:
+            self.assertIsInstance(mock_client.http, httplib2.Http)
+        self.assertFalse(hasattr(mock_client, 'http'))
+
+    def testMockHasOverrideHttpProperty(self):
+        real_client = fusiontables.FusiontablesV1(url='http://localhost:8080',
+                                                  http='SomeHttpObject',
+                                                  get_credentials=False)
+        with mock.Client(fusiontables.FusiontablesV1,
+                         real_client) as mock_client:
+            self.assertEquals('SomeHttpObject', mock_client.http)
 
     def testMockPreservesServiceMethods(self):
         services = _GetApiServices(fusiontables.FusiontablesV1)
