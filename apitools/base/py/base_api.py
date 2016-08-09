@@ -590,11 +590,13 @@ class BaseApiService(object):
             url_builder.query_params = {}
         http_request.url = url_builder.url
 
-    def __ProcessHttpResponse(self, method_config, http_response):
+    def __ProcessHttpResponse(self, method_config, http_response, request):
         """Process the given http response."""
         if http_response.status_code not in (http_client.OK,
                                              http_client.NO_CONTENT):
-            raise exceptions.HttpError.FromResponse(http_response)
+            raise exceptions.HttpError(
+                http_response.info, http_response.content,
+                http_response.request_url, method_config, request)
         if http_response.status_code == http_client.NO_CONTENT:
             # TODO(craigcitro): Find out why _replace doesn't seem to work
             # here.
@@ -718,10 +720,10 @@ class BaseApiService(object):
             http_response = http_wrapper.MakeRequest(
                 http, http_request, **opts)
 
-        return self.ProcessHttpResponse(method_config, http_response)
+        return self.ProcessHttpResponse(method_config, http_response, request)
 
-    def ProcessHttpResponse(self, method_config, http_response):
+    def ProcessHttpResponse(self, method_config, http_response, request=None):
         """Convert an HTTP response to the expected message type."""
         return self.__client.ProcessResponse(
             method_config,
-            self.__ProcessHttpResponse(method_config, http_response))
+            self.__ProcessHttpResponse(method_config, http_response, request))
