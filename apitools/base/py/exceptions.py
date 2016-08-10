@@ -51,11 +51,14 @@ class HttpError(CommunicationError):
 
     """Error making a request. Soon to be HttpError."""
 
-    def __init__(self, response, content, url):
+    def __init__(self, response, content, url,
+                 method_config=None, request=None):
         super(HttpError, self).__init__()
         self.response = response
         self.content = content
         self.url = url
+        self.method_config = method_config
+        self.request = request
 
     def __str__(self):
         content = self.content
