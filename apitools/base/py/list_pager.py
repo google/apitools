@@ -52,14 +52,15 @@ def YieldFromList(
           response message holding the page token for the next page.
       batch_size_attribute: str, The name of the attribute in a
           response message holding the maximum number of results to be
-          returned.
+          returned. None if caller-specified batch size is unsupported.
 
     Yields:
       protorpc.message.Message, The resources listed by the service.
 
     """
     request = encoding.CopyProtoMessage(request)
-    setattr(request, batch_size_attribute, batch_size)
+    if batch_size_attribute:
+        setattr(request, batch_size_attribute, batch_size)
     setattr(request, current_token_attribute, None)
     while limit is None or limit:
         response = getattr(service, method)(request,
