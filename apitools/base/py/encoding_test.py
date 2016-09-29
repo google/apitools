@@ -54,6 +54,17 @@ class AdditionalPropertiesMessage(messages.Message):
 
 
 @encoding.MapUnrecognizedFields('additional_properties')
+class AdditionalIntPropertiesMessage(messages.Message):
+
+    class AdditionalProperty(messages.Message):
+        key = messages.StringField(1)
+        value = messages.IntegerField(2)
+
+    additional_properties = messages.MessageField(
+        'AdditionalProperty', 1, repeated=True)
+
+
+@encoding.MapUnrecognizedFields('additional_properties')
 class UnrecognizedEnumMessage(messages.Message):
 
     class ThisEnum(messages.Enum):
@@ -228,6 +239,16 @@ class EncodingTest(unittest2.TestCase):
         json_msg = '{"nested": {"123": "def"}}'
         msg = encoding.JsonToMessage(HasNestedMessage, json_msg)
         self.assertEqual(1, len(msg.nested.additional_properties))
+
+    def testNumericPropertyValue(self):
+        json_msg = '{"key_one": "123"}'
+        msg = encoding.JsonToMessage(AdditionalIntPropertiesMessage, json_msg)
+        self.assertEqual(
+            AdditionalIntPropertiesMessage(
+                additional_properties=[
+                    AdditionalIntPropertiesMessage.AdditionalProperty(
+                        key='key_one', value=123)]),
+            msg)
 
     def testAdditionalMessageProperties(self):
         json_msg = '{"input": {"index": 0, "name": "output"}}'
