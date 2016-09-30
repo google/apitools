@@ -36,7 +36,7 @@ REQUIRED_PACKAGES = [
 
 CLI_PACKAGES = [
     'google-apputils>=0.4.0',
-    'python-gflags>=2.0',
+    'python-gflags==3.0.6',  # Starting version 3.0.7 py26 is not supported.
 ]
 
 TESTING_PACKAGES = [
