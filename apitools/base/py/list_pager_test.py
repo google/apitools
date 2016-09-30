@@ -218,3 +218,29 @@ class ListPagerAttributeTest(unittest2.TestCase):
         for i, instance in enumerate(results):
             self.assertEquals('c{0}'.format(i), instance.fullResourcePath)
         self.assertEquals(2, i)
+    
+    def testYieldFromListWithNoBatchSizeAttribute(self):
+        self.mocked_client.iamPolicies.GetPolicyDetails.Expect(
+            iam_messages.GetPolicyDetailsRequest(
+                pageToken=None,
+                fullResourcePath='myresource',
+            ),
+            iam_messages.GetPolicyDetailsResponse(
+                policies=[
+                    iam_messages.PolicyDetail(fullResourcePath='c0'),
+                    iam_messages.PolicyDetail(fullResourcePath='c1'),
+                ],
+            ))
+        
+        client = iam_client.IamV1(get_credentials=False)
+        request = iam_messages.GetPolicyDetailsRequest(
+            fullResourcePath='myresource')
+        results = list_pager.YieldFromList(
+            client.iamPolicies, request,
+            batch_size_attribute=None,
+            method='GetPolicyDetails', field='policies')
+
+        i = 0
+        for i, instance in enumerate(results):
+            self.assertEquals('c{0}'.format(i), instance.fullResourcePath)
+        self.assertEquals(1, i)
