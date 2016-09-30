@@ -422,10 +422,9 @@ def _DecodeUnrecognizedFields(message, pair_type):
         value_type = pair_type.field_by_name('value')
         if isinstance(value_type, messages.MessageField):
             decoded_value = DictToMessage(value, pair_type.value.message_type)
-        elif isinstance(value_type, messages.EnumField):
-            decoded_value = pair_type.value.type(value)
         else:
-            decoded_value = value
+            decoded_value = protojson.ProtoJson().decode_field(
+                pair_type.value, value)
         new_pair = pair_type(key=str(unknown_field), value=decoded_value)
         new_values.append(new_pair)
     return new_values
