@@ -37,6 +37,10 @@ def _GetApiServices(api_client_class):
             issubclass(potential_service, apitools_base.BaseApiService)))
 
 
+class CustomException(Exception):
+    pass
+
+
 class MockTest(unittest2.TestCase):
 
     def testMockFusionBasic(self):
@@ -55,6 +59,12 @@ class MockTest(unittest2.TestCase):
             client = fusiontables.FusiontablesV1(get_credentials=False)
             with self.assertRaises(apitools_base.HttpError):
                 client.column.List(1)
+
+    def testMockIfAnotherException(self):
+        with self.assertRaises(CustomException):
+            with mock.Client(fusiontables.FusiontablesV1) as client_class:
+                client_class.column.List.Expect(request=1, response=2)
+                raise CustomException('Something when wrong')
 
     def testMockFusionOrder(self):
         with mock.Client(fusiontables.FusiontablesV1) as client_class:
