@@ -33,6 +33,7 @@ import sys
 
 IGNORED_DIRECTORIES = [
     'apitools/gen/testdata',
+    'samples/bigquery_sample/bigquery_v2',
     'samples/dns_sample/dns_v1',
     'samples/fusiontables_sample/fusiontables_v1',
     'samples/iam_sample/iam_v1',
