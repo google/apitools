@@ -23,6 +23,7 @@ as it's all done within the context of a mock.
 """
 
 import difflib
+import sys
 
 import six
 
@@ -331,12 +332,13 @@ class Client(object):
         return self
 
     def __exit__(self, exc_type, value, traceback):
-        self.Unmock()
-        if value:
+        is_active_exception = value is not None
+        self.Unmock(suppress=is_active_exception)
+        if is_active_exception:
             six.reraise(exc_type, value, traceback)
         return True
 
-    def Unmock(self):
+    def Unmock(self, suppress=False):
         self.__class__ = self.__orig_class
         for name, service_class in self.__real_service_classes.items():
             setattr(self.__client_class, name, service_class)
@@ -345,14 +347,15 @@ class Client(object):
         del self._url
         del self._http
 
-        if self._request_responses:
-            raise ExpectedRequestsException(
-                [(rq_rs.key, rq_rs.request) for rq_rs
-                 in self._request_responses])
-        self._request_responses = []
-
         self.__client_class.IncludeFields = self.__real_include_fields
         self.__real_include_fields = None
+
+        requests = [(rq_rs.key, rq_rs.request)
+                    for rq_rs in self._request_responses]
+        self._request_responses = []
+
+        if requests and not suppress and sys.exc_info()[1] is None:
+            raise ExpectedRequestsException(requests)
 
     def IncludeFields(self, include_fields):
         if self.__real_client:
