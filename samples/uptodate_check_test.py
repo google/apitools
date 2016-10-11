@@ -67,6 +67,9 @@ class ClientGenCliTest(unittest2.TestCase):
                         api_name, prefix, expected_file)),
                     _GetContent(os.path.join(tmp_dir_path, expected_file)))
 
+    def testGenClient_BigqueryDoc(self):
+        self._CheckGeneratedFiles('bigquery', 'v2')
+
     def testGenClient_DnsDoc(self):
         self._CheckGeneratedFiles('dns', 'v1')
 

@@ -20,6 +20,7 @@ import subprocess
 _GEN_CLIENT_BINARY = 'gen_client'
 
 _SAMPLES = [
+    'bigquery_sample/bigquery_v2.json',
     'dns_sample/dns_v1.json',
     'iam_sample/iam_v1.json',
     'fusiontables_sample/fusiontables_v1.json',
