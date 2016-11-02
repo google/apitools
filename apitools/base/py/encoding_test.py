@@ -203,9 +203,12 @@ class EncodingTest(unittest2.TestCase):
         self.assertEqual(
             '{"nested": {"nested": null}}',
             encoding.MessageToJson(msg, include_fields=['nested.nested']))
-        self.assertEqual(
-            '{"nested": {"nested_list": []}}',
-            encoding.MessageToJson(msg, include_fields=['nested.nested_list']))
+        # When clearing 'nested.nested_list', its sibling ('nested.nested')
+        # should remain unaffected.
+        self.assertIn(
+            encoding.MessageToJson(msg, include_fields=['nested.nested_list']),
+            ['{"nested": {"nested": {}, "nested_list": []}}',
+             '{"nested": {"nested_list": [], "nested": {}}}'])
         self.assertEqual(
             '{"nested": {"nested": {"additional_properties": []}}}',
             encoding.MessageToJson(
