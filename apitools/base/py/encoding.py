@@ -230,8 +230,7 @@ def _GetField(message, field_path):
 
 def _SetField(dictblob, field_path, value):
     for field in field_path[:-1]:
-        dictblob[field] = {}
-        dictblob = dictblob[field]
+        dictblob = dictblob.setdefault(field, {})
     dictblob[field_path[-1]] = value
 
 
