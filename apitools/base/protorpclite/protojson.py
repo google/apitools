@@ -277,22 +277,20 @@ class ProtoJson(object):
                         'No variant found for unrecognized field: %s', key)
                 continue
 
-            # Normalize values in to a list.
-            if isinstance(value, list):
-                if not value:
-                    continue
-            else:
-                value = [value]
-
-            valid_value = []
-            for item in value:
-                valid_value.append(self.decode_field(field, item))
+            # This is just for consistency with the old behavior.
+            if value == []:
+                continue
 
             if field.repeated:
-                _ = getattr(message, field.name)
+                # This should be unnecessary? Or in fact become an error.
+                if not isinstance(value, list):
+                    value = [value]
+                valid_value = [self.decode_field(field, item)
+                               for item in value]
                 setattr(message, field.name, valid_value)
             else:
-                setattr(message, field.name, valid_value[-1])
+                setattr(message, field.name, self.decode_field(field, value))
+
         return message
 
     def decode_field(self, field, value):
