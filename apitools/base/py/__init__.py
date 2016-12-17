@@ -17,6 +17,7 @@
 """Top-level imports for apitools base files."""
 
 # pylint:disable=wildcard-import
+# pylint:disable=redefined-builtin
 from apitools.base.py.base_api import *
 from apitools.base.py.batch import *
 from apitools.base.py.credentials_lib import *
