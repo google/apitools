@@ -30,8 +30,14 @@ from apitools.gen import util
 
 def _ApitoolsVersion():
     """Returns version of the currently installed google-apitools package."""
-    import pkg_resources
-    return pkg_resources.get_distribution('google-apitools').version
+    try:
+        import pkg_resources
+    except ImportError:
+        return 'X.X.X'
+    try:
+        return pkg_resources.get_distribution('google-apitools').version
+    except pkg_resources.DistributionNotFound:
+        return 'X.X.X'
 
 
 def _StandardQueryParametersSchema(discovery_doc):

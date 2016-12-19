@@ -22,6 +22,7 @@ import tempfile
 
 import unittest2
 
+from apitools.gen import gen_client
 from apitools.gen import test_utils
 
 
@@ -55,7 +56,7 @@ class ClientGenerationTest(unittest2.TestCase):
                 ]
                 logging.info('Testing API %s with command line: %s',
                              api, ' '.join(args))
-                retcode = subprocess.call(args)
+                retcode = gen_client.main(args)
                 if retcode == 128:
                     logging.error('Failed to fetch discovery doc, continuing.')
                     continue
