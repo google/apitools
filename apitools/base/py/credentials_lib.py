@@ -302,6 +302,11 @@ class GceAssertionCredentials(gce.AppAssertionCredentials):
                             if (creds['scopes'] in
                                     (None, cached_creds['scopes'])):
                                 scopes = cached_creds['scopes']
+                except KeyboardInterrupt:
+                    raise
+                except:  # pylint: disable=bare-except
+                    # Treat exceptions as a cache miss.
+                    pass
                 finally:
                     cache_file.unlock_and_close()
         return scopes
@@ -331,6 +336,11 @@ class GceAssertionCredentials(gce.AppAssertionCredentials):
                         # If it's not locked, the locking process will
                         # write the same data to the file, so just
                         # continue.
+                except KeyboardInterrupt:
+                    raise
+                except:  # pylint: disable=bare-except
+                    # Treat exceptions as a cache miss.
+                    pass
                 finally:
                     cache_file.unlock_and_close()
 
