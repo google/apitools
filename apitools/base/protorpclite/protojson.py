@@ -272,9 +272,6 @@ class ProtoJson(object):
                 variant = self.__find_variant(value)
                 if variant:
                     message.set_unrecognized_field(key, value, variant)
-                else:
-                    logging.warning(
-                        'No variant found for unrecognized field: %s', key)
                 continue
 
             # This is just for consistency with the old behavior.
