@@ -95,9 +95,9 @@ def YieldFromAggregatedList(
     current_token_attribute='pageToken', next_token_attribute='nextPageToken',
     batch_size_attribute='maxResults'):
   def GetItemsFromPage(response, field):
-    for items_group in response.items.additionalProperties:
-        for item in items:
-            yield item
+    for items_group in getattr(response.items, field):
+      for item in items_group:
+        yield item
   items_extractor = lambda response: GetItemsFromPage(response, field)
   return _GenericYieldFromList(
       service, request, items_extractor, global_params, limit, batch_size,
