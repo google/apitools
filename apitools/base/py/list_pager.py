@@ -100,6 +100,6 @@ def YieldFromAggregatedList(
             for item in getattr(items_group.value, field):
                 yield item
     return _GenericYieldFromList(
-          service, request, lambda response: GetItemsFromPage(response, field),
-          global_params, limit, batch_size, method, predicate,
-          current_token_attribute, next_token_attribute, batch_size_attribute)
+        service, request, lambda response: GetItemsFromPage(response, field),
+        global_params, limit, batch_size, method, predicate,
+        current_token_attribute, next_token_attribute, batch_size_attribute)
