@@ -84,9 +84,9 @@ def YieldFromList(
         next_token_attribute='nextPageToken',
         batch_size_attribute='maxResults'):
     return _GenericYieldFromList(
-          service, request, lambda response: getattr(response, field),
-          global_params, limit, batch_size, method, predicate,
-          current_token_attribute, next_token_attribute, batch_size_attribute)
+        service, request, lambda response: getattr(response, field),
+        global_params, limit, batch_size, method, predicate,
+        current_token_attribute, next_token_attribute, batch_size_attribute)
 
 
 def YieldFromAggregatedList(
