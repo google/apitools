@@ -22,9 +22,9 @@ __all__ = [
 
 
 def _GenericYieldFromList(
-    service, request, items_extractor, global_params, limit,
-    batch_size, method, predicate, current_token_attribute,
-    next_token_attribute, batch_size_attribute):
+        service, request, items_extractor, global_params, limit,
+        batch_size, method, predicate, current_token_attribute,
+        next_token_attribute, batch_size_attribute):
     """Make a series of List requests, keeping track of page tokens.
 
     Args:
@@ -78,11 +78,11 @@ def _GenericYieldFromList(
 
 
 def YieldFromList(
-    service, request, global_params=None, limit=None,
-    batch_size=100, method='List', field='items', predicate=None,
-    current_token_attribute='pageToken',
-    next_token_attribute='nextPageToken',
-    batch_size_attribute='maxResults'):
+        service, request, global_params=None, limit=None,
+        batch_size=100, method='List', field='items', predicate=None,
+        current_token_attribute='pageToken',
+        next_token_attribute='nextPageToken',
+        batch_size_attribute='maxResults'):
     return _GenericYieldFromList(
           service, request, lambda response: getattr(response, field),
           global_params, limit, batch_size, method, predicate,
@@ -90,10 +90,10 @@ def YieldFromList(
 
 
 def YieldFromAggregatedList(
-    service, request, field, global_params=None, limit=None, batch_size=100,
-    method='AggregatedList', predicate=None,
-    current_token_attribute='pageToken', next_token_attribute='nextPageToken',
-    batch_size_attribute='maxResults'):
+        service, request, field, global_params=None, limit=None, batch_size=100,
+        method='AggregatedList', predicate=None,
+        current_token_attribute='pageToken', next_token_attribute='nextPageToken',
+        batch_size_attribute='maxResults'):
     def GetItemsFromPage(response, field):
         for items_group in response.items.additionalProperties:
             for item in getattr(items_group.value, field):
