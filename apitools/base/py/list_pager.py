@@ -25,55 +25,56 @@ def _GenericYieldFromList(
     service, request, items_extractor, global_params, limit,
     batch_size, method, predicate, current_token_attribute,
     next_token_attribute, batch_size_attribute):
-  """Make a series of List requests, keeping track of page tokens.
+    """Make a series of List requests, keeping track of page tokens.
 
-  Args:
-    service: apitools_base.BaseApiService, A service with a .List() method.
-    request: protorpc.messages.Message, The request message
-        corresponding to the service's .List() method, with all the
-        attributes populated except the .maxResults and .pageToken
-        attributes.
-    items_extractor: TBD
-    global_params: protorpc.messages.Message, The global query parameters to
-         provide when calling the given method.
-    limit: int, The maximum number of records to yield. None if all available
-        records should be yielded.
-    batch_size: int, The number of items to retrieve per request.
-    method: str, The name of the method used to fetch resources.
-    predicate: lambda, A function that returns true for items to be yielded.
-    current_token_attribute: str, The name of the attribute in a
-        request message holding the page token for the page being
-        requested.
-    next_token_attribute: str, The name of the attribute in a
-        response message holding the page token for the next page.
-    batch_size_attribute: str, The name of the attribute in a
-        response message holding the maximum number of results to be
-        returned. None if caller-specified batch size is unsupported.
+    Args:
+      service: apitools_base.BaseApiService, A service with a .List() method.
+      request: protorpc.messages.Message, The request message
+          corresponding to the service's .List() method, with all the
+          attributes populated except the .maxResults and .pageToken
+          attributes.
+      items_extractor: TBD
+      global_params: protorpc.messages.Message, The global query parameters to
+           provide when calling the given method.
+      limit: int, The maximum number of records to yield. None if all available
+          records should be yielded.
+      batch_size: int, The number of items to retrieve per request.
+      method: str, The name of the method used to fetch resources.
+      predicate: lambda, A function that returns true for items to be yielded.
+      current_token_attribute: str, The name of the attribute in a
+          request message holding the page token for the page being
+          requested.
+      next_token_attribute: str, The name of the attribute in a
+          response message holding the page token for the next page.
+      batch_size_attribute: str, The name of the attribute in a
+          response message holding the maximum number of results to be
+          returned. None if caller-specified batch size is unsupported.
 
-  Yields:
-    protorpc.message.Message, The resources listed by the service.
+    Yields:
+      protorpc.message.Message, The resources listed by the service.
 
-  """
-  request = encoding.CopyProtoMessage(request)
-  if batch_size_attribute:
-    setattr(request, batch_size_attribute, batch_size)
-  setattr(request, current_token_attribute, None)
-  while limit is None or limit:
-    response = getattr(service, method)(request, global_params=global_params)
-    items = items_extractor(response)
-    if predicate:
-      items = list(filter(predicate, items))
-    for item in items:
-      yield item
-      if limit is None:
-        continue
-      limit -= 1
-      if not limit:
-        return
-    token = getattr(response, next_token_attribute)
-    if not token:
-      return
-    setattr(request, current_token_attribute, token)
+    """
+    request = encoding.CopyProtoMessage(request)
+    if batch_size_attribute:
+        setattr(request, batch_size_attribute, batch_size)
+    setattr(request, current_token_attribute, None)
+    while limit is None or limit:
+        response = getattr(service, method)(
+            request, global_params=global_params)
+        items = items_extractor(response)
+        if predicate:
+            items = list(filter(predicate, items))
+        for item in items:
+            yield item
+            if limit is None:
+                continue
+            limit -= 1
+            if not limit:
+                return
+        token = getattr(response, next_token_attribute)
+        if not token:
+            return
+        setattr(request, current_token_attribute, token)
 
 
 def YieldFromList(
@@ -82,11 +83,10 @@ def YieldFromList(
     current_token_attribute='pageToken',
     next_token_attribute='nextPageToken',
     batch_size_attribute='maxResults'):
-  items_extractor = lambda response: getattr(response, field)
-  return _GenericYieldFromList(
-      service, request, items_extractor, global_params, limit, batch_size,
-      method, predicate, current_token_attribute, next_token_attribute,
-      batch_size_attribute)
+    return _GenericYieldFromList(
+          service, request, lambda response: getattr(response, field),
+          global_params, limit, batch_size, method, predicate,
+          current_token_attribute, next_token_attribute, batch_size_attribute)
 
 
 def YieldFromAggregatedList(
@@ -94,12 +94,11 @@ def YieldFromAggregatedList(
     method='AggregatedList', predicate=None,
     current_token_attribute='pageToken', next_token_attribute='nextPageToken',
     batch_size_attribute='maxResults'):
-  def GetItemsFromPage(response, field):
-    for items_group in response.items.additionalProperties:
-      for item in getattr(items_group.value, field):
-        yield item
-  items_extractor = lambda response: GetItemsFromPage(response, field)
-  return _GenericYieldFromList(
-      service, request, items_extractor, global_params, limit, batch_size,
-      method, predicate, current_token_attribute, next_token_attribute,
-      batch_size_attribute)
+    def GetItemsFromPage(response, field):
+        for items_group in response.items.additionalProperties:
+            for item in getattr(items_group.value, field):
+                yield item
+    return _GenericYieldFromList(
+          service, request, lambda response: GetItemsFromPage(response, field),
+          global_params, limit, batch_size, method, predicate,
+          current_token_attribute, next_token_attribute, batch_size_attribute)
