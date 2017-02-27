@@ -182,7 +182,7 @@ class BatchApiRequest(object):
         self.api_requests.append(api_request)
 
     def Execute(self, http, sleep_between_polls=5, max_retries=5,
-                max_batch_size=None):
+                max_batch_size=None, batch_request_callback=None):
         """Execute all of the requests in the batch.
 
         Args:
@@ -209,7 +209,10 @@ class BatchApiRequest(object):
             for i in range(0, len(requests), batch_size):
                 # Create a batch_http_request object and populate it with
                 # incomplete requests.
-                batch_http_request = BatchHttpRequest(batch_url=self.batch_url)
+                batch_http_request = BatchHttpRequest(
+                    batch_url=self.batch_url,
+                    callback=batch_request_callback
+                )
                 for request in itertools.islice(requests,
                                                 i, i + batch_size):
                     batch_http_request.Add(
