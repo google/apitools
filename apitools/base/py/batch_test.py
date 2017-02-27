@@ -152,12 +152,13 @@ class BatchTest(unittest2.TestCase):
     def testSingleRequestInBatch(self):
         desired_url = 'https://www.example.com'
 
-        callback_result = None
+        callback_was_called = []
         def _Callback(response, exception):
             self.assertEqual({'status': '200'}, response.info)
             self.assertEqual('content', response.content)
             self.assertEqual(desired_url, response.request_url)
             self.assertIsNone(exception)
+            callback_was_called.append(1)
 
         mock_service = FakeService()
 
@@ -205,6 +206,7 @@ class BatchTest(unittest2.TestCase):
             self.assertEqual({'status': '200'}, response.info)
             self.assertEqual('content', response.content)
             self.assertEqual(desired_url, response.request_url)
+        self.assertEquals(1, len(callback_was_called))
 
     def _MakeResponse(self, number_of_parts):
         return http_wrapper.Response(
