@@ -150,9 +150,17 @@ class BatchTest(unittest2.TestCase):
                                   exceptions.HttpError)
 
     def testSingleRequestInBatch(self):
+        desired_url = 'https://www.example.com'
+
+        callback_result = None
+        def _Callback(response, exception):
+            self.assertEqual({'status': '200'}, response.info)
+            self.assertEqual('content', response.content)
+            self.assertEqual(desired_url, response.request_url)
+            self.assertIsNone(exception)
+
         mock_service = FakeService()
 
-        desired_url = 'https://www.example.com'
         batch_api_request = batch.BatchApiRequest(batch_url=desired_url)
         # The request to be added. The actual request sent will be somewhat
         # larger, as this is added to a batch.
@@ -185,7 +193,8 @@ class BatchTest(unittest2.TestCase):
                 'desired_request': desired_request,
             })
 
-            api_request_responses = batch_api_request.Execute(FakeHttp())
+            api_request_responses = batch_api_request.Execute(
+                FakeHttp(), batch_request_callback=_Callback)
 
             self.assertEqual(1, len(api_request_responses))
             self.assertEqual(1, mock_request.call_count)
