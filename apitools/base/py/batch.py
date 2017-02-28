@@ -194,6 +194,8 @@ class BatchApiRequest(object):
               exception, whatever it happened to be.
           max_batch_size: int, if specified requests will be split in batches
               of given size.
+          batch_request_callback: function of (http_response, exception) passed
+              to BatchHttpRequest which will be run on any given results.
 
         Returns:
           List of ApiCalls.
