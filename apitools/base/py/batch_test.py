@@ -153,6 +153,7 @@ class BatchTest(unittest2.TestCase):
         desired_url = 'https://www.example.com'
 
         callback_was_called = []
+
         def _Callback(response, exception):
             self.assertEqual({'status': '200'}, response.info)
             self.assertEqual('content', response.content)
