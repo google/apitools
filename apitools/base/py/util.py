@@ -61,10 +61,12 @@ def DetectGce():
     Returns:
       True iff we're running on a GCE instance.
     """
+    metadata_url = 'http://{}'.format(
+        os.environ.get('GCE_METADATA_ROOT', 'metadata.google.internal'))
     try:
         o = urllib_request.build_opener(urllib_request.ProxyHandler({})).open(
-            urllib_request.Request('http://metadata.google.internal',
-                                   headers={'Metadata-Flavor': 'Google'}))
+            urllib_request.Request(
+                metadata_url, headers={'Metadata-Flavor': 'Google'}))
     except urllib_error.URLError:
         return False
     return (o.getcode() == http_client.OK and
