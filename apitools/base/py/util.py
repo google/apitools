@@ -63,7 +63,8 @@ def DetectGce():
     """
     try:
         o = urllib_request.build_opener(urllib_request.ProxyHandler({})).open(
-            urllib_request.Request('http://metadata.google.internal'))
+            urllib_request.Request('http://metadata.google.internal',
+                                   headers={'Metadata-Flavor': 'Google'}))
     except urllib_error.URLError:
         return False
     return (o.getcode() == http_client.OK and
