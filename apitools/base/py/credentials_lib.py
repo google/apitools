@@ -209,10 +209,11 @@ def _EnsureFileExists(filename):
 def _GceMetadataRequest(relative_url, use_metadata_ip=False):
     """Request the given url from the GCE metadata service."""
     if use_metadata_ip:
-        base_url = 'http://169.254.169.254/'
+        base_url = os.environ.get('GCE_METADATA_IP', '169.254.169.254')
     else:
-        base_url = 'http://metadata.google.internal/'
-    url = base_url + 'computeMetadata/v1/' + relative_url
+        base_url = os.environ.get(
+            'GCE_METADATA_ROOT', 'metadata.google.internal')
+    url = 'http://' + base_url + '/computeMetadata/v1/' + relative_url
     # Extra header requirement can be found here:
     # https://developers.google.com/compute/docs/metadata
     headers = {'Metadata-Flavor': 'Google'}
