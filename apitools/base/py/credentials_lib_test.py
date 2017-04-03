@@ -80,6 +80,13 @@ class CredentialsLibTest(unittest2.TestCase):
             # The urllib module does weird things with header case.
             self.assertEqual('Google', req.get_header('Metadata-flavor'))
 
+    def testGetAdcNone(self):
+        # Tests that we correctly return None when ADC aren't present in
+        # the well-known file.
+        creds = credentials_lib._GetApplicationDefaultCredentials(
+            client_info={'scope': ''})
+        self.assertIsNone(creds)
+
 
 class TestGetRunFlowFlags(unittest2.TestCase):
 
