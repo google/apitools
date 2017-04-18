@@ -94,8 +94,7 @@ class BatchTest(unittest2.TestCase):
             self.assertEqual(expected_request.http_method, request.http_method)
             if isinstance(response, list):
                 return response.pop(0)
-            else:
-                return response
+            return response
 
         mock_request.side_effect = CheckRequest
 

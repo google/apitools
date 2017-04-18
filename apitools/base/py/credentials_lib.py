@@ -379,6 +379,7 @@ class GceAssertionCredentials(gce.AppAssertionCredentials):
         return util.NormalizeScopes(scope.strip()
                                     for scope in response.readlines())
 
+    # pylint: disable=arguments-differ
     def _refresh(self, do_request):
         """Refresh self.access_token.
 

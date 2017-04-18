@@ -169,6 +169,7 @@ FIRST_RESERVED_FIELD_NUMBER = 19000
 LAST_RESERVED_FIELD_NUMBER = 19999
 
 
+# pylint: disable=no-value-for-parameter
 class _DefinitionClass(type):
     """Base meta-class used for definition meta-classes.
 
@@ -250,8 +251,7 @@ class _DefinitionClass(type):
         outer_definition_name = cls.outer_definition_name()
         if outer_definition_name is None:
             return six.text_type(cls.__name__)
-        else:
-            return u'%s.%s' % (outer_definition_name, cls.__name__)
+        return u'%s.%s' % (outer_definition_name, cls.__name__)
 
     def outer_definition_name(cls):
         """Helper method for creating outer definition name.
@@ -264,8 +264,7 @@ class _DefinitionClass(type):
         outer_definition = cls.message_definition()
         if not outer_definition:
             return util.get_package_for_module(cls.__module__)
-        else:
-            return outer_definition.definition_name()
+        return outer_definition.definition_name()
 
     def definition_package(cls):
         """Helper method for creating creating the package of a definition.
@@ -276,8 +275,7 @@ class _DefinitionClass(type):
         outer_definition = cls.message_definition()
         if not outer_definition:
             return util.get_package_for_module(cls.__module__)
-        else:
-            return outer_definition.definition_package()
+        return outer_definition.definition_package()
 
 
 class _EnumClass(_DefinitionClass):
@@ -1103,8 +1101,7 @@ class FieldList(list):
         message_class = self.__field.message_definition()
         if message_class is None:
             return self.__field, None, None
-        else:
-            return None, message_class, self.__field.number
+        return None, message_class, self.__field.number
 
     def __setstate__(self, state):
         """Enable unpickling.
@@ -1299,8 +1296,7 @@ class Field(six.with_metaclass(_FieldMeta, object)):
             if self.repeated:
                 value = FieldList(self, value)
             else:
-                value = (  # pylint: disable=redefined-variable-type
-                    self.validate(value))
+                value = self.validate(value)
             message_instance._Message__tags[self.number] = value
 
     def __get__(self, message_instance, message_class):
@@ -1310,8 +1306,7 @@ class Field(six.with_metaclass(_FieldMeta, object)):
         result = message_instance._Message__tags.get(self.number)
         if result is None:
             return self.default
-        else:
-            return result
+        return result
 
     def validate_element(self, value):
         """Validate single element of field.

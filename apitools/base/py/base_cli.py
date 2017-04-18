@@ -16,6 +16,8 @@
 
 """Base script for generated CLI."""
 
+from __future__ import absolute_import
+
 import atexit
 import code
 import logging
@@ -24,8 +26,8 @@ import readline
 import rlcompleter
 import sys
 
-from google.apputils import appcommands
 import gflags as flags
+from google.apputils import appcommands
 
 from apitools.base.py import encoding
 from apitools.base.py import exceptions
@@ -97,15 +99,13 @@ class _SmartCompleter(rlcompleter.Completer):
         if ('(' in readline.get_line_buffer() or
                 not callable(val)):
             return word
-        else:
-            return word + '('
+        return word + '('
 
     def complete(self, text, state):
         if not readline.get_line_buffer().strip():
             if not state:
                 return '  '
-            else:
-                return None
+            return None
         return rlcompleter.Completer.complete(self, text, state)
 
 

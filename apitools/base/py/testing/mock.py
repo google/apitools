@@ -245,8 +245,7 @@ class _MockedMethod(object):
 def _MakeMockedService(api_name, collection_name,
                        mock_client, service, real_service):
     class MockedService(base_api.BaseApiService):
-        def __init__(self, real_client):
-            super(MockedService, self).__init__(real_client)
+        pass
 
     for method in service.GetMethodsList():
         real_method = None

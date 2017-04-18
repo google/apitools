@@ -189,8 +189,7 @@ def get_package_for_module(module):
                 split_name = os.path.splitext(base_name)
                 if len(split_name) == 1:
                     return six.text_type(base_name)
-                else:
-                    return u'.'.join(split_name[:-1])
+                return u'.'.join(split_name[:-1])
 
         return six.text_type(module.__name__)
 

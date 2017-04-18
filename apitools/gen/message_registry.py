@@ -441,8 +441,7 @@ class MessageRegistry(object):
                     entry_name_hint, items.get('items'), parent_name)
                 return TypeInfo(type_name=entry_type_name,
                                 variant=messages.Variant.MESSAGE)
-            else:
-                return self.__GetTypeInfo(items, entry_name_hint)
+            return self.__GetTypeInfo(items, entry_name_hint)
         elif type_name == 'any':
             self.__AddImport('from %s import extra_types' %
                              self.__base_files_package)

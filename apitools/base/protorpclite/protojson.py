@@ -125,8 +125,8 @@ class MessageJSONEncoder(json.JSONEncoder):
                     unknown_key)
                 result[unknown_key] = unrecognized_field
             return result
-        else:
-            return super(MessageJSONEncoder, self).default(value)
+
+        return super(MessageJSONEncoder, self).default(value)
 
 
 class ProtoJson(object):
