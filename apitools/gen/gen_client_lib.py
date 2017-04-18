@@ -90,7 +90,7 @@ class DescriptorGenerator(object):
             self.__root_package, self.__base_files_package,
             self.__protorpc_package)
         schemas = self.__discovery_doc.get('schemas', {})
-        for schema_name, schema in schemas.items():
+        for schema_name, schema in sorted(schemas.items()):
             self.__message_registry.AddDescriptorFromSchema(
                 schema_name, schema)
 
