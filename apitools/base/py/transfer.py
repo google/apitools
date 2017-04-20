@@ -271,9 +271,8 @@ class Download(_Transfer):
     def __str__(self):
         if not self.initialized:
             return 'Download (uninitialized)'
-        else:
-            return 'Download with %d/%s bytes transferred from url %s' % (
-                self.progress, self.total_size, self.url)
+        return 'Download with %d/%s bytes transferred from url %s' % (
+            self.progress, self.total_size, self.url)
 
     def ConfigureRequest(self, http_request, url_builder):
         url_builder.query_params['alt'] = 'media'
@@ -648,9 +647,8 @@ class Upload(_Transfer):
     def __str__(self):
         if not self.initialized:
             return 'Upload (uninitialized)'
-        else:
-            return 'Upload with %d/%s bytes transferred for url %s' % (
-                self.progress, self.total_size or '???', self.url)
+        return 'Upload with %d/%s bytes transferred for url %s' % (
+            self.progress, self.total_size or '???', self.url)
 
     @property
     def strategy(self):
@@ -850,8 +848,7 @@ class Upload(_Transfer):
         # go ahead and pump the bytes now.
         if self.auto_transfer:
             return self.StreamInChunks()
-        else:
-            return http_response
+        return http_response
 
     def __GetLastByte(self, range_header):
         _, _, end = range_header.partition('-')
@@ -992,7 +989,6 @@ class Upload(_Transfer):
             # https://code.google.com/p/httplib2/issues/detail?id=176 which can
             # cause httplib2 to skip bytes on 401's for file objects.
             # Rework this solution to be more general.
-            # pylint: disable=redefined-variable-type
             body_stream = body_stream.read(self.chunksize)
         else:
             end = min(start + self.chunksize, self.total_size)

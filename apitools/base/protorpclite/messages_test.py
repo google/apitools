@@ -851,7 +851,6 @@ class FieldTest(test_util.TestCase):
         field = messages.FloatField(1)
         self.assertEquals(type(field.validate_element(12)), float)
         self.assertEquals(type(field.validate_element(12.0)), float)
-        # pylint: disable=redefined-variable-type
         field = messages.IntegerField(1)
         self.assertEquals(type(field.validate_element(12)), int)
         self.assertRaises(messages.ValidationError,
@@ -1659,7 +1658,6 @@ class MessageTest(test_util.TestCase):
             messages.ValidationError,
             "Field val is repeated. Found: <SubMessage>",
             setattr, message, 'val', SubMessage())
-        # pylint: disable=redefined-variable-type
         message.val = [SubMessage()]
         message_field.validate(message)
 

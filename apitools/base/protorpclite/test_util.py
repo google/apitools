@@ -641,5 +641,4 @@ def get_module_name(module_attribute):
         module_file = inspect.getfile(module_attribute)
         default = os.path.basename(module_file).split('.')[0]
         return default
-    else:
-        return module_attribute.__module__
+    return module_attribute.__module__

@@ -340,6 +340,7 @@ class BaseApiClient(object):
     @property
     def _default_global_params(self):
         if self.__default_global_params is None:
+            # pylint: disable=not-callable
             self.__default_global_params = self.params_type()
         return self.__default_global_params
 
@@ -605,11 +606,10 @@ class BaseApiService(object):
                 request_url=http_response.request_url)
         if self.__client.response_type_model == 'json':
             return http_response.content
-        else:
-            response_type = _LoadClass(method_config.response_type_name,
-                                       self.__client.MESSAGES_MODULE)
-            return self.__client.DeserializeMessage(
-                response_type, http_response.content)
+        response_type = _LoadClass(method_config.response_type_name,
+                                   self.__client.MESSAGES_MODULE)
+        return self.__client.DeserializeMessage(
+            response_type, http_response.content)
 
     def __SetBaseHeaders(self, http_request, client):
         """Fill in the basic headers on http_request."""
