@@ -274,10 +274,6 @@ class ProtoJson(object):
                     message.set_unrecognized_field(key, value, variant)
                 continue
 
-            # This is just for consistency with the old behavior.
-            if value == []:
-                continue
-
             if field.repeated:
                 # This should be unnecessary? Or in fact become an error.
                 if not isinstance(value, list):
@@ -286,6 +282,9 @@ class ProtoJson(object):
                                for item in value]
                 setattr(message, field.name, valid_value)
             else:
+                # This is just for consistency with the old behavior.
+                if value == []:
+                    continue
                 setattr(message, field.name, self.decode_field(field, value))
 
         return message
