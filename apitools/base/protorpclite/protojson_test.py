@@ -401,6 +401,16 @@ class ProtojsonTest(test_util.TestCase,
             MyMessage, '{"a_repeated_custom": [1, 2, 3]}')
         self.assertEquals(MyMessage(a_repeated_custom=[1, 2, 3]), message)
 
+    def testDecodeRepeatedEmpty(self):
+        message = protojson.decode_message(
+            MyMessage, '{"a_repeated": []}')
+        self.assertEquals(MyMessage(a_repeated=[]), message)
+
+    def testDecodeNone(self):
+        message = protojson.decode_message(
+            MyMessage, '{"an_integer": []}')
+        self.assertEquals(MyMessage(an_integer=None), message)
+
     def testDecodeBadBase64BytesField(self):
         """Test decoding improperly encoded base64 bytes value."""
         self.assertRaisesWithRegexpMatch(
