@@ -117,6 +117,7 @@ def MessageToDict(message):
     """Convert the given message to a dictionary."""
     return json.loads(MessageToJson(message))
 
+
 def DictToProtoMap(properties, additional_property_type, sort_items=False):
     """Convert the given dictionary to an AdditionalProperty message."""
     items = properties.items()

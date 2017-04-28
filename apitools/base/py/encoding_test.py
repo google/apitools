@@ -491,7 +491,6 @@ class EncodingTest(unittest2.TestCase):
         ]
         self.assertEqual(encoded_msg, expected_msg)
 
-
     def testDictToProtoMapNumeric(self):
         dict_ = {'key': 1}
 
