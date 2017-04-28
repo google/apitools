@@ -186,6 +186,7 @@ class _MockedMethod(object):
     """A mocked API service method."""
 
     def __init__(self, key, mocked_client, real_method):
+        self.__name__ = real_method.__name__
         self.__key = key
         self.__mocked_client = mocked_client
         self.__real_method = real_method
