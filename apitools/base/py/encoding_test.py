@@ -463,3 +463,42 @@ class EncodingTest(unittest2.TestCase):
         encoded_msg = '{"a": [{"one": 1}]}'
         msg = encoding.JsonToMessage(RepeatedJsonValueMessage, encoded_msg)
         self.assertEqual(encoded_msg, encoding.MessageToJson(msg))
+
+    def testDictToProtoMap(self):
+        dict_ = {'key': 'value'}
+
+        encoded_msg = encoding.DictToProtoMap(dict_,
+                                              AdditionalPropertiesMessage)
+        expected_msg = AdditionalPropertiesMessage()
+        expected_msg.additional_properties = [
+            AdditionalPropertiesMessage.AdditionalProperty(
+                key='key', value='value')
+        ]
+        self.assertEqual(encoded_msg, expected_msg)
+
+    def testDictToProtoMapSorted(self):
+        tuples = [('key{0:02}'.format(i), 'value') for i in range(100)]
+        dict_ = dict(tuples)
+
+        encoded_msg = encoding.DictToProtoMap(dict_,
+                                              AdditionalPropertiesMessage,
+                                              sort_items=True)
+        expected_msg = AdditionalPropertiesMessage()
+        expected_msg.additional_properties = [
+            AdditionalPropertiesMessage.AdditionalProperty(
+                key=key, value=value)
+            for key, value in tuples
+        ]
+        self.assertEqual(encoded_msg, expected_msg)
+
+    def testDictToProtoMapNumeric(self):
+        dict_ = {'key': 1}
+
+        encoded_msg = encoding.DictToProtoMap(dict_,
+                                              AdditionalIntPropertiesMessage)
+        expected_msg = AdditionalIntPropertiesMessage()
+        expected_msg.additional_properties = [
+            AdditionalIntPropertiesMessage.AdditionalProperty(
+                key='key', value=1)
+        ]
+        self.assertEqual(encoded_msg, expected_msg)
