@@ -428,7 +428,12 @@ def _DecodeUnrecognizedFields(message, pair_type):
         else:
             decoded_value = protojson.ProtoJson().decode_field(
                 pair_type.value, value)
-        new_pair = pair_type(key=str(unknown_field), value=decoded_value)
+        try:
+            new_pair_key = str(unknown_field)
+        except UnicodeEncodeError:
+            new_pair_key = protojson.ProtoJson().decode_field(
+                pair_type.key, unknown_field)
+        new_pair = pair_type(key=new_pair_key, value=decoded_value)
         new_values.append(new_pair)
     return new_values
 
