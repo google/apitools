@@ -1,4 +1,4 @@
-#
+# -*- coding: utf-8 -*-
 # Copyright 2015 Google Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -219,17 +219,17 @@ class EncodingTest(unittest2.TestCase):
             AdditionalPropertiesMessage.AdditionalProperty(
                 key='key_one', value='value_one'),
             AdditionalPropertiesMessage.AdditionalProperty(
-                key='key_two', value='value_two'),
+                key=u'key_twð', value='value_two'),
         ]
 
         encoded_msg = encoding.MessageToJson(msg)
         self.assertEqual(
-            {'key_one': 'value_one', 'key_two': 'value_two'},
+            {'key_one': 'value_one', u'key_twð': 'value_two'},
             json.loads(encoded_msg))
 
         new_msg = encoding.JsonToMessage(type(msg), encoded_msg)
         self.assertEqual(
-            set(('key_one', 'key_two')),
+            set(('key_one', u'key_twð')),
             set([x.key for x in new_msg.additional_properties]))
         self.assertIsNot(msg, new_msg)
 
