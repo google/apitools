@@ -59,10 +59,11 @@ def YieldFromList(
 
     """
     request = encoding.CopyProtoMessage(request)
-    if batch_size_attribute:
-        setattr(request, batch_size_attribute, batch_size)
     setattr(request, current_token_attribute, None)
     while limit is None or limit:
+        if batch_size_attribute:
+            request_batch_size = min(batch_size, limit or batch_size)
+            setattr(request, batch_size_attribute, request_batch_size)
         response = getattr(service, method)(request,
                                             global_params=global_params)
         items = getattr(response, field)
