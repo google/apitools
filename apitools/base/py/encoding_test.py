@@ -106,6 +106,16 @@ class AdditionalMessagePropertiesMessage(messages.Message):
         'AdditionalProperty', 1, repeated=True)
 
 
+@encoding.MapUnrecognizedFields('additionalProperties')
+class MapToBytesValue(messages.Message):
+    class AdditionalProperty(messages.Message):
+        key = messages.StringField(1)
+        value = messages.BytesField(2)
+
+    additionalProperties = messages.MessageField('AdditionalProperty', 1,
+                                                 repeated=True)
+
+
 class HasNestedMessage(messages.Message):
     nested = messages.MessageField(AdditionalPropertiesMessage, 1)
     nested_list = messages.StringField(2, repeated=True)
@@ -176,6 +186,23 @@ class EncodingTest(unittest2.TestCase):
         self.assertEqual(
             rep_msg, encoding.JsonToMessage(BytesMessage, enc_rep_msg))
         self.assertEqual(enc_rep_msg, encoding.MessageToJson(rep_msg))
+
+    def testBytesEncodingInAMap(self):
+        # Leading bit is 1 should not be interpreted as unicode.
+        data1 = b'\xF0\x11\x0F'
+        data2 = b'\xFF\xFF\xFF'
+
+        msg = MapToBytesValue(
+            additionalProperties=[
+                MapToBytesValue.AdditionalProperty(key='1st', value=data1),
+                MapToBytesValue.AdditionalProperty(key='2nd', value=data2)
+            ])
+
+        self.assertEqual(
+            '{"1st": "%s", "2nd": "%s"}' % (
+                base64.b64encode(data1, b'-_').decode("utf-8"),
+                base64.b64encode(data2, b'-_').decode("utf-8")),
+            encoding.MessageToJson(msg))
 
     def testIncludeFields(self):
         msg = SimpleMessage()

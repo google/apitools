@@ -366,7 +366,8 @@ class _ProtoJsonApiTools(protojson.ProtoJson):
             if remapped_value:
                 return remapped_value
         if (isinstance(field, messages.MessageField) and
-                not isinstance(field, message_types.DateTimeField)):
+                not isinstance(field, message_types.DateTimeField) and
+                isinstance(value, messages.Message)):
             value = json.loads(self.encode_message(value))
         return super(_ProtoJsonApiTools, self).encode_field(field, value)
 
