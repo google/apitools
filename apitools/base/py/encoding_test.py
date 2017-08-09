@@ -138,6 +138,16 @@ class MessageWithRemappings(messages.Message):
     repeated_field = messages.StringField(5, repeated=True)
 
 
+class MessageWithAPackageAndRemappings(messages.Message):
+
+    class SomeEnum(messages.Enum):
+        enum_value = 1
+        second_value = 2
+
+    enum_field = messages.EnumField(SomeEnum, 1)
+    another_field = messages.StringField(2)
+
+
 @encoding.MapUnrecognizedFields('additional_properties')
 class RepeatedJsonValueMessage(messages.Message):
 
@@ -387,6 +397,48 @@ class EncodingTest(unittest2.TestCase):
         self.assertEqual(
             msg, encoding.JsonToMessage(MessageWithRemappings, json_message))
 
+    def testFieldRemappingWithPackage(self):
+        this_module = sys.modules[__name__]
+        package_name = 'my_package'
+        try:
+          setattr(this_module, 'package', package_name)
+
+          encoding.AddCustomJsonFieldMapping(
+              MessageWithAPackageAndRemappings,
+              'another_field', 'wire_field_name', package=package_name)
+
+          msg = MessageWithAPackageAndRemappings(another_field='my value')
+          json_message = encoding.MessageToJson(msg)
+          self.assertEqual('{"wire_field_name": "my value"}', json_message)
+          self.assertEqual(
+              msg,
+              encoding.JsonToMessage(MessageWithAPackageAndRemappings,
+                                     json_message))
+        finally:
+            delattr(this_module, 'package')
+
+    def testEnumRemappingWithPackage(self):
+        this_module = sys.modules[__name__]
+        package_name = 'my_package'
+        try:
+          setattr(this_module, 'package', package_name)
+
+          encoding.AddCustomJsonEnumMapping(
+              MessageWithAPackageAndRemappings.SomeEnum,
+              'enum_value', 'other_wire_name', package=package_name)
+
+          msg = MessageWithAPackageAndRemappings(
+              enum_field=MessageWithAPackageAndRemappings.SomeEnum.enum_value)
+          json_message = encoding.MessageToJson(msg)
+          self.assertEqual('{"enum_field": "other_wire_name"}', json_message)
+          self.assertEqual(
+              msg,
+              encoding.JsonToMessage(MessageWithAPackageAndRemappings,
+                                     json_message))
+
+        finally:
+            delattr(this_module, 'package')
+
     def testRepeatedFieldRemapping(self):
         msg = MessageWithRemappings(repeated_field=['abc', 'def'])
         json_message = encoding.MessageToJson(msg)
@@ -460,31 +512,6 @@ class EncodingTest(unittest2.TestCase):
             'TimeMessage(\n    '
             'timefield=datetime.datetime(2014, 7, 2, 23, 33, 25, 541000, '
             'tzinfo=TimeZoneOffset(datetime.timedelta(0))),\n)')
-
-    def testPackageMappingsNoPackage(self):
-        this_module_name = util.get_package_for_module(__name__)
-        full_type_name = 'MessageWithEnum.ThisEnum'
-        full_key = '%s.%s' % (this_module_name, full_type_name)
-        self.assertEqual(full_key,
-                         encoding._GetTypeKey(MessageWithEnum.ThisEnum, ''))
-
-    def testPackageMappingsWithPackage(self):
-        this_module_name = util.get_package_for_module(__name__)
-        full_type_name = 'MessageWithEnum.ThisEnum'
-        full_key = '%s.%s' % (this_module_name, full_type_name)
-        this_module = sys.modules[__name__]
-        new_package = 'new_package'
-        try:
-            setattr(this_module, 'package', new_package)
-            new_key = '%s.%s' % (new_package, full_type_name)
-            self.assertEqual(
-                new_key,
-                encoding._GetTypeKey(MessageWithEnum.ThisEnum, ''))
-            self.assertEqual(
-                full_key,
-                encoding._GetTypeKey(MessageWithEnum.ThisEnum, new_package))
-        finally:
-            delattr(this_module, 'package')
 
     def testRepeatedJsonValuesAsRepeatedProperty(self):
         encoded_msg = '{"a": [{"one": 1}]}'
