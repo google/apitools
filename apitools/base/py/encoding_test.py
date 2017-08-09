@@ -158,6 +158,7 @@ class RepeatedJsonValueMessage(messages.Message):
     additional_properties = messages.MessageField('AdditionalProperty', 1,
                                                   repeated=True)
 
+
 encoding.AddCustomJsonEnumMapping(MessageWithRemappings.SomeEnum,
                                   'enum_value', 'wire_name')
 encoding.AddCustomJsonFieldMapping(MessageWithRemappings,

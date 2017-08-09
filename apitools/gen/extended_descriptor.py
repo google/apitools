@@ -164,11 +164,9 @@ def _WriteFile(file_descriptor, package, version, proto_printer):
     proto_printer.PrintPreamble(package, version, file_descriptor)
     _PrintEnums(proto_printer, file_descriptor.enum_types)
     _PrintMessages(proto_printer, file_descriptor.message_types)
-    custom_json_mappings = _FetchCustomMappings(
-        file_descriptor.enum_types, file_descriptor.package)
+    custom_json_mappings = _FetchCustomMappings(file_descriptor.enum_types)
     custom_json_mappings.extend(
-        _FetchCustomMappings(
-            file_descriptor.message_types, file_descriptor.package))
+        _FetchCustomMappings(file_descriptor.message_types))
     for mapping in custom_json_mappings:
         proto_printer.PrintCustomJsonMapping(mapping)
 
@@ -200,31 +198,30 @@ def PrintIndentedDescriptions(printer, ls, name, prefix=''):
                         printer(line)
 
 
-def _FetchCustomMappings(descriptor_ls, package):
+def _FetchCustomMappings(descriptor_ls):
     """Find and return all custom mappings for descriptors in descriptor_ls."""
     custom_mappings = []
     for descriptor in descriptor_ls:
         if isinstance(descriptor, ExtendedEnumDescriptor):
             custom_mappings.extend(
-                _FormatCustomJsonMapping('Enum', m, descriptor, package)
+                _FormatCustomJsonMapping('Enum', m, descriptor)
                 for m in descriptor.enum_mappings)
         elif isinstance(descriptor, ExtendedMessageDescriptor):
             custom_mappings.extend(
-                _FormatCustomJsonMapping('Field', m, descriptor, package)
+                _FormatCustomJsonMapping('Field', m, descriptor)
                 for m in descriptor.field_mappings)
             custom_mappings.extend(
-                _FetchCustomMappings(descriptor.enum_types, package))
+                _FetchCustomMappings(descriptor.enum_types))
             custom_mappings.extend(
-                _FetchCustomMappings(descriptor.message_types, package))
+                _FetchCustomMappings(descriptor.message_types))
     return custom_mappings
 
 
-def _FormatCustomJsonMapping(mapping_type, mapping, descriptor, package):
+def _FormatCustomJsonMapping(mapping_type, mapping, descriptor):
     return '\n'.join((
         'encoding.AddCustomJson%sMapping(' % mapping_type,
-        "    %s, '%s', '%s'," % (descriptor.full_name, mapping.python_name,
+        "    %s, '%s', '%s')" % (descriptor.full_name, mapping.python_name,
                                  mapping.json_name),
-        '    package=%r)' % package,
     ))
 
 
