@@ -123,7 +123,15 @@ class MessageJSONEncoder(json.JSONEncoder):
             for unknown_key in value.all_unrecognized_fields():
                 unrecognized_field, _ = value.get_unrecognized_field_info(
                     unknown_key)
-                result[unknown_key] = unrecognized_field
+                # If we're encoding an unknown value, and the message has
+                # additional properties, we use the custom encoding here.
+                if hasattr(value, 'AdditionalProperty'):
+                    result[unknown_key] = (
+                        self.__protojson_protocol.encode_field(
+                            value.AdditionalProperty.value,
+                            unrecognized_field))
+                else:
+                    result[unknown_key] = unrecognized_field
             return result
 
         return super(MessageJSONEncoder, self).default(value)
