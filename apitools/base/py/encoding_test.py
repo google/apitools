@@ -138,7 +138,7 @@ class MessageWithRemappings(messages.Message):
     repeated_field = messages.StringField(5, repeated=True)
 
 
-class MessageWithAPackageAndRemappings(messages.Message):
+class MessageWithPackageAndRemappings(messages.Message):
 
     class SomeEnum(messages.Enum):
         enum_value = 1
@@ -401,19 +401,19 @@ class EncodingTest(unittest2.TestCase):
         this_module = sys.modules[__name__]
         package_name = 'my_package'
         try:
-          setattr(this_module, 'package', package_name)
+            setattr(this_module, 'package', package_name)
 
-          encoding.AddCustomJsonFieldMapping(
-              MessageWithAPackageAndRemappings,
-              'another_field', 'wire_field_name', package=package_name)
+            encoding.AddCustomJsonFieldMapping(
+                MessageWithPackageAndRemappings,
+                'another_field', 'wire_field_name', package=package_name)
 
-          msg = MessageWithAPackageAndRemappings(another_field='my value')
-          json_message = encoding.MessageToJson(msg)
-          self.assertEqual('{"wire_field_name": "my value"}', json_message)
-          self.assertEqual(
-              msg,
-              encoding.JsonToMessage(MessageWithAPackageAndRemappings,
-                                     json_message))
+            msg = MessageWithPackageAndRemappings(another_field='my value')
+            json_message = encoding.MessageToJson(msg)
+            self.assertEqual('{"wire_field_name": "my value"}', json_message)
+            self.assertEqual(
+                msg,
+                encoding.JsonToMessage(MessageWithPackageAndRemappings,
+                                       json_message))
         finally:
             delattr(this_module, 'package')
 
@@ -421,20 +421,20 @@ class EncodingTest(unittest2.TestCase):
         this_module = sys.modules[__name__]
         package_name = 'my_package'
         try:
-          setattr(this_module, 'package', package_name)
+            setattr(this_module, 'package', package_name)
 
-          encoding.AddCustomJsonEnumMapping(
-              MessageWithAPackageAndRemappings.SomeEnum,
-              'enum_value', 'other_wire_name', package=package_name)
+            encoding.AddCustomJsonEnumMapping(
+                MessageWithPackageAndRemappings.SomeEnum,
+                'enum_value', 'other_wire_name', package=package_name)
 
-          msg = MessageWithAPackageAndRemappings(
-              enum_field=MessageWithAPackageAndRemappings.SomeEnum.enum_value)
-          json_message = encoding.MessageToJson(msg)
-          self.assertEqual('{"enum_field": "other_wire_name"}', json_message)
-          self.assertEqual(
-              msg,
-              encoding.JsonToMessage(MessageWithAPackageAndRemappings,
-                                     json_message))
+            msg = MessageWithPackageAndRemappings(
+                enum_field=MessageWithPackageAndRemappings.SomeEnum.enum_value)
+            json_message = encoding.MessageToJson(msg)
+            self.assertEqual('{"enum_field": "other_wire_name"}', json_message)
+            self.assertEqual(
+                msg,
+                encoding.JsonToMessage(MessageWithPackageAndRemappings,
+                                       json_message))
 
         finally:
             delattr(this_module, 'package')

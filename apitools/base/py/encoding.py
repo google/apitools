@@ -659,7 +659,8 @@ def _CheckForExistingMappings(mapping_type, message_type,
 
 
 def _EncodeCustomFieldNames(message, encoded_value):
-    field_remappings = list(_JSON_FIELD_MAPPINGS.get(type(message), {}).items())
+    field_remappings = list(_JSON_FIELD_MAPPINGS.get(type(message), {})
+                            .items())
     if field_remappings:
         decoded_value = json.loads(encoded_value)
         for python_name, json_name in field_remappings:
