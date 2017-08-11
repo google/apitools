@@ -366,8 +366,7 @@ class _ProtoJsonApiTools(protojson.ProtoJson):
             if remapped_value:
                 return remapped_value
         if (isinstance(field, messages.MessageField) and
-                not isinstance(field, message_types.DateTimeField) and
-                isinstance(value, messages.Message)):
+                not isinstance(field, message_types.DateTimeField)):
             value = json.loads(self.encode_message(value))
         return super(_ProtoJsonApiTools, self).encode_field(field, value)
 
@@ -450,13 +449,12 @@ def _EncodeUnknownFields(message):
         raise exceptions.InvalidUserInputError(
             'Invalid pairs field %s' % pairs_field)
     pairs_type = pairs_field.message_type
-    value_variant = pairs_type.field_by_name('value').variant
+    value_field = pairs_type.field_by_name('value')
+    value_variant = value_field.variant
     pairs = getattr(message, source)
+    codec = _ProtoJsonApiTools.Get()
     for pair in pairs:
-        if value_variant == messages.Variant.MESSAGE:
-            encoded_value = MessageToDict(pair.value)
-        else:
-            encoded_value = pair.value
+        encoded_value = codec.encode_field(value_field, pair.value)
         result.set_unrecognized_field(pair.key, encoded_value, value_variant)
     setattr(result, source, [])
     return result

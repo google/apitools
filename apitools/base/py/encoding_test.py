@@ -116,6 +116,16 @@ class MapToBytesValue(messages.Message):
                                                  repeated=True)
 
 
+@encoding.MapUnrecognizedFields('additionalProperties')
+class MapToDateTimeValue(messages.Message):
+    class AdditionalProperty(messages.Message):
+        key = messages.StringField(1)
+        value = message_types.DateTimeField(2)
+
+    additionalProperties = messages.MessageField('AdditionalProperty', 1,
+                                                 repeated=True)
+
+
 class HasNestedMessage(messages.Message):
     nested = messages.MessageField(AdditionalPropertiesMessage, 1)
     nested_list = messages.StringField(2, repeated=True)
@@ -202,6 +212,26 @@ class EncodingTest(unittest2.TestCase):
             '{"1st": "%s", "2nd": "%s"}' % (
                 base64.b64encode(data1, b'-_').decode("utf-8"),
                 base64.b64encode(data2, b'-_').decode("utf-8")),
+            encoding.MessageToJson(msg))
+
+    def testDateTimeEncodingInAMap(self):
+        msg = MapToDateTimeValue(
+            additionalProperties=[
+                MapToDateTimeValue.AdditionalProperty(
+                    key='1st',
+                    value=datetime.datetime(
+                        2014, 7, 2, 23, 33, 25, 541000,
+                        tzinfo=util.TimeZoneOffset(datetime.timedelta(0)))),
+                MapToDateTimeValue.AdditionalProperty(
+                    key='2nd',
+                    value=datetime.datetime(
+                        2015, 7, 2, 23, 33, 25, 541000,
+                        tzinfo=util.TimeZoneOffset(datetime.timedelta(0))))
+            ])
+
+        self.assertEqual(
+            '{"1st": "2014-07-02T23:33:25.541000+00:00",'
+            ' "2nd": "2015-07-02T23:33:25.541000+00:00"}',
             encoding.MessageToJson(msg))
 
     def testIncludeFields(self):
