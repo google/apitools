@@ -207,6 +207,28 @@ class EncodingTest(unittest2.TestCase):
             rep_msg, encoding.JsonToMessage(BytesMessage, enc_rep_msg))
         self.assertEqual(enc_rep_msg, encoding.MessageToJson(rep_msg))
 
+    def testBase64RoundtripForMapFields(self):
+        raw_data = b'\xFF\x0F\x80'
+        encoded_data = '/w+A'  # Has url-unsafe base64 characters
+        safe_encoded_data = base64.urlsafe_b64encode(raw_data).decode("utf-8")
+        self.assertEqual(raw_data, base64.b64decode(encoded_data))
+
+        # Use unsafe encoding, make sure we can load it.
+        json_data = '{"1st": "%s"}' % encoded_data
+        msg = encoding.JsonToMessage(MapToBytesValue, json_data)
+        self.assertEqual(raw_data, msg.additionalProperties[0].value)
+
+        # Now back to json and again to message
+        from_msg_json_data = encoding.MessageToJson(msg)
+        # Make sure now it is safe url encoded
+        self.assertEqual(safe_encoded_data,
+                         json.loads(from_msg_json_data)['1st'])
+        # Make sure we can also load url safe encoded bytes.
+        redone_msg = encoding.JsonToMessage(MapToBytesValue,
+                                            from_msg_json_data)
+        # Still matches
+        self.assertEqual(raw_data, redone_msg.additionalProperties[0].value)
+
     def testBytesEncodingInAMap(self):
         # Leading bit is 1 should not be interpreted as unicode.
         data1 = b'\xF0\x11\x0F'

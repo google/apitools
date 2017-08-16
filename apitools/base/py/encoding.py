@@ -414,6 +414,7 @@ def _DecodeUnknownMessages(message, encoded_message, pair_type):
 def _DecodeUnrecognizedFields(message, pair_type):
     """Process unrecognized fields in message."""
     new_values = []
+    codec = _ProtoJsonApiTools.Get()
     for unknown_field in message.all_unrecognized_fields():
         # TODO(craigcitro): Consider validating the variant if
         # the assignment below doesn't take care of it. It may
@@ -424,7 +425,7 @@ def _DecodeUnrecognizedFields(message, pair_type):
         if isinstance(value_type, messages.MessageField):
             decoded_value = DictToMessage(value, pair_type.value.message_type)
         else:
-            decoded_value = protojson.ProtoJson().decode_field(
+            decoded_value = codec.decode_field(
                 pair_type.value, value)
         try:
             new_pair_key = str(unknown_field)
