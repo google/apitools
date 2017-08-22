@@ -92,6 +92,46 @@ class TransferTest(unittest2.TestCase):
                              download._Download__ComputeEndByte(start),
                              msg='Failed on start={0}'.format(start))
 
+    def testDownloadThenStream(self):
+        bytes_http = object()
+        http = object()
+        download_stream = six.StringIO()
+        download = transfer.Download.FromStream(download_stream,
+                                                total_size=26)
+        download.bytes_http = bytes_http
+        base_url = 'https://part.one/'
+        with mock.patch.object(http_wrapper, 'MakeRequest',
+                               autospec=True) as make_request:
+            make_request.return_value = http_wrapper.Response(
+                info={
+                    'content-range': 'bytes 0-25/26',
+                    'status': http_client.OK,
+                },
+                content=string.ascii_lowercase,
+                request_url=base_url,
+            )
+            request = http_wrapper.Request(url='https://part.one/')
+            download.InitializeDownload(request, http=http)
+            self.assertEqual(1, make_request.call_count)
+            received_request = make_request.call_args[0][1]
+            self.assertEqual(base_url, received_request.url)
+            self.assertRangeAndContentRangeCompatible(
+                received_request, make_request.return_value)
+
+        with mock.patch.object(http_wrapper, 'MakeRequest',
+                               autospec=True) as make_request:
+            make_request.return_value = http_wrapper.Response(
+                info={
+                    'status': http_client.REQUESTED_RANGE_NOT_SATISFIABLE,
+                },
+                content='error',
+                request_url=base_url,
+            )
+            download.StreamInChunks()
+            self.assertEqual(1, make_request.call_count)
+            received_request = make_request.call_args[0][1]
+            self.assertEqual('bytes=26-', received_request.headers['range'])
+
     def testGetRange(self):
         for (start_byte, end_byte) in [(0, 25), (5, 15), (0, 0), (25, 25)]:
             bytes_http = object()
