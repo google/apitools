@@ -198,10 +198,9 @@ class BaseApiTest(unittest2.TestCase):
         service = FakeService(client=client)
         request = SimpleMessage()
         with mock(base_api.http_wrapper, 'MakeRequest', fakeMakeRequest):
-            with self.assertRaises(exceptions.HttpError) as error_context:
+            with self.assertRaises(exceptions.HttpBadRequestError) as err:
                 service._RunMethod(method_config, request)
-        http_error = error_context.exception
-        self.assertEquals(400, http_error.status_code)
+        http_error = err.exception
         self.assertEquals('http://www.google.com', http_error.url)
         self.assertEquals('{"field": "abc"}', http_error.content)
         self.assertEquals(method_config, http_error.method_config)

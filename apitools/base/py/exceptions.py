@@ -75,8 +75,42 @@ class HttpError(CommunicationError):
 
     @classmethod
     def FromResponse(cls, http_response, **kwargs):
-        return cls(http_response.info, http_response.content,
-                   http_response.request_url, **kwargs)
+        try:
+            status_code = int(http_response.info.get('status'))
+            error_cls = _HTTP_ERRORS.get(status_code, cls)
+        except ValueError:
+            error_cls = cls
+        return error_cls(http_response.info, http_response.content,
+                         http_response.request_url, **kwargs)
+
+
+class HttpBadRequestError(HttpError):
+    """HTTP 400 Bad Request."""
+
+
+class HttpUnauthorizedError(HttpError):
+    """HTTP 401 Unauthorized."""
+
+
+class HttpForbiddenError(HttpError):
+    """HTTP 403 Forbidden."""
+
+
+class HttpNotFoundError(HttpError):
+    """HTTP 404 Not Found."""
+
+
+class HttpConflictError(HttpError):
+    """HTTP 409 Conflict."""
+
+
+_HTTP_ERRORS = {
+    400: HttpBadRequestError,
+    401: HttpUnauthorizedError,
+    403: HttpForbiddenError,
+    404: HttpNotFoundError,
+    409: HttpConflictError,
+}
 
 
 class InvalidUserInputError(InvalidDataError):
