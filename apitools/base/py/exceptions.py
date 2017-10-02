@@ -74,9 +74,9 @@ class HttpError(CommunicationError):
         return int(self.response['status'])
 
     @classmethod
-    def FromResponse(cls, http_response):
+    def FromResponse(cls, http_response, **kwargs):
         return cls(http_response.info, http_response.content,
-                   http_response.request_url)
+                   http_response.request_url, **kwargs)
 
 
 class InvalidUserInputError(InvalidDataError):
@@ -143,14 +143,15 @@ class RetryAfterError(HttpError):
 
     """The response contained a retry-after header."""
 
-    def __init__(self, response, content, url, retry_after):
-        super(RetryAfterError, self).__init__(response, content, url)
+    def __init__(self, response, content, url, retry_after, **kwargs):
+        super(RetryAfterError, self).__init__(response, content, url, **kwargs)
         self.retry_after = int(retry_after)
 
     @classmethod
-    def FromResponse(cls, http_response):
+    def FromResponse(cls, http_response, **kwargs):
         return cls(http_response.info, http_response.content,
-                   http_response.request_url, http_response.retry_after)
+                   http_response.request_url, http_response.retry_after,
+                   **kwargs)
 
 
 class BadStatusCodeError(HttpError):
