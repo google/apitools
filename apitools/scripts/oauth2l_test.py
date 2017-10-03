@@ -35,11 +35,14 @@ class _FakeResponse(object):
 
     def __init__(self, status_code, scopes=None):
         self.status_code = status_code
+        self.info = {
+            'reason': str(http_client.responses[self.status_code]),
+            'status': str(self.status_code),
+        }
         if self.status_code == http_client.OK:
             self.content = json.dumps({'scope': ' '.join(scopes or [])})
         else:
             self.content = 'Error'
-            self.info = str(http_client.responses[self.status_code])
             self.request_url = 'some-url'
 
 

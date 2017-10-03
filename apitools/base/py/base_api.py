@@ -595,9 +595,8 @@ class BaseApiService(object):
         """Process the given http response."""
         if http_response.status_code not in (http_client.OK,
                                              http_client.NO_CONTENT):
-            raise exceptions.HttpError(
-                http_response.info, http_response.content,
-                http_response.request_url, method_config, request)
+            raise exceptions.HttpError.FromResponse(
+                http_response, method_config=method_config, request=request)
         if http_response.status_code == http_client.NO_CONTENT:
             # TODO(craigcitro): Find out why _replace doesn't seem to work
             # here.
