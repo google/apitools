@@ -116,7 +116,8 @@ def MessageToDict(message):
     return json.loads(MessageToJson(message))
 
 
-def DictToProtoMap(properties, additional_property_type, sort_items=False):
+def DictToAdditionalPropertyMessage(properties, additional_property_type,
+                                    sort_items=False):
     """Convert the given dictionary to an AdditionalProperty message."""
     items = properties.items()
     if sort_items:
@@ -125,7 +126,7 @@ def DictToProtoMap(properties, additional_property_type, sort_items=False):
     for key, value in items:
         map_.append(additional_property_type.AdditionalProperty(
             key=key, value=value))
-    return additional_property_type(additional_properties=map_)
+    return additional_property_type(additionalProperties=map_)
 
 
 def PyValueToMessage(message_type, value):
