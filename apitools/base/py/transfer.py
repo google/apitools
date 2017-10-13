@@ -30,6 +30,7 @@ import six
 from six.moves import http_client
 
 from apitools.base.py import buffered_stream
+from apitools.base.py import compression
 from apitools.base.py import exceptions
 from apitools.base.py import http_wrapper
 from apitools.base.py import stream_slice
@@ -865,7 +866,8 @@ class Upload(_Transfer):
                 self.__server_chunk_granularity)
 
     def __StreamMedia(self, callback=None, finish_callback=None,
-                      additional_headers=None, use_chunks=True):
+                      additional_headers=None, use_chunks=True,
+                      compressed=False):
         """Helper function for StreamMedia / StreamInChunks."""
         if self.strategy != RESUMABLE_UPLOAD:
             raise exceptions.InvalidUserInputError(
@@ -874,13 +876,22 @@ class Upload(_Transfer):
         finish_callback = finish_callback or self.finish_callback
         # final_response is set if we resumed an already-completed upload.
         response = self.__final_response
-        send_func = self.__SendChunk if use_chunks else self.__SendMediaBody
+
+        def CallSendChunk(start):
+            return self.__SendChunk(
+                start, additional_headers=additional_headers,
+                compressed=compressed)
+
+        def CallSendMediaBody(start):
+            return self.__SendMediaBody(
+                start, additional_headers=additional_headers)
+
+        send_func = CallSendChunk if use_chunks else CallSendMediaBody
         if use_chunks:
             self.__ValidateChunksize(self.chunksize)
         self.EnsureInitialized()
         while not self.complete:
-            response = send_func(self.stream.tell(),
-                                 additional_headers=additional_headers)
+            response = send_func(self.stream.tell())
             if response.status_code in (http_client.OK, http_client.CREATED):
                 self.__complete = True
                 break
@@ -923,11 +934,11 @@ class Upload(_Transfer):
             additional_headers=additional_headers, use_chunks=False)
 
     def StreamInChunks(self, callback=None, finish_callback=None,
-                       additional_headers=None):
+                       additional_headers=None, compressed=False):
         """Send this (resumable) upload in chunks."""
         return self.__StreamMedia(
             callback=callback, finish_callback=finish_callback,
-            additional_headers=additional_headers)
+            additional_headers=additional_headers, compressed=compressed)
 
     def __SendMediaRequest(self, request, end):
         """Request helper function for SendMediaBody & SendChunk."""
@@ -972,11 +983,21 @@ class Upload(_Transfer):
 
         return self.__SendMediaRequest(request, self.total_size)
 
-    def __SendChunk(self, start, additional_headers=None):
+    def __SendChunk(self, start, additional_headers=None, compressed=False):
         """Send the specified chunk."""
         self.EnsureInitialized()
         no_log_body = self.total_size is None
-        if self.total_size is None:
+        request = http_wrapper.Request(url=self.url, http_method='PUT')
+        if compressed:
+            request.headers['Content-Encoding'] = 'gzip'
+            body_stream, read_length, exhausted = compression.CompressStream(
+                self.stream, self.chunksize)
+            end = start + read_length
+            # If the stream length was previously unknown and the input stream
+            # is exhausted, then we're at the end of the stream.
+            if self.total_size is None and exhausted:
+                self.__total_size = end
+        elif self.total_size is None:
             # For the streaming resumable case, we need to detect when
             # we're at the end of the stream.
             body_stream = buffered_stream.BufferedStream(
@@ -995,8 +1016,7 @@ class Upload(_Transfer):
             body_stream = stream_slice.StreamSlice(self.stream, end - start)
         # TODO(craigcitro): Think about clearer errors on "no data in
         # stream".
-        request = http_wrapper.Request(url=self.url, http_method='PUT',
-                                       body=body_stream)
+        request.body = body_stream
         request.headers['Content-Type'] = self.mime_type
         if no_log_body:
             # Disable logging of streaming body.
