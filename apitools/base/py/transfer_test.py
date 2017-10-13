@@ -17,14 +17,13 @@
 """Tests for transfer.py."""
 import string
 
+from apitools.base.py import base_api
+from apitools.base.py import http_wrapper
+from apitools.base.py import transfer
 import mock
 import six
 from six.moves import http_client
 import unittest2
-
-from apitools.base.py import base_api
-from apitools.base.py import http_wrapper
-from apitools.base.py import transfer
 
 
 class TransferTest(unittest2.TestCase):
@@ -150,7 +149,7 @@ class TransferTest(unittest2.TestCase):
                                          (start_byte, end_byte),
                         'status': http_client.OK,
                     },
-                    content=string.ascii_lowercase[start_byte:end_byte+1],
+                    content=string.ascii_lowercase[start_byte:end_byte + 1],
                     request_url=base_url,
                 )
                 request = http_wrapper.Request(url='https://part.one/')
@@ -306,3 +305,42 @@ class TransferTest(unittest2.TestCase):
             self.assertEqual(url_builder.query_params['uploadType'], 'media')
             rewritten_upload_contents = http_request.body
             self.assertTrue(rewritten_upload_contents.endswith(upload_bytes))
+
+    def testCompressedChunkedUpload(self):
+        """Test that the compression flag is propagated and runs."""
+
+        # Sample highly compressible data.
+        sample_data = 'abc' * 100
+        sample_response = http_wrapper.Response(
+            info={'status': http_client.OK},
+            content='',
+            request_url='url',
+        )
+
+        # Mock the upload to return the sample response.
+        # pylint: disable=line-too-long
+        with mock.patch.object(transfer.Upload, '_Upload__SendMediaRequest') as mock_result:
+            mock_result.return_value = sample_response
+
+            upload = transfer.Upload.FromStream(
+                six.StringIO(sample_data),
+                'text/plain',
+                total_size=len(sample_data))
+            upload.strategy = transfer.RESUMABLE_UPLOAD
+            # Set the chunk size so the entire stream is uploaded.
+            upload.chunksize = len(sample_data)
+            # Skip actual initialization.
+            upload._Initialize('http', 'url')
+            upload.StreamInChunks(compressed=True)
+
+            # Get the uploaded request and end position of the stream.
+            (request, end), _ = mock_result.call_args_list[0]
+
+            # Ensure the mock was called.
+            self.assertTrue(mock_result.called)
+            # Ensure the stream was fully read.
+            self.assertEqual(len(sample_data), end)
+            # Ensure the correct content encoding was set.
+            self.assertEqual(request.headers['Content-Encoding'], 'gzip')
+            # Ensure the stream was compresed.
+            self.assertLess(len(request.body), len(sample_data))
