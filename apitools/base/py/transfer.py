@@ -350,7 +350,7 @@ class Download(_Transfer):
     def __SetRangeHeader(self, request, start, end=None):
         if start < 0:
             request.headers['range'] = 'bytes=%d' % start
-        elif end is None:
+        elif end is None or end < start:
             request.headers['range'] = 'bytes=%d-' % start
         else:
             request.headers['range'] = 'bytes=%d-%d' % (start, end)
