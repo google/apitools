@@ -40,13 +40,14 @@ def CompressStream(in_stream, length, compresslevel=2, chunksize=16777216):
         length: The target number of compressed bytes to buffer in the output
             stream. The actual length of the output buffer can vary from this
             length. If the input stream is exhaused, the output buffer may be
-            smaller than expected. Because data is written to the output buffer
-            in increments of the chunksize, the output buffer may be larger
-            than length by chunksize. Very uncompressible data can exceed this
-            further if gzip inflates the underlying data.
+            smaller than expected. Because data is written to the output
+            buffer in increments of the chunksize, the output buffer may be
+            larger than length by chunksize. Very uncompressible data can
+            exceed this further if gzip inflates the underlying data.
         compresslevel: Optional, defaults to 2. The desired compression level.
-        chunksize: Optional, defaults to 16MiB. The chunk size used when reading
-            data from the input stream to write into the output buffer.
+        chunksize: Optional, defaults to 16MiB. The chunk size used when
+            reading data from the input stream to write into the output
+            buffer.
 
     Returns:
         A file-like output buffer of compressed bytes, the number of bytes read

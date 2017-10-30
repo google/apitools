@@ -13,12 +13,14 @@ but random access is not allowed."""
 
 # based on Andrew Kuchling's minigzip.py distributed with the zlib module
 
+import six
+from six.moves import builtins
+
 import struct
 import sys
 import time
 import os
 import zlib
-import __builtin__
 import io
 
 __all__ = ["GzipFile", "open", "compress", "decompress"]
@@ -157,7 +159,7 @@ class GzipFile(io.BufferedIOBase):
         if mode and 'b' not in mode:
             mode += 'b'
         if fileobj is None:
-            fileobj = self.myfileobj = __builtin__.open(
+            fileobj = self.myfileobj = builtins.open(
                 filename, mode or 'rb')
         if filename is None:
             filename = getattr(fileobj, 'name', b'')
