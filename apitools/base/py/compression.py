@@ -123,7 +123,7 @@ class StreamingBuffer(object):
         if size is None:
             size = self.__size
         ret_list = []
-        while size > 0 and len(self.__buf):
+        while size > 0 and self.__buf:
             data = self.__buf.popleft()
             size -= len(data)
             ret_list.append(data)
