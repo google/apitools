@@ -15,14 +15,15 @@
 # limitations under the License.
 
 """Tests for transfer.py."""
+import six
+from six.moves import http_client
+
 import string
 
 from apitools.base.py import base_api
 from apitools.base.py import http_wrapper
 from apitools.base.py import transfer
 import mock
-import six
-from six.moves import http_client
 import unittest2
 
 
@@ -310,7 +311,7 @@ class TransferTest(unittest2.TestCase):
         """Test that the compression flag is propagated and runs."""
 
         # Sample highly compressible data.
-        sample_data = 'abc' * 100
+        sample_data = b'abc' * 100
         sample_response = http_wrapper.Response(
             info={'status': http_client.OK},
             content='',
@@ -323,7 +324,7 @@ class TransferTest(unittest2.TestCase):
             mock_result.return_value = sample_response
 
             upload = transfer.Upload.FromStream(
-                six.StringIO(sample_data),
+                six.BytesIO(sample_data),
                 'text/plain',
                 total_size=len(sample_data))
             upload.strategy = transfer.RESUMABLE_UPLOAD

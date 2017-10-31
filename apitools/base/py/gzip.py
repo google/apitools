@@ -15,6 +15,7 @@ but random access is not allowed."""
 
 import six
 from six.moves import builtins
+from six.moves import range
 
 import struct
 import sys
@@ -46,7 +47,7 @@ def write32u(output, value):
     output.write(struct.pack("<L", value))
 
 
-class _PaddedFile(object):
+class _PaddedFile:
     """Minimal read-only file object that prepends a string to the contents
     of an actual file. Shouldn't be used outside of gzip.py, as it lacks
     essential functionality."""
@@ -159,12 +160,11 @@ class GzipFile(io.BufferedIOBase):
         if mode and 'b' not in mode:
             mode += 'b'
         if fileobj is None:
-            fileobj = self.myfileobj = builtins.open(
-                filename, mode or 'rb')
+            fileobj = self.myfileobj = builtins.open(filename, mode or 'rb')
         if filename is None:
-            filename = getattr(fileobj, 'name', b'')
-            if not isinstance(filename, (unicode, str)):
-                filename = b''
+            filename = getattr(fileobj, 'name', '')
+            if not isinstance(filename, six.string_types):
+                filename = ''
         if mode is None:
             mode = getattr(fileobj, 'mode', 'rb')
 
@@ -175,7 +175,7 @@ class GzipFile(io.BufferedIOBase):
             # Buffer data read from gzip file. extrastart is offset in
             # stream where buffer starts. extrasize is number of
             # bytes remaining in buffer from current stream position.
-            self.extrabuf = ""
+            self.extrabuf = b""
             self.extrasize = 0
             self.extrastart = 0
             self.name = filename
@@ -225,39 +225,39 @@ class GzipFile(io.BufferedIOBase):
 
     def _init_write(self, filename):
         self.name = filename
-        self.crc = zlib.crc32("") & 0xffffffff
+        self.crc = zlib.crc32(b"") & 0xffffffff
         self.size = 0
         self.writebuf = []
         self.bufsize = 0
 
     def _write_gzip_header(self):
-        self.fileobj.write('\037\213')             # magic header
-        self.fileobj.write('\010')                 # compression method
+        self.fileobj.write(b'\037\213')             # magic header
+        self.fileobj.write(b'\010')                 # compression method
         try:
             # RFC 1952 requires the FNAME field to be Latin-1. Do not
             # include filenames that cannot be represented that way.
             fname = os.path.basename(self.name)
-            if not isinstance(fname, str):
+            if not isinstance(fname, six.binary_type):
                 fname = fname.encode('latin-1')
-            if fname.endswith('.gz'):
+            if fname.endswith(b'.gz'):
                 fname = fname[:-3]
         except UnicodeEncodeError:
             fname = b''
         flags = 0
         if fname:
             flags = FNAME
-        self.fileobj.write(unichr(flags).encode('latin-1'))
+        self.fileobj.write(six.unichr(flags).encode('latin-1'))
         mtime = self.mtime
         if mtime is None:
             mtime = time.time()
         write32u(self.fileobj, int(mtime))
-        self.fileobj.write('\002')
-        self.fileobj.write('\377')
+        self.fileobj.write(b'\002')
+        self.fileobj.write(b'\377')
         if fname:
-            self.fileobj.write(fname + '\000')
+            self.fileobj.write(fname + b'\000')
 
     def _init_read(self):
-        self.crc = zlib.crc32("") & 0xffffffff
+        self.crc = zlib.crc32(b"") & 0xffffffff
         self.size = 0
 
     def _read_exact(self, n):
@@ -275,11 +275,10 @@ class GzipFile(io.BufferedIOBase):
         if magic == b'':
             return False
 
-        if magic != '\037\213':
+        if magic != b'\037\213':
             raise OSError('Not a gzipped file')
 
-        method, flag, self.mtime = struct.unpack(
-            "<BBIxx", self._read_exact(8))
+        method, flag, self.mtime = struct.unpack("<BBIxx", self._read_exact(8))
         if method != 8:
             raise OSError('Unknown compression method')
 
@@ -291,13 +290,13 @@ class GzipFile(io.BufferedIOBase):
             # Read and discard a null-terminated string containing the filename
             while True:
                 s = self.fileobj.read(1)
-                if not s or s == '\000':
+                if not s or s == b'\000':
                     break
         if flag & FCOMMENT:
             # Read and discard a null-terminated string containing a comment
             while True:
                 s = self.fileobj.read(1)
-                if not s or s == '\000':
+                if not s or s == b'\000':
                     break
         if flag & FHCRC:
             self._read_exact(2)     # Read & discard the 16-bit header CRC
@@ -362,8 +361,7 @@ class GzipFile(io.BufferedIOBase):
         self._check_closed()
         if self.mode != READ:
             import errno
-            raise OSError(
-                errno.EBADF, "read1() on write-only GzipFile object")
+            raise OSError(errno.EBADF, "read1() on write-only GzipFile object")
 
         if self.extrasize <= 0 and self.fileobj is None:
             return b''
@@ -425,7 +423,7 @@ class GzipFile(io.BufferedIOBase):
         # If the EOF has been reached, flush the decompression object
         # and mark this object as finished.
 
-        if buf == "":
+        if buf == b"":
             uncompress = self.decompress.flush()
             # Prepend the already read bytes to the fileobj to they can be
             # seen by _read_eof()
@@ -437,7 +435,7 @@ class GzipFile(io.BufferedIOBase):
         uncompress = self.decompress.decompress(buf)
         self._add_read_data(uncompress)
 
-        if self.decompress.unused_data != "":
+        if self.decompress.unused_data != b"":
             # Ending case: we've come to the end of a member in the file,
             # so seek back to the start of the unused data, finish up
             # this member, and read a new gzip header.
@@ -473,8 +471,8 @@ class GzipFile(io.BufferedIOBase):
         # Gzip files can be padded with zeroes and still have archives.
         # Consume all zero bytes and set the file position to the first
         # non-zero byte. See http://www.gzip.org/#faq8
-        c = "\x00"
-        while c == "\x00":
+        c = b"\x00"
+        while c == b"\x00":
             c = self.fileobj.read(1)
         if c:
             self.fileobj.prepend(c, True)
@@ -522,7 +520,7 @@ class GzipFile(io.BufferedIOBase):
             raise OSError("Can't rewind in write mode")
         self.fileobj.seek(0)
         self._new_member = True
-        self.extrabuf = ""
+        self.extrabuf = b""
         self.extrasize = 0
         self.extrastart = 0
         self.offset = 0
@@ -546,16 +544,16 @@ class GzipFile(io.BufferedIOBase):
             if offset < self.offset:
                 raise OSError('Negative seek in write mode')
             count = offset - self.offset
-            chunk = str(1024)
-            for i in xrange(count // 1024):
+            chunk = bytes(1024)
+            for i in range(count // 1024):
                 self.write(chunk)
-            self.write(str(count % 1024))
+            self.write(bytes(count % 1024))
         elif self.mode == READ:
             if offset < self.offset:
                 # for negative seek, rewind and do positive seek
                 self.rewind()
             count = offset - self.offset
-            for i in xrange(count // 1024):
+            for i in range(count // 1024):
                 self.read(1024)
             self.read(count % 1024)
 
@@ -565,7 +563,7 @@ class GzipFile(io.BufferedIOBase):
         if size < 0:
             # Shortcut common case - newline found in buffer.
             offset = self.offset - self.extrastart
-            i = self.extrabuf.find('\n', offset) + 1
+            i = self.extrabuf.find(b'\n', offset) + 1
             if i > 0:
                 self.extrasize -= i - offset
                 self.offset += i - offset
@@ -578,7 +576,7 @@ class GzipFile(io.BufferedIOBase):
         bufs = []
         while size != 0:
             c = self.read(readsize)
-            i = c.find('\n')
+            i = c.find(b'\n')
 
             # We set i=size to break out of the loop under two
             # conditions: 1) there's no newline, and the chunk is
