@@ -319,8 +319,8 @@ class TransferTest(unittest2.TestCase):
         )
 
         # Mock the upload to return the sample response.
-        # pylint: disable=line-too-long
-        with mock.patch.object(transfer.Upload, '_Upload__SendMediaRequest') as mock_result:
+        with mock.patch.object(
+                transfer.Upload, '_Upload__SendMediaRequest') as mock_result:
             mock_result.return_value = sample_response
 
             upload = transfer.Upload.FromStream(

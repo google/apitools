@@ -312,16 +312,16 @@ class TestGzip(BaseTest):
             osByte = fRead.read(1)
             self.assertEqual(osByte, b'\xff')  # OS "unknown" (OS-independent)
 
-            # Since the FNAME flag is set, the zero-terminated filename follows.
-            # RFC 1952 specifies that this is the name of the input file, if any.
-            # However, the gzip module defaults to storing the name of the output
-            # file in this field.
+            # Since the FNAME flag is set, the zero-terminated filename
+            # follows. RFC 1952 specifies that this is the name of the input
+            # file, if any. However, the gzip module defaults to storing the
+            # name of the output file in this field.
             expected = self.filename.encode('Latin-1') + b'\x00'
             nameBytes = fRead.read(len(expected))
             self.assertEqual(nameBytes, expected)
 
-            # Since no other flags were set, the header ends here.
-            # Rather than process the compressed data, let's seek to the trailer.
+            # Since no other flags were set, the header ends here. Rather than
+            # process the compressed data, let's seek to the trailer.
             fRead.seek(os.stat(self.filename).st_size - 8)
 
             crc32Bytes = fRead.read(4)  # CRC32 of uncompressed data [data1]
