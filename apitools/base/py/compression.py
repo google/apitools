@@ -57,10 +57,9 @@ def CompressStream(in_stream, length, compresslevel=2, chunksize=16777216):
     in_read = 0
     in_exhausted = False
     out_stream = StreamingBuffer()
-    with gzip.GzipFile(
-            mode='wb',
-            fileobj=out_stream,
-            compresslevel=compresslevel) as compress_stream:
+    with gzip.GzipFile(mode='wb',
+                       fileobj=out_stream,
+                       compresslevel=compresslevel) as compress_stream:
         # Read until we've written at least length bytes to the output stream.
         while out_stream.length < length:
             data = in_stream.read(chunksize)
