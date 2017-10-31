@@ -107,8 +107,8 @@ class GzipFile(io.BufferedIOBase):
     """The GzipFile class simulates most of the methods of a file object with
     the exception of the readinto() and truncate() methods.
 
-    This class only supports opening files in binary mode. If you need to open a
-    compressed file in text mode, use the gzip.open() function.
+    This class only supports opening files in binary mode. If you need to open
+    a compressed file in text mode, use the gzip.open() function.
 
     """
 
