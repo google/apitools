@@ -45,6 +45,7 @@ IGNORED_FILES = [
     'ez_setup.py',
     'run_pylint.py',
     'setup.py',
+    'apitools/base/py/gzip.py',
 ]
 PRODUCTION_RC = 'default.pylintrc'
 TEST_RC = 'reduced.pylintrc'
