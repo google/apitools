@@ -15,16 +15,16 @@
 # limitations under the License.
 
 """Tests for transfer.py."""
+import string
+
+import mock
 import six
 from six.moves import http_client
-
-import string
+import unittest2
 
 from apitools.base.py import base_api
 from apitools.base.py import http_wrapper
 from apitools.base.py import transfer
-import mock
-import unittest2
 
 
 class TransferTest(unittest2.TestCase):
