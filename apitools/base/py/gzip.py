@@ -47,7 +47,7 @@ def write32u(output, value):
     output.write(struct.pack("<L", value))
 
 
-class _PaddedFile:
+class _PaddedFile(object):
     """Minimal read-only file object that prepends a string to the contents
     of an actual file. Shouldn't be used outside of gzip.py, as it lacks
     essential functionality."""

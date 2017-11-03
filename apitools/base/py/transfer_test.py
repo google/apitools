@@ -23,6 +23,8 @@ from six.moves import http_client
 import unittest2
 
 from apitools.base.py import base_api
+from apitools.base.py import exceptions
+from apitools.base.py import gzip
 from apitools.base.py import http_wrapper
 from apitools.base.py import transfer
 
@@ -307,41 +309,176 @@ class TransferTest(unittest2.TestCase):
             rewritten_upload_contents = http_request.body
             self.assertTrue(rewritten_upload_contents.endswith(upload_bytes))
 
-    def testCompressedChunkedUpload(self):
-        """Test that the compression flag is propagated and runs."""
 
+class CompressedUploadTest(unittest2.TestCase):
+
+    def setUp(self):
         # Sample highly compressible data.
-        sample_data = b'abc' * 100
-        sample_response = http_wrapper.Response(
-            info={'status': http_client.OK},
+        self.sample_data = b'abc' * 200
+        # Stream of the sample data.
+        self.sample_stream = six.BytesIO(self.sample_data)
+        # Sample url_builder.
+        self.url_builder = base_api._UrlBuilder('http://www.uploads.com')
+        # Sample request.
+        self.request = http_wrapper.Request(
+            'http://www.uploads.com',
+            headers={'content-type': 'text/plain'})
+        # Sample successful response.
+        self.response = http_wrapper.Response(
+            info={'status': http_client.OK,
+                  'location': 'http://www.uploads.com'},
             content='',
-            request_url='url',
-        )
+            request_url='http://www.uploads.com',)
 
+    def testStreamInChunksCompressed(self):
+        """Test that StreamInChunks will handle compression correctly."""
+        # Create and configure the upload object.
+        upload = transfer.Upload(
+            stream=self.sample_stream,
+            mime_type='text/plain',
+            total_size=len(self.sample_data),
+            close_stream=False,
+            gzip_encoded=True)
+        upload.strategy = transfer.RESUMABLE_UPLOAD
+        # Set the chunk size so the entire stream is uploaded.
+        upload.chunksize = len(self.sample_data)
         # Mock the upload to return the sample response.
-        with mock.patch.object(transfer.Upload,
-                               '_Upload__SendMediaRequest') as mock_result:
-            mock_result.return_value = sample_response
+        with mock.patch.object(
+                transfer.Upload,
+                '_Upload__SendMediaRequest') as mock_result, \
+                mock.patch.object(
+                    http_wrapper,
+                    'MakeRequest') as make_request:
+            mock_result.return_value = self.response
+            make_request.return_value = self.response
 
-            upload = transfer.Upload.FromStream(
-                six.BytesIO(sample_data),
-                'text/plain',
-                total_size=len(sample_data))
-            upload.strategy = transfer.RESUMABLE_UPLOAD
-            # Set the chunk size so the entire stream is uploaded.
-            upload.chunksize = len(sample_data)
-            # Skip actual initialization.
-            upload._Initialize('http', 'url')
-            upload.StreamInChunks(compressed=True)
-
+            # Initialization.
+            upload.InitializeUpload(self.request, 'http')
+            upload.StreamInChunks()
             # Get the uploaded request and end position of the stream.
             (request, end), _ = mock_result.call_args_list[0]
-
             # Ensure the mock was called.
             self.assertTrue(mock_result.called)
             # Ensure the stream was fully read.
-            self.assertEqual(len(sample_data), end)
+            self.assertEqual(len(self.sample_data), end)
             # Ensure the correct content encoding was set.
             self.assertEqual(request.headers['Content-Encoding'], 'gzip')
             # Ensure the stream was compresed.
-            self.assertLess(len(request.body), len(sample_data))
+            self.assertLess(len(request.body), len(self.sample_data))
+
+    def testStreamMediaCompressedFail(self):
+        """Test that non-chunked uploads raise an exception.
+
+        Ensure uploads with the compressed and resumable flags set called from
+        StreamMedia raise an exception. Those uploads are unsupported.
+        """
+        # Create the upload object.
+        upload = transfer.Upload(
+            stream=self.sample_stream,
+            mime_type='text/plain',
+            total_size=len(self.sample_data),
+            close_stream=False,
+            auto_transfer=True,
+            gzip_encoded=True)
+        upload.strategy = transfer.RESUMABLE_UPLOAD
+        # Mock the upload to return the sample response.
+        with mock.patch.object(
+                http_wrapper,
+                'MakeRequest') as make_request:
+            make_request.return_value = self.response
+
+            # Initialization.
+            upload.InitializeUpload(self.request, 'http')
+            # Ensure stream media raises an exception when the upload is
+            # compressed. Compression is not supported on non-chunked uploads.
+            with self.assertRaises(exceptions.InvalidUserInputError):
+                upload.StreamMedia()
+
+    def testAutoTransferCompressed(self):
+        """Test that automatic transfers are compressed.
+
+        Ensure uploads with the compressed, resumable, and automatic transfer
+        flags set call StreamInChunks. StreamInChunks is tested in an earlier
+        test.
+        """
+        # Create the upload object.
+        upload = transfer.Upload(
+            stream=self.sample_stream,
+            mime_type='text/plain',
+            total_size=len(self.sample_data),
+            close_stream=False,
+            gzip_encoded=True)
+        upload.strategy = transfer.RESUMABLE_UPLOAD
+        # Mock the upload to return the sample response.
+        with mock.patch.object(
+                transfer.Upload,
+                'StreamInChunks') as mock_result, \
+                mock.patch.object(
+                    http_wrapper,
+                    'MakeRequest') as make_request:
+            mock_result.return_value = self.response
+            make_request.return_value = self.response
+
+            # Initialization.
+            upload.InitializeUpload(self.request, 'http')
+            # Ensure the mock was called.
+            self.assertTrue(mock_result.called)
+
+    def testMultipartCompressed(self):
+        """Test that multipart uploads are compressed."""
+        # Create the multipart configuration.
+        upload_config = base_api.ApiUploadInfo(
+            accept=['*/*'],
+            max_size=None,
+            simple_multipart=True,
+            simple_path=u'/upload',)
+        # Create the upload object.
+        upload = transfer.Upload(
+            stream=self.sample_stream,
+            mime_type='text/plain',
+            total_size=len(self.sample_data),
+            close_stream=False,
+            gzip_encoded=True)
+        # Set a body to trigger multipart configuration.
+        self.request.body = '{"body_field_one": 7}'
+        # Configure the request.
+        upload.ConfigureRequest(upload_config, self.request, self.url_builder)
+        # Ensure the request is a multipart request now.
+        self.assertEqual(
+            self.url_builder.query_params['uploadType'], 'multipart')
+        # Ensure the request is gzip encoded.
+        self.assertEqual(self.request.headers['Content-Encoding'], 'gzip')
+        # Ensure data is compressed
+        self.assertLess(len(self.request.body), len(self.sample_data))
+        # Ensure uncompressed data includes the sample data.
+        with gzip.GzipFile(fileobj=self.request.body) as f:
+            original = f.read()
+            self.assertTrue(self.sample_data in original)
+
+    def testMediaCompressed(self):
+        """Test that media uploads are compressed."""
+        # Create the media configuration.
+        upload_config = base_api.ApiUploadInfo(
+            accept=['*/*'],
+            max_size=None,
+            simple_multipart=True,
+            simple_path=u'/upload',)
+        # Create the upload object.
+        upload = transfer.Upload(
+            stream=self.sample_stream,
+            mime_type='text/plain',
+            total_size=len(self.sample_data),
+            close_stream=False,
+            gzip_encoded=True)
+        # Configure the request.
+        upload.ConfigureRequest(upload_config, self.request, self.url_builder)
+        # Ensure the request is a media request now.
+        self.assertEqual(self.url_builder.query_params['uploadType'], 'media')
+        # Ensure the request is gzip encoded.
+        self.assertEqual(self.request.headers['Content-Encoding'], 'gzip')
+        # Ensure data is compressed
+        self.assertLess(len(self.request.body), len(self.sample_data))
+        # Ensure uncompressed data includes the sample data.
+        with gzip.GzipFile(fileobj=self.request.body) as f:
+            original = f.read()
+            self.assertTrue(self.sample_data in original)
