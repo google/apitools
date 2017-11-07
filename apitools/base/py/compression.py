@@ -26,7 +26,8 @@ __all__ = [
 
 
 # pylint: disable=invalid-name
-def CompressStream(in_stream, length, compresslevel=2, chunksize=16777216):
+def CompressStream(in_stream, length=None, compresslevel=2,
+                   chunksize=16777216):
 
     """Compresses an input stream into a file-like buffer.
 
@@ -43,7 +44,9 @@ def CompressStream(in_stream, length, compresslevel=2, chunksize=16777216):
             smaller than expected. Because data is written to the output
             buffer in increments of the chunksize, the output buffer may be
             larger than length by chunksize. Very uncompressible data can
-            exceed this further if gzip inflates the underlying data.
+            exceed this further if gzip inflates the underlying data. If
+            length is none, the input stream will be compressed until
+            it's exhausted.
         compresslevel: Optional, defaults to 2. The desired compression level.
         chunksize: Optional, defaults to 16MiB. The chunk size used when
             reading data from the input stream to write into the output
@@ -61,7 +64,7 @@ def CompressStream(in_stream, length, compresslevel=2, chunksize=16777216):
                        fileobj=out_stream,
                        compresslevel=compresslevel) as compress_stream:
         # Read until we've written at least length bytes to the output stream.
-        while out_stream.length < length:
+        while not length or out_stream.length < length:
             data = in_stream.read(chunksize)
             data_length = len(data)
             compress_stream.write(data)

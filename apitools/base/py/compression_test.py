@@ -50,6 +50,22 @@ class CompressionTest(unittest2.TestCase):
         # Ensure the input stream was exhausted.
         self.assertTrue(exhausted)
 
+    def testCompressionUnbounded(self):
+        """Test unbounded compression.
+
+        Test that the input stream is exhausted when length is none.
+        """
+        output, read, exhausted = compression.CompressStream(
+            self.stream,
+            None,
+            9)
+        # Ensure the compressed buffer is smaller than the input buffer.
+        self.assertLess(output.length, self.length)
+        # Ensure we read the entire input stream.
+        self.assertEqual(read, self.length)
+        # Ensure the input stream was exhausted.
+        self.assertTrue(exhausted)
+
     def testCompressionPartial(self):
         """Test partial compression.
 
