@@ -343,12 +343,10 @@ class CompressedUploadTest(unittest2.TestCase):
         # Set the chunk size so the entire stream is uploaded.
         upload.chunksize = len(self.sample_data)
         # Mock the upload to return the sample response.
-        with mock.patch.object(
-                transfer.Upload,
-                '_Upload__SendMediaRequest') as mock_result, \
-                mock.patch.object(
-                    http_wrapper,
-                    'MakeRequest') as make_request:
+        with mock.patch.object(transfer.Upload,
+                               '_Upload__SendMediaRequest') as mock_result, \
+                mock.patch.object(http_wrapper,
+                                  'MakeRequest') as make_request:
             mock_result.return_value = self.response
             make_request.return_value = self.response
 
@@ -382,9 +380,8 @@ class CompressedUploadTest(unittest2.TestCase):
             gzip_encoded=True)
         upload.strategy = transfer.RESUMABLE_UPLOAD
         # Mock the upload to return the sample response.
-        with mock.patch.object(
-                http_wrapper,
-                'MakeRequest') as make_request:
+        with mock.patch.object(http_wrapper,
+                               'MakeRequest') as make_request:
             make_request.return_value = self.response
 
             # Initialization.
@@ -410,12 +407,10 @@ class CompressedUploadTest(unittest2.TestCase):
             gzip_encoded=True)
         upload.strategy = transfer.RESUMABLE_UPLOAD
         # Mock the upload to return the sample response.
-        with mock.patch.object(
-                transfer.Upload,
-                'StreamInChunks') as mock_result, \
-                mock.patch.object(
-                    http_wrapper,
-                    'MakeRequest') as make_request:
+        with mock.patch.object(transfer.Upload,
+                               'StreamInChunks') as mock_result, \
+                mock.patch.object(http_wrapper,
+                                  'MakeRequest') as make_request:
             mock_result.return_value = self.response
             make_request.return_value = self.response
 
