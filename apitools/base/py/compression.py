@@ -26,6 +26,7 @@ __all__ = [
 
 
 # pylint: disable=invalid-name
+# Note: Apitools only uses the default chunksize when compressing.
 def CompressStream(in_stream, length=None, compresslevel=2,
                    chunksize=16777216):
 
@@ -39,14 +40,22 @@ def CompressStream(in_stream, length=None, compresslevel=2,
     Args:
         in_stream: The input stream to read from.
         length: The target number of compressed bytes to buffer in the output
-            stream. The actual length of the output buffer can vary from this
-            length. If the input stream is exhaused, the output buffer may be
-            smaller than expected. Because data is written to the output
-            buffer in increments of the chunksize, the output buffer may be
-            larger than length by chunksize. Very uncompressible data can
-            exceed this further if gzip inflates the underlying data. If
-            length is none, the input stream will be compressed until
-            it's exhausted.
+            stream. If length is none, the input stream will be compressed
+            until it's exhausted.
+
+            The actual length of the output buffer can vary from the target.
+            If the input stream is exhaused, the output buffer may be smaller
+            than expected. If the data is incompressible, the maximum length
+            can be exceeded by can be calculated to be:
+
+              chunksize + 5 * (floor((chunksize - 1) / 16383) + 1) + 17
+
+            This accounts for additional header data gzip adds. For the default
+            16MiB chunksize, this results in the max size of the output buffer
+            being:
+
+              length + 16Mib + 5142 bytes
+
         compresslevel: Optional, defaults to 2. The desired compression level.
         chunksize: Optional, defaults to 16MiB. The chunk size used when
             reading data from the input stream to write into the output
