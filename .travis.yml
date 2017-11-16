@@ -3,8 +3,11 @@ sudo: false
 env:
   - TOX_ENV=py27
   - TOX_ENV=py27oldoauth2client
+  - TOX_ENV=py27newoauth2client
   - TOX_ENV=py34
-  - TOX_ENV=py35
+  - TOX_ENV=py35oauth2client15
+  - TOX_ENV=py35oauth2client30
+  - TOX_ENV=py35oauth2client41
   - TOX_ENV=lint
 install:
   - pip install tox
