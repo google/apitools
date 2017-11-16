@@ -285,6 +285,7 @@ def HandleExceptionsAndRebuildHttpConnections(retry_args):
         logging.debug('Response content was invalid (%s), retrying',
                       retry_args.exc)
     elif (isinstance(retry_args.exc, TokenRefreshError) and
+          hasattr(retry_args.exc, 'status') and
           (retry_args.exc.status == TOO_MANY_REQUESTS or
            retry_args.exc.status >= 500)):
         logging.debug(
@@ -300,7 +301,7 @@ def HandleExceptionsAndRebuildHttpConnections(retry_args):
         logging.debug('Response returned a retry-after header, retrying')
         retry_after = retry_args.exc.retry_after
     else:
-        raise  # pylint: disable=misplaced-bare-raise
+        raise retry_args.exc
     RebuildHttpConnections(retry_args.http)
     logging.debug('Retrying request to url %s after exception %s',
                   retry_args.http_request.url, retry_args.exc)
