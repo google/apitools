@@ -24,7 +24,6 @@ import os
 import threading
 import warnings
 
-import fasteners
 import httplib2
 import oauth2client
 import oauth2client.client
@@ -36,6 +35,21 @@ from six.moves import urllib
 
 from apitools.base.py import exceptions
 from apitools.base.py import util
+
+# App Engine does not support ctypes which are required for the
+# monotonic time used in fasteners. Conversely, App Engine does
+# not support colocated concurrent processes, so process locks
+# are not needed.
+try:
+    import fasteners
+    _ENV_IS_APP_ENGINE = False
+except ImportError as fasteners_import_error:
+    try:
+        # pylint: disable=unused-import
+        import google.appengine.api.app_identity as unused_import
+    except ImportError:
+        raise fasteners_import_error
+    _ENV_IS_APP_ENGINE = True
 
 # Note: we try the oauth2client imports two ways, to accomodate layout
 # changes in oauth2client 2.0+. We can remove these once we no longer
@@ -557,6 +571,11 @@ class _MultiProcessCacheFile(object):
     * The interprocess lock will not deadlock. If a process can not acquire
       the interprocess lock within `_lock_timeout` the call will return as
       a cache miss or unsuccessful cache write.
+    * App Engine environments cannot be process locked because (1) the runtime
+      does not provide monotonic time and (2) different processes are not
+      guaranteed to share the same machine. Because of this, process locks
+      always succeed in App Engine and locking is only guaranteed to protect
+      against multithreaded access.
     """
 
     _lock_timeout = 1
@@ -566,8 +585,13 @@ class _MultiProcessCacheFile(object):
     def __init__(self, filename):
         self._file = None
         self._filename = filename
-        self._process_lock = fasteners.InterProcessLock(
-            '{0}.lock'.format(filename))
+        if _ENV_IS_APP_ENGINE:
+            self._process_lock_getter = self._DummyLockAcquired
+            self._process_lock = None
+        else:
+            self._process_lock_getter = self._ProcessLockAcquired
+            self._process_lock = fasteners.InterProcessLock(
+                '{0}.lock'.format(filename))
 
     @contextlib.contextmanager
     def _ProcessLockAcquired(self):
@@ -578,6 +602,11 @@ class _MultiProcessCacheFile(object):
         finally:
             if is_locked:
                 self._process_lock.release()
+
+    @contextlib.contextmanager
+    def _DummyLockAcquired(self):
+        """Lock context manager for environments without process locks."""
+        yield True
 
     def LockedRead(self):
         """Acquire an interprocess lock and dump cache contents.
@@ -594,7 +623,7 @@ class _MultiProcessCacheFile(object):
         with self._thread_lock:
             if not self._EnsureFileExists():
                 return None
-            with self._ProcessLockAcquired() as acquired_plock:
+            with self._process_lock_getter() as acquired_plock:
                 if not acquired_plock:
                     return None
                 with open(self._filename, 'rb') as f:
@@ -621,7 +650,7 @@ class _MultiProcessCacheFile(object):
         with self._thread_lock:
             if not self._EnsureFileExists():
                 return False
-            with self._ProcessLockAcquired() as acquired_plock:
+            with self._process_lock_getter() as acquired_plock:
                 if not acquired_plock:
                     return False
                 with open(self._filename, 'wb') as f:
