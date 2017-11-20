@@ -42,14 +42,13 @@ from apitools.base.py import util
 # are not needed.
 try:
     import fasteners
-    _ENV_IS_APP_ENGINE = False
-except ImportError as fasteners_import_error:
-    try:
-        # pylint: disable=unused-import
-        import google.appengine.api.app_identity as unused_import
-    except ImportError:
-        raise fasteners_import_error
-    _ENV_IS_APP_ENGINE = True
+    _FASTENERS_AVAILABLE = True
+except ImportError as import_error:
+    server_env = os.environ.get('SERVER_SOFTWARE', '')
+    if not (server_env.startswith('Development') or
+            server_env.startswith('Google App Engine')):
+        raise import_error
+    _FASTENERS_AVAILABLE = False
 
 # Note: we try the oauth2client imports two ways, to accomodate layout
 # changes in oauth2client 2.0+. We can remove these once we no longer
@@ -572,10 +571,9 @@ class _MultiProcessCacheFile(object):
       the interprocess lock within `_lock_timeout` the call will return as
       a cache miss or unsuccessful cache write.
     * App Engine environments cannot be process locked because (1) the runtime
-      does not provide monotonic time and (2) different processes are not
-      guaranteed to share the same machine. Because of this, process locks
-      always succeed in App Engine and locking is only guaranteed to protect
-      against multithreaded access.
+      does not provide monotonic time and (2) different processes may or may
+      not share the same machine. Because of this, process locks are disabled
+      and locking is only guaranteed to protect against multithreaded access.
     """
 
     _lock_timeout = 1
@@ -585,13 +583,13 @@ class _MultiProcessCacheFile(object):
     def __init__(self, filename):
         self._file = None
         self._filename = filename
-        if _ENV_IS_APP_ENGINE:
-            self._process_lock_getter = self._DummyLockAcquired
-            self._process_lock = None
-        else:
+        if _FASTENERS_AVAILABLE:
             self._process_lock_getter = self._ProcessLockAcquired
             self._process_lock = fasteners.InterProcessLock(
                 '{0}.lock'.format(filename))
+        else:
+            self._process_lock_getter = self._DummyLockAcquired
+            self._process_lock = None
 
     @contextlib.contextmanager
     def _ProcessLockAcquired(self):
