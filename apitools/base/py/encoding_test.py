@@ -188,6 +188,26 @@ class EncodingTest(unittest2.TestCase):
         msg.field = 'def'
         self.assertNotEqual(msg.field, new_msg.field)
 
+    def testCopyProtoMessageInvalidEnum(self):
+        json_msg = '{"field_one": "BAD_VALUE"}'
+        orig_msg = encoding.JsonToMessage(MessageWithEnum, json_msg)
+        new_msg = encoding.CopyProtoMessage(orig_msg)
+        for msg in (orig_msg, new_msg):
+            self.assertEqual(msg.all_unrecognized_fields(), ['field_one'])
+            self.assertEqual(
+                msg.get_unrecognized_field_info('field_one',
+                                                value_default=None),
+                ('BAD_VALUE', messages.Variant.ENUM))
+
+    def testCopyProtoMessageAdditionalProperties(self):
+        msg = AdditionalPropertiesMessage(additionalProperties=[
+            AdditionalPropertiesMessage.AdditionalProperty(
+                key='key', value='value')])
+        new_msg = encoding.CopyProtoMessage(msg)
+        self.assertEqual(len(new_msg.additionalProperties), 1)
+        self.assertEqual(new_msg.additionalProperties[0].key, 'key')
+        self.assertEqual(new_msg.additionalProperties[0].value, 'value')
+
     def testBytesEncoding(self):
         b64_str = 'AAc+'
         b64_msg = '{"field": "%s"}' % b64_str
