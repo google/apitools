@@ -17,6 +17,7 @@
 """Tests for transfer.py."""
 import string
 
+import httplib2
 import mock
 import six
 from six.moves import http_client
@@ -310,7 +311,7 @@ class TransferTest(unittest2.TestCase):
             self.assertTrue(rewritten_upload_contents.endswith(upload_bytes))
 
 
-class CompressedUploadTest(unittest2.TestCase):
+class UploadTest(unittest2.TestCase):
 
     def setUp(self):
         # Sample highly compressible data.
@@ -326,6 +327,12 @@ class CompressedUploadTest(unittest2.TestCase):
         # Sample successful response.
         self.response = http_wrapper.Response(
             info={'status': http_client.OK,
+                  'location': 'http://www.uploads.com'},
+            content='',
+            request_url='http://www.uploads.com',)
+        # Sample failure response.
+        self.fail_response = http_wrapper.Response(
+            info={'status': http_client.SERVICE_UNAVAILABLE,
                   'location': 'http://www.uploads.com'},
             content='',
             request_url='http://www.uploads.com',)
@@ -477,3 +484,82 @@ class CompressedUploadTest(unittest2.TestCase):
         with gzip.GzipFile(fileobj=self.request.body) as f:
             original = f.read()
             self.assertTrue(self.sample_data in original)
+
+    def HttpRequestSideEffect(self, responses=None):
+        responses = [(response.info, response.content)
+                     for response in responses]
+
+        def _side_effect(uri, **kwargs):  # pylint: disable=unused-argument
+            body = kwargs['body']
+            read_func = getattr(body, 'read', None)
+            if read_func:
+                # If the body is a stream, consume the stream.
+                body = read_func()
+            self.assertEqual(int(kwargs['headers']['content-length']),
+                             len(body))
+            return responses.pop(0)
+        return _side_effect
+
+    def testRetryRequestChunks(self):
+        """Test that StreamInChunks will retry correctly."""
+        # Create and configure the upload object.
+        bytes_http = httplib2.Http()
+        upload = transfer.Upload(
+            stream=self.sample_stream,
+            mime_type='text/plain',
+            total_size=len(self.sample_data),
+            close_stream=False,
+            http=bytes_http)
+
+        upload.strategy = transfer.RESUMABLE_UPLOAD
+        # Set the chunk size so the entire stream is uploaded.
+        upload.chunksize = len(self.sample_data)
+        # Mock the upload to return the sample response.
+        with mock.patch.object(bytes_http,
+                               'request') as make_request:
+            # This side effect also checks the request body.
+            responses = [
+                self.response,  # Initial request in InitializeUpload().
+                self.fail_response,  # 503 status code from server.
+                self.response  # Successful request.
+            ]
+            make_request.side_effect = self.HttpRequestSideEffect(responses)
+
+            # Initialization.
+            upload.InitializeUpload(self.request, bytes_http)
+            upload.StreamInChunks()
+
+            # Ensure the mock was called the correct number of times.
+            self.assertEquals(make_request.call_count, len(responses))
+
+    def testRetryRequestMedia(self):
+        """Test that StreamMedia will retry correctly."""
+        # Create and configure the upload object.
+        bytes_http = httplib2.Http()
+        upload = transfer.Upload(
+            stream=self.sample_stream,
+            mime_type='text/plain',
+            total_size=len(self.sample_data),
+            close_stream=False,
+            http=bytes_http)
+
+        upload.strategy = transfer.RESUMABLE_UPLOAD
+        # Set the chunk size so the entire stream is uploaded.
+        upload.chunksize = len(self.sample_data)
+        # Mock the upload to return the sample response.
+        with mock.patch.object(bytes_http,
+                               'request') as make_request:
+            # This side effect also checks the request body.
+            responses = [
+                self.response,  # Initial request in InitializeUpload().
+                self.fail_response,  # 503 status code from server.
+                self.response  # Successful request.
+            ]
+            make_request.side_effect = self.HttpRequestSideEffect(responses)
+
+            # Initialization.
+            upload.InitializeUpload(self.request, bytes_http)
+            upload.StreamMedia()
+
+            # Ensure the mock was called the correct number of times..
+            self.assertEquals(make_request.call_count, len(responses))
