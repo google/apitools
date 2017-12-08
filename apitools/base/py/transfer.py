@@ -1032,12 +1032,6 @@ class Upload(_Transfer):
         else:
             end = min(start + self.chunksize, self.total_size)
             body_stream = stream_slice.StreamSlice(self.stream, end - start)
-            # Change body_stream from a stream to a string object. This is
-            # because httpwrapper.MakeRequest doesn't handle the case where
-            # request.body is a stream. In the case that the body is a stream,
-            # if a request has to be retried, then the stream will be exhausted
-            # and the request will hang.
-            body_stream = body_stream.read()
         # TODO(craigcitro): Think about clearer errors on "no data in
         # stream".
         request.body = body_stream

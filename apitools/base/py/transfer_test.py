@@ -17,7 +17,6 @@
 """Tests for transfer.py."""
 import string
 
-import httplib2
 import mock
 import six
 from six.moves import http_client
@@ -499,35 +498,3 @@ class UploadTest(unittest2.TestCase):
                              len(body))
             return responses.pop(0)
         return _side_effect
-
-    def testRetryRequestChunks(self):
-        """Test that StreamInChunks will retry correctly."""
-        # Create and configure the upload object.
-        bytes_http = httplib2.Http()
-        upload = transfer.Upload(
-            stream=self.sample_stream,
-            mime_type='text/plain',
-            total_size=len(self.sample_data),
-            close_stream=False,
-            http=bytes_http)
-
-        upload.strategy = transfer.RESUMABLE_UPLOAD
-        # Set the chunk size so the entire stream is uploaded.
-        upload.chunksize = len(self.sample_data)
-        # Mock the upload to return the sample response.
-        with mock.patch.object(bytes_http,
-                               'request') as make_request:
-            # This side effect also checks the request body.
-            responses = [
-                self.response,  # Initial request in InitializeUpload().
-                self.fail_response,  # 503 status code from server.
-                self.response  # Successful request.
-            ]
-            make_request.side_effect = self.HttpRequestSideEffect(responses)
-
-            # Initialization.
-            upload.InitializeUpload(self.request, bytes_http)
-            upload.StreamInChunks()
-
-            # Ensure the mock was called the correct number of times.
-            self.assertEquals(make_request.call_count, len(responses))
