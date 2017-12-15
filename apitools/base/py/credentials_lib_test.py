@@ -13,6 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
 import os.path
 import shutil
 import tempfile
@@ -80,6 +81,18 @@ class CredentialsLibTest(unittest2.TestCase):
         self._GetServiceCreds(
             service_account_name='my_service_account',
             scopes=scopes)
+
+    def testGceAssertionCredentialsToJson(self):
+        scopes = ['scope1']
+        service_account_name = 'my_service_account'
+        # Ensure that we can obtain a JSON representation of
+        # GceAssertionCredentials to put in a credential Storage object, and
+        # that the JSON representation is valid.
+        original_creds = self._GetServiceCreds(
+            service_account_name=service_account_name,
+            scopes=scopes)
+        original_creds_json_str = original_creds.to_json()
+        json.loads(original_creds_json_str)
 
     @mock.patch.object(util, 'DetectGce', autospec=True)
     def testGceServiceAccountsCached(self, mock_detect):

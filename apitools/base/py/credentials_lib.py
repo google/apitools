@@ -268,7 +268,7 @@ class GceAssertionCredentials(gce.AppAssertionCredentials):
         # catch and squelch the warning.
         with warnings.catch_warnings():
             warnings.simplefilter('ignore')
-            super(GceAssertionCredentials, self).__init__(scopes, **kwds)
+            super(GceAssertionCredentials, self).__init__(scope=scopes, **kwds)
 
     @classmethod
     def Get(cls, *args, **kwds):
@@ -412,14 +412,26 @@ class GceAssertionCredentials(gce.AppAssertionCredentials):
         if self.store:
             self.store.locked_put(self)
 
+    def to_json(self):
+        # OAuth2Client made gce.AppAssertionCredentials unserializable as of
+        # v3.0, but we need those credentials to be serializable for use with
+        # this library, so we use AppAssertionCredentials' parent's to_json
+        # method.
+        # pylint: disable=bad-super-call
+        return super(gce.AppAssertionCredentials, self).to_json()
+
     @classmethod
     def from_json(cls, json_data):
         data = json.loads(json_data)
         kwargs = {}
         if 'cache_filename' in data.get('kwargs', []):
             kwargs['cache_filename'] = data['kwargs']['cache_filename']
-        credentials = GceAssertionCredentials(scopes=[data['scope']],
-                                              **kwargs)
+        # Newer versions of GceAssertionCredentials don't have a "scope"
+        # attribute.
+        scope_list = None
+        if 'scope' in data:
+            scope_list = [data['scope']]
+        credentials = GceAssertionCredentials(scopes=scope_list, **kwargs)
         if 'access_token' in data:
             credentials.access_token = data['access_token']
         if 'token_expiry' in data:
