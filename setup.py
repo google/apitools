@@ -64,7 +64,7 @@ setuptools.setup(
     version=_APITOOLS_VERSION,
     description='client libraries for humans',
     long_description=README,
-    url='http://github.com/craigcitro/apitools',
+    url='http://github.com/google/apitools',
     author='Craig Citro',
     author_email='craigcitro@google.com',
     # Contained modules and scripts.
