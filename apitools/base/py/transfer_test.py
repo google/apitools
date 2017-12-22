@@ -17,6 +17,7 @@
 """Tests for transfer.py."""
 import string
 
+import httplib2
 import mock
 import six
 from six.moves import http_client
@@ -360,11 +361,9 @@ class UploadTest(unittest2.TestCase):
             upload.InitializeUpload(self.request, 'http')
             upload.StreamInChunks()
             # Get the uploaded request and end position of the stream.
-            (request, end), _ = mock_result.call_args_list[0]
+            (request, _), _ = mock_result.call_args_list[0]
             # Ensure the mock was called.
             self.assertTrue(mock_result.called)
-            # Ensure the stream was fully read.
-            self.assertEqual(len(self.sample_data), end)
             # Ensure the correct content encoding was set.
             self.assertEqual(request.headers['Content-Encoding'], 'gzip')
             # Ensure the stream was compresed.
@@ -498,3 +497,80 @@ class UploadTest(unittest2.TestCase):
                              len(body))
             return responses.pop(0)
         return _side_effect
+
+    def testRetryRequestChunks(self):
+        """Test that StreamInChunks will retry correctly."""
+        refresh_response = http_wrapper.Response(
+            info={'status': http_wrapper.RESUME_INCOMPLETE,
+                  'location': 'http://www.uploads.com'},
+            content='',
+            request_url='http://www.uploads.com',)
+
+        # Create and configure the upload object.
+        bytes_http = httplib2.Http()
+        upload = transfer.Upload(
+            stream=self.sample_stream,
+            mime_type='text/plain',
+            total_size=len(self.sample_data),
+            close_stream=False,
+            http=bytes_http)
+
+        upload.strategy = transfer.RESUMABLE_UPLOAD
+        # Set the chunk size so the entire stream is uploaded.
+        upload.chunksize = len(self.sample_data)
+        # Mock the upload to return the sample response.
+        with mock.patch.object(bytes_http,
+                               'request') as make_request:
+            # This side effect also checks the request body.
+            responses = [
+                self.response,  # Initial request in InitializeUpload().
+                self.fail_response,  # 503 status code from server.
+                refresh_response,  # Refresh upload progress.
+                self.response,  # Successful request.
+            ]
+            make_request.side_effect = self.HttpRequestSideEffect(responses)
+
+            # Initialization.
+            upload.InitializeUpload(self.request, bytes_http)
+            upload.StreamInChunks()
+
+            # Ensure the mock was called the correct number of times.
+            self.assertEquals(make_request.call_count, len(responses))
+
+    def testStreamInChunks(self):
+        """Test StreamInChunks."""
+        resume_incomplete_responses = [http_wrapper.Response(
+            info={'status': http_wrapper.RESUME_INCOMPLETE,
+                  'location': 'http://www.uploads.com',
+                  'range': '0-{}'.format(end)},
+            content='',
+            request_url='http://www.uploads.com',) for end in [199, 399, 599]]
+        responses = [
+            self.response  # Initial request in InitializeUpload().
+        ] + resume_incomplete_responses + [
+            self.response,  # Successful request.
+        ]
+        # Create and configure the upload object.
+        bytes_http = httplib2.Http()
+        upload = transfer.Upload(
+            stream=self.sample_stream,
+            mime_type='text/plain',
+            total_size=len(self.sample_data),
+            close_stream=False,
+            http=bytes_http)
+
+        upload.strategy = transfer.RESUMABLE_UPLOAD
+        # Set the chunk size so the entire stream is uploaded.
+        upload.chunksize = 200
+        # Mock the upload to return the sample response.
+        with mock.patch.object(bytes_http,
+                               'request') as make_request:
+            # This side effect also checks the request body.
+            make_request.side_effect = self.HttpRequestSideEffect(responses)
+
+            # Initialization.
+            upload.InitializeUpload(self.request, bytes_http)
+            upload.StreamInChunks()
+
+            # Ensure the mock was called the correct number of times.
+            self.assertEquals(make_request.call_count, len(responses))

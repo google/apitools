@@ -165,12 +165,12 @@ class _Transfer(object):
     def EnsureInitialized(self):
         if not self.initialized:
             raise exceptions.TransferInvalidError(
-                'Cannot use uninitialized %s', self._type_name)
+                'Cannot use uninitialized %s' % self._type_name)
 
     def EnsureUninitialized(self):
         if self.initialized:
             raise exceptions.TransferInvalidError(
-                'Cannot re-initialize %s', self._type_name)
+                'Cannot re-initialize %s' % self._type_name)
 
     def __del__(self):
         if self.__close_stream:
@@ -284,6 +284,7 @@ class Download(_Transfer):
         http_request.headers['Range'] = 'bytes=0-%d' % (self.chunksize - 1,)
 
     def __SetTotal(self, info):
+        """Sets the total size based off info if possible otherwise 0."""
         if 'content-range' in info:
             _, _, total = info['content-range'].rpartition('/')
             if total != '*':
@@ -331,6 +332,7 @@ class Download(_Transfer):
             self.StreamInChunks()
 
     def __NormalizeStartEnd(self, start, end=None):
+        """Normalizes start and end values based on total size."""
         if end is not None:
             if start < 0:
                 raise exceptions.TransferInvalidError(
@@ -879,8 +881,13 @@ class Upload(_Transfer):
         chunksize = chunksize or self.chunksize
         if chunksize % self.__server_chunk_granularity:
             raise exceptions.ConfigurationValueError(
-                'Server requires chunksize to be a multiple of %d',
+                'Server requires chunksize to be a multiple of %d' %
                 self.__server_chunk_granularity)
+
+    def __IsRetryable(self, response):
+        return (response.status_code >= 500 or
+                response.status_code == http_wrapper.TOO_MANY_REQUESTS or
+                response.retry_after)
 
     def __StreamMedia(self, callback=None, finish_callback=None,
                       additional_headers=None, use_chunks=True):
@@ -913,7 +920,23 @@ class Upload(_Transfer):
             if response.status_code in (http_client.OK, http_client.CREATED):
                 self.__complete = True
                 break
-            self.__progress = self.__GetLastByte(response.info['range'])
+            if response.status_code not in (
+                    http_client.OK, http_client.CREATED,
+                    http_wrapper.RESUME_INCOMPLETE):
+                # Only raise an exception if the error is something we can't
+                # recover from.
+                if (self.strategy != RESUMABLE_UPLOAD or
+                        not self.__IsRetryable(response)):
+                    raise exceptions.HttpError.FromResponse(response)
+                # We want to reset our state to wherever the server left us
+                # before this failed request, and then raise.
+                self.RefreshResumableUploadState()
+
+                self._ExecuteCallback(callback, response)
+                continue
+
+            self.__progress = self.__GetLastByte(
+                self._GetRangeHeaderFromResponse(response))
             if self.progress + 1 != self.stream.tell():
                 # TODO(craigcitro): Add a better way to recover here.
                 raise exceptions.CommunicationError(
@@ -960,20 +983,21 @@ class Upload(_Transfer):
 
     def __SendMediaRequest(self, request, end):
         """Request helper function for SendMediaBody & SendChunk."""
+        def CheckResponse(response):
+            if response is None:
+                # Caller shouldn't call us if the response is None,
+                # but handle anyway.
+                raise exceptions.RequestError(
+                    'Request to url %s did not return a response.' %
+                    response.request_url)
         response = http_wrapper.MakeRequest(
             self.bytes_http, request, retry_func=self.retry_func,
-            retries=self.num_retries)
-        if response.status_code not in (http_client.OK, http_client.CREATED,
-                                        http_wrapper.RESUME_INCOMPLETE):
-            # We want to reset our state to wherever the server left us
-            # before this failed request, and then raise.
-            self.RefreshResumableUploadState()
-            raise exceptions.HttpError.FromResponse(response)
+            retries=self.num_retries, check_response_func=CheckResponse)
         if response.status_code == http_wrapper.RESUME_INCOMPLETE:
             last_byte = self.__GetLastByte(
                 self._GetRangeHeaderFromResponse(response))
             if last_byte + 1 != end:
-                self.stream.seek(last_byte)
+                self.stream.seek(last_byte + 1)
         return response
 
     def __SendMediaBody(self, start, additional_headers=None):
