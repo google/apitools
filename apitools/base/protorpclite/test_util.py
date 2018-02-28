@@ -581,8 +581,8 @@ class ProtoConformanceTestBase(object):
     def testDecodeInvalidEnumType(self):
         # Since protos need to be able to add new enums, a message should be
         # successfully decoded even if the enum value is invalid. Encoding the
-        # decoded message should result in equivalence with the original encoded
-        # message containing an invalid enum.
+        # decoded message should result in equivalence with the original
+        # encoded message containing an invalid enum.
         decoded = self.PROTOLIB.decode_message(
             OptionalMessage, self.encoded_invalid_enum)
         message = OptionalMessage()
