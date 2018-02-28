@@ -331,7 +331,7 @@ class EncodingTest(unittest2.TestCase):
             json_msg)
         new_msg = encoding.MessageToJson(msg)
         self.assertEqual('{"key_one": {"field_one": "BAD_VALUE"}}',
-                         encoding.MessageToJson(msg))
+                         new_msg)
 
     def testIncludeFields(self):
         msg = SimpleMessage()
