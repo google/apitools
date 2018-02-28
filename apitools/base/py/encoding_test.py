@@ -107,6 +107,29 @@ class AdditionalMessagePropertiesMessage(messages.Message):
 
 
 @encoding.MapUnrecognizedFields('additionalProperties')
+class MapToMessageWithEnum(messages.Message):
+
+    class AdditionalProperty(messages.Message):
+        key = messages.StringField(1)
+        value = messages.MessageField(MessageWithEnum, 2)
+
+    additionalProperties = messages.MessageField(
+        'AdditionalProperty', 1, repeated=True)
+
+
+@encoding.MapUnrecognizedFields('additionalProperties')
+class NestedAdditionalPropertiesWithEnumMessage(messages.Message):
+
+    class AdditionalProperty(messages.Message):
+        key = messages.StringField(1)
+        value = messages.MessageField(
+            MapToMessageWithEnum, 2)
+
+    additionalProperties = messages.MessageField(
+        'AdditionalProperty', 1, repeated=True)
+
+
+@encoding.MapUnrecognizedFields('additionalProperties')
 class MapToBytesValue(messages.Message):
     class AdditionalProperty(messages.Message):
         key = messages.StringField(1)
@@ -208,6 +231,21 @@ class EncodingTest(unittest2.TestCase):
         self.assertEqual(new_msg.additionalProperties[0].key, 'key')
         self.assertEqual(new_msg.additionalProperties[0].value, 'value')
 
+    def testCopyProtoMessageMappingInvalidEnum(self):
+        json_msg = '{"key_one": {"field_one": "BAD_VALUE"}}'
+        orig_msg = encoding.JsonToMessage(
+            MapToMessageWithEnum,
+            json_msg)
+        new_msg = encoding.CopyProtoMessage(orig_msg)
+        for msg in (orig_msg, new_msg):
+            self.assertEqual(
+                msg.additionalProperties[0].value.all_unrecognized_fields(),
+                ['field_one'])
+            self.assertEqual(
+                msg.additionalProperties[0].value.get_unrecognized_field_info(
+                    'field_one', value_default=None),
+                ('BAD_VALUE', messages.Variant.ENUM))
+
     def testBytesEncoding(self):
         b64_str = 'AAc+'
         b64_msg = '{"field": "%s"}' % b64_str
@@ -285,6 +323,15 @@ class EncodingTest(unittest2.TestCase):
             '{"1st": "2014-07-02T23:33:25.541000+00:00",'
             ' "2nd": "2015-07-02T23:33:25.541000+00:00"}',
             encoding.MessageToJson(msg))
+
+    def testInvalidEnumEncodingInAMap(self):
+        json_msg = '{"key_one": {"field_one": "BAD_VALUE"}}'
+        msg = encoding.JsonToMessage(
+            MapToMessageWithEnum,
+            json_msg)
+        new_msg = encoding.MessageToJson(msg)
+        self.assertEqual('{"key_one": {"field_one": "BAD_VALUE"}}',
+                         encoding.MessageToJson(msg))
 
     def testIncludeFields(self):
         msg = SimpleMessage()
@@ -433,6 +480,15 @@ class EncodingTest(unittest2.TestCase):
         message = encoding.JsonToMessage(SimpleMessage, json_message)
         self.assertEqual(json.loads(json_message),
                          json.loads(encoding.MessageToJson(message)))
+
+    def testUnknownEnumNestedRoundtrip(self):
+        json_with_typo = (
+            '{"outer_key": {"key_one": {"field_one": "VALUE_OEN",'
+            ' "field_two": "VALUE_OEN"}}}')
+        msg = encoding.JsonToMessage(
+            NestedAdditionalPropertiesWithEnumMessage, json_with_typo)
+        self.assertEqual(json.loads(json_with_typo),
+                         json.loads(encoding.MessageToJson(msg)))
 
     def testJsonDatetime(self):
         msg = TimeMessage(timefield=datetime.datetime(
