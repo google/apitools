@@ -220,7 +220,6 @@ class ProtojsonTest(test_util.TestCase,
 
         self.assertEquals(expected_message, message)
 
-
     def testAlphaEnumerationNegativeTest(self):
         """The alpha enum value is invalid."""
         # The message should successfully decode.
