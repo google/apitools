@@ -583,12 +583,11 @@ class ProtoConformanceTestBase(object):
         # successfully decoded even if the enum value is invalid. Encoding the
         # decoded message should result in equivalence with the original
         # encoded message containing an invalid enum.
-        decoded = self.PROTOLIB.decode_message(
-            OptionalMessage, self.encoded_invalid_enum)
+        decoded = self.PROTOLIB.decode_message(OptionalMessage,
+                                               self.encoded_invalid_enum)
         message = OptionalMessage()
         self.assertEqual(message, decoded)
-        encoded = self.PROTOLIB.encode_message(
-            decoded)
+        encoded = self.PROTOLIB.encode_message(decoded)
         self.assertEqual(self.encoded_invalid_enum, encoded)
 
     def testDateTimeNoTimeZone(self):

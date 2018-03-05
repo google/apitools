@@ -207,9 +207,7 @@ class ProtojsonTest(test_util.TestCase,
         self.assertEquals(expected_message, message)
         # The roundtrip should result in equivalent encoded
         # message.
-        self.assertEquals(
-            '{"an_enum": 89}',
-            protojson.encode_message(message))
+        self.assertEquals('{"an_enum": 89}', protojson.encode_message(message))
 
     def testAlphaEnumeration(self):
         """Test that alpha enum values work."""
@@ -229,26 +227,20 @@ class ProtojsonTest(test_util.TestCase,
         expected_message = MyMessage()
 
         self.assertEquals(expected_message, message)
-        # The roundtrip should result in equivalent encoded
-        # message.
-        self.assertEquals(
-            '{"an_enum": "IAMINVALID"}',
-            protojson.encode_message(message))
+        # The roundtrip should result in equivalent encoded message.
+        self.assertEquals('{"an_enum": "IAMINVALID"}',
+                          protojson.encode_message(message))
 
     def testEnumerationNegativeTestWithEmptyString(self):
         """The enum value is an empty string."""
         # The message should successfully decode.
-        message = protojson.decode_message(MyMessage,
-                                           '{"an_enum": ""}')
+        message = protojson.decode_message(MyMessage, '{"an_enum": ""}')
 
         expected_message = MyMessage()
 
         self.assertEquals(expected_message, message)
-        # The roundtrip should result in equivalent encoded
-        # message.
-        self.assertEquals(
-            '{"an_enum": ""}',
-            protojson.encode_message(message))
+        # The roundtrip should result in equivalent encoded message.
+        self.assertEquals('{"an_enum": ""}', protojson.encode_message(message))
 
     def testNullValues(self):
         """Test that null values overwrite existing values."""
