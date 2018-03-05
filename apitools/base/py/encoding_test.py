@@ -477,8 +477,8 @@ class EncodingTest(unittest2.TestCase):
                          json.loads(encoding.MessageToJson(message)))
 
     def testUnknownEnumNestedRoundtrip(self):
-        json_with_typo = ('{"outer_key": {"key_one": {"field_one": "VALUE_OEN",'
-                          ' "field_two": "VALUE_OEN"}}}')
+        json_with_typo = ('{"outer_key": {"key_one": {"field_one": '
+                          '"VALUE_OEN", "field_two": "VALUE_OEN"}}}')
         msg = encoding.JsonToMessage(NestedAdditionalPropertiesWithEnumMessage,
                                      json_with_typo)
         self.assertEqual(json.loads(json_with_typo),
