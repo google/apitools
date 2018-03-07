@@ -62,7 +62,7 @@ def YieldFromList(
     setattr(request, current_token_attribute, None)
     while limit is None or limit:
         if batch_size_attribute:
-            # On Py3, None is not compariable so min() below will fail.
+            # On Py3, None is not comparable so min() below will fail.
             # On Py2, None is always less than any number so if batch_size
             # is None, the request_batch_size will always be None regardless
             # of the value of limit. This doesn't generally strike me as the
