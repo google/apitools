@@ -192,7 +192,6 @@ class ListPagerTest(unittest2.TestCase):
 
         self._AssertInstanceSequence(results, 5)
 
-
     def testYieldFromListEmpty(self):
         self.mocked_client.column.List.Expect(
             messages.FusiontablesColumnListRequest(
