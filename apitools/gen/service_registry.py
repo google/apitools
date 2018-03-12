@@ -238,7 +238,7 @@ class ServiceRegistry(object):
                 printer('get_credentials=True, http=None, model=None,')
                 printer('log_request=False, log_response=False,')
                 printer('credentials_args=None, default_global_params=None,')
-                printer('additional_http_headers=None):')
+                printer('additional_http_headers=None, response_encoding=None):')
             with printer.Indent():
                 printer('"""Create a new %s handle."""', client_info.package)
                 printer('url = url or self.BASE_URL')
@@ -251,7 +251,8 @@ class ServiceRegistry(object):
                         'log_response=log_response,')
                 printer('    credentials_args=credentials_args,')
                 printer('    default_global_params=default_global_params,')
-                printer('    additional_http_headers=additional_http_headers)')
+                printer('    additional_http_headers=additional_http_headers,')
+                printer('    response_encoding=response_encoding)')
                 for name in self.__service_method_info_map.keys():
                     printer('self.%s = self.%s(self)',
                             name, self.__GetServiceClassName(name))
