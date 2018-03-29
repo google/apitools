@@ -78,6 +78,8 @@ def _load_json_module():
 
     logging.error('Must use valid json library (json or simplejson)')
     raise first_import_error  # pylint:disable=raising-bad-type
+
+
 json = _load_json_module()
 
 
@@ -367,6 +369,7 @@ class ProtoJson(object):
         if not isinstance(protocol, ProtoJson):
             raise TypeError('Expected protocol of type ProtoJson')
         ProtoJson.__default = protocol
+
 
 CONTENT_TYPE = ProtoJson.CONTENT_TYPE
 
