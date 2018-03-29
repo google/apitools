@@ -98,7 +98,6 @@ def _GetCodegenFromFlags(args):
         discovery_doc, client_info, names, args.root_package, outdir,
         base_package=args.base_package,
         protorpc_package=args.protorpc_package,
-        generate_cli=args.generate_cli,
         init_wildcards_file=(args.init_file == 'wildcards'),
         use_proto2=args.experimental_proto2_output,
         unelidable_request_methods=args.unelidable_request_methods,
@@ -108,9 +107,7 @@ def _GetCodegenFromFlags(args):
 # TODO(craigcitro): Delete this if we don't need this functionality.
 def _WriteBaseFiles(codegen):
     with util.Chdir(codegen.outdir):
-        _CopyLocalFile('app2.py')
         _CopyLocalFile('base_api.py')
-        _CopyLocalFile('base_cli.py')
         _CopyLocalFile('credentials_lib.py')
         _CopyLocalFile('exceptions.py')
 
@@ -136,10 +133,6 @@ def _WriteGeneratedFiles(args, codegen):
             codegen.WriteMessagesFile(out)
         with open(codegen.client_info.client_file_name, 'w') as out:
             codegen.WriteClientLibrary(out)
-        if args.generate_cli:
-            with open(codegen.client_info.cli_file_name, 'w') as out:
-                codegen.WriteCli(out)
-            os.chmod(codegen.client_info.cli_file_name, 0o755)
 
 
 def _WriteInit(codegen):
@@ -176,7 +169,6 @@ def GeneratePipPackage(args):
     args.outdir = os.path.join(
         args.outdir, 'apitools/clients/%s' % package)
     args.root_package = 'apitools.clients.%s' % package
-    args.generate_cli = False
     codegen = _GetCodegenFromFlags(args)
     if codegen is None:
         logging.error('Failed to create codegen, exiting.')
@@ -287,11 +279,10 @@ def main(argv=None):
 
     parser.add_argument(
         '--generate_cli', dest='generate_cli', action='store_true',
-        help='If specified (default), a CLI is also generated.')
+        help='Ignored.')
     parser.add_argument(
         '--nogenerate_cli', dest='generate_cli', action='store_false',
-        help='CLI will not be generated.')
-    parser.set_defaults(generate_cli=True)
+        help='Ignored.')
 
     parser.add_argument(
         '--init-file',

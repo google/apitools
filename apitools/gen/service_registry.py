@@ -34,7 +34,7 @@ class ServiceRegistry(object):
 
     """Registry for service types."""
 
-    def __init__(self, client_info, message_registry, command_registry,
+    def __init__(self, client_info, message_registry,
                  names, root_package, base_files_package,
                  unelidable_request_methods):
         self.__client_info = client_info
@@ -42,7 +42,6 @@ class ServiceRegistry(object):
         self.__names = names
         self.__service_method_info_map = collections.OrderedDict()
         self.__message_registry = message_registry
-        self.__command_registry = command_registry
         self.__root_package = root_package
         self.__base_files_package = base_files_package
         self.__unelidable_request_methods = unelidable_request_methods
@@ -473,9 +472,6 @@ class ServiceRegistry(object):
 
             method_info_map[method_name] = self.__ComputeMethodInfo(
                 method_description, request, response, request_field)
-            self.__command_registry.AddCommandForMethod(
-                service_name, method_name, method_info_map[method_name],
-                request, response)
 
         nested_services = methods.get('resources', {})
         services = sorted(nested_services.items())

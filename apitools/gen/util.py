@@ -223,14 +223,6 @@ class ClientInfo(collections.namedtuple('ClientInfo', (
         return self.package
 
     @property
-    def cli_rule_name(self):
-        return '%s_%s' % (self.package, self.version)
-
-    @property
-    def cli_file_name(self):
-        return '%s.py' % self.cli_rule_name
-
-    @property
     def client_rule_name(self):
         return '%s_%s_client' % (self.package, self.version)
 

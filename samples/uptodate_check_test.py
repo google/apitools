@@ -45,7 +45,6 @@ class ClientGenCliTest(unittest2.TestCase):
         with test_utils.TempDir() as tmp_dir_path:
             gen_client.main([
                 gen_client.__file__,
-                '--generate_cli',
                 '--init-file', 'empty',
                 '--infile',
                 GetSampleClientPath(api_name, prefix + '.json'),
@@ -56,7 +55,6 @@ class ClientGenCliTest(unittest2.TestCase):
                 'client'
             ])
             expected_files = (
-                set([prefix + '.py']) |  # CLI files
                 set([prefix + '_client.py',
                      prefix + '_messages.py',
                      '__init__.py']))
