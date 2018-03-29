@@ -115,6 +115,8 @@ class ApiMethodInfo(messages.Message):
     request_field = messages.StringField(11, default='')
     upload_config = messages.MessageField(ApiUploadInfo, 12)
     supports_download = messages.BooleanField(13, default=False)
+
+
 REQUEST_IS_BODY = '<request>'
 
 
@@ -239,7 +241,8 @@ class BaseApiClient(object):
                  model=None, log_request=False, log_response=False,
                  num_retries=5, max_retry_wait=60, credentials_args=None,
                  default_global_params=None, additional_http_headers=None,
-                 check_response_func=None, retry_func=None, response_encoding=None):
+                 check_response_func=None, retry_func=None,
+                 response_encoding=None):
         _RequireClassAttrs(self, ('_package', '_scopes', 'messages_module'))
         if default_global_params is not None:
             util.Typecheck(default_global_params, self.params_type)
