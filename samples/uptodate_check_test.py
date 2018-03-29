@@ -15,6 +15,7 @@
 import os
 import difflib
 
+import six
 import unittest2
 
 from apitools.gen import gen_client
@@ -30,7 +31,6 @@ def _GetContent(file_path):
         return f.read()
 
 
-@test_utils.RunOnlyOnPython27
 class ClientGenCliTest(unittest2.TestCase):
 
     def AssertDiffEqual(self, expected, actual):
@@ -59,6 +59,10 @@ class ClientGenCliTest(unittest2.TestCase):
                      prefix + '_messages.py',
                      '__init__.py']))
             self.assertEquals(expected_files, set(os.listdir(tmp_dir_path)))
+            if six.PY3:
+                # The source files won't be identical under python3,
+                # so we exit early.
+                return
             for expected_file in expected_files:
                 self.AssertDiffEqual(
                     _GetContent(GetSampleClientPath(

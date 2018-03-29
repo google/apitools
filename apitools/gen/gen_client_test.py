@@ -32,7 +32,6 @@ def _GetContent(file_path):
         return f.read()
 
 
-@test_utils.RunOnlyOnPython27
 class ClientGenCliTest(unittest2.TestCase):
 
     def testHelp_NotEnoughArguments(self):

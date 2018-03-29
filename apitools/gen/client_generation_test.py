@@ -18,15 +18,18 @@
 import importlib
 import logging
 import os
+import six
 import subprocess
 import sys
 import tempfile
 
-import unittest2
-
 from apitools.gen import gen_client
 from apitools.gen import test_utils
 
+if six.PY2:
+    import unittest2 as unittest
+else:
+    import unittest
 
 _API_LIST = [
     'bigquery.v2',
@@ -36,14 +39,13 @@ _API_LIST = [
 ]
 
 
-class ClientGenerationTest(unittest2.TestCase):
+class ClientGenerationTest(unittest.TestCase):
 
     def setUp(self):
         super(ClientGenerationTest, self).setUp()
         self.gen_client_binary = 'gen_client'
 
     @test_utils.SkipOnWindows
-    @test_utils.RunOnlyOnPython27
     def testGeneration(self):
         for api in _API_LIST:
             with test_utils.TempDir(change_to=True):
