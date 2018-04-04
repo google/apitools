@@ -124,7 +124,7 @@ def GetClientFromFlags():
         credentials_args=credentials_args,
         additional_http_headers=additional_http_headers)
   except apitools_base.CredentialsError as e:
-    print 'Error creating credentials: %s' % e
+    print('Error creating credentials: %s' % e)
     sys.exit(1)
   return client
 
@@ -188,7 +188,7 @@ class BucketAccessControlsDelete(apitools_base_cli.NewCmd):
         )
     result = client.bucketAccessControls.Delete(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class BucketAccessControlsGet(apitools_base_cli.NewCmd):
@@ -216,7 +216,7 @@ class BucketAccessControlsGet(apitools_base_cli.NewCmd):
         )
     result = client.bucketAccessControls.Get(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class BucketAccessControlsInsert(apitools_base_cli.NewCmd):
@@ -340,7 +340,7 @@ class BucketAccessControlsInsert(apitools_base_cli.NewCmd):
       request.selfLink = FLAGS.selfLink.decode('utf8')
     result = client.bucketAccessControls.Insert(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class BucketAccessControlsList(apitools_base_cli.NewCmd):
@@ -364,7 +364,7 @@ class BucketAccessControlsList(apitools_base_cli.NewCmd):
         )
     result = client.bucketAccessControls.List(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class BucketAccessControlsPatch(apitools_base_cli.NewCmd):
@@ -476,7 +476,7 @@ class BucketAccessControlsPatch(apitools_base_cli.NewCmd):
       request.selfLink = FLAGS.selfLink.decode('utf8')
     result = client.bucketAccessControls.Patch(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class BucketAccessControlsUpdate(apitools_base_cli.NewCmd):
@@ -587,7 +587,7 @@ class BucketAccessControlsUpdate(apitools_base_cli.NewCmd):
       request.selfLink = FLAGS.selfLink.decode('utf8')
     result = client.bucketAccessControls.Update(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class BucketsDelete(apitools_base_cli.NewCmd):
@@ -633,7 +633,7 @@ class BucketsDelete(apitools_base_cli.NewCmd):
       request.ifMetagenerationNotMatch = int(FLAGS.ifMetagenerationNotMatch)
     result = client.buckets.Delete(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class BucketsGet(apitools_base_cli.NewCmd):
@@ -690,7 +690,7 @@ class BucketsGet(apitools_base_cli.NewCmd):
       request.projection = messages.StorageBucketsGetRequest.ProjectionValueValuesEnum(FLAGS.projection)
     result = client.buckets.Get(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class BucketsGetIamPolicy(apitools_base_cli.NewCmd):
@@ -714,7 +714,7 @@ class BucketsGetIamPolicy(apitools_base_cli.NewCmd):
         )
     result = client.buckets.GetIamPolicy(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class BucketsInsert(apitools_base_cli.NewCmd):
@@ -781,7 +781,7 @@ class BucketsInsert(apitools_base_cli.NewCmd):
       request.projection = messages.StorageBucketsInsertRequest.ProjectionValueValuesEnum(FLAGS.projection)
     result = client.buckets.Insert(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class BucketsList(apitools_base_cli.NewCmd):
@@ -842,7 +842,7 @@ class BucketsList(apitools_base_cli.NewCmd):
       request.projection = messages.StorageBucketsListRequest.ProjectionValueValuesEnum(FLAGS.projection)
     result = client.buckets.List(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class BucketsPatch(apitools_base_cli.NewCmd):
@@ -927,7 +927,7 @@ class BucketsPatch(apitools_base_cli.NewCmd):
       request.projection = messages.StorageBucketsPatchRequest.ProjectionValueValuesEnum(FLAGS.projection)
     result = client.buckets.Patch(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class BucketsSetIamPolicy(apitools_base_cli.NewCmd):
@@ -961,7 +961,7 @@ class BucketsSetIamPolicy(apitools_base_cli.NewCmd):
       request.policy = apitools_base.JsonToMessage(messages.Policy, FLAGS.policy)
     result = client.buckets.SetIamPolicy(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class BucketsTestIamPermissions(apitools_base_cli.NewCmd):
@@ -988,7 +988,7 @@ class BucketsTestIamPermissions(apitools_base_cli.NewCmd):
         )
     result = client.buckets.TestIamPermissions(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class BucketsUpdate(apitools_base_cli.NewCmd):
@@ -1073,7 +1073,7 @@ class BucketsUpdate(apitools_base_cli.NewCmd):
       request.projection = messages.StorageBucketsUpdateRequest.ProjectionValueValuesEnum(FLAGS.projection)
     result = client.buckets.Update(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ChannelsStop(apitools_base_cli.NewCmd):
@@ -1186,7 +1186,7 @@ class ChannelsStop(apitools_base_cli.NewCmd):
       request.type = FLAGS.type.decode('utf8')
     result = client.channels.Stop(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class DefaultObjectAccessControlsDelete(apitools_base_cli.NewCmd):
@@ -1215,7 +1215,7 @@ class DefaultObjectAccessControlsDelete(apitools_base_cli.NewCmd):
         )
     result = client.defaultObjectAccessControls.Delete(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class DefaultObjectAccessControlsGet(apitools_base_cli.NewCmd):
@@ -1244,7 +1244,7 @@ class DefaultObjectAccessControlsGet(apitools_base_cli.NewCmd):
         )
     result = client.defaultObjectAccessControls.Get(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class DefaultObjectAccessControlsInsert(apitools_base_cli.NewCmd):
@@ -1382,7 +1382,7 @@ class DefaultObjectAccessControlsInsert(apitools_base_cli.NewCmd):
       request.selfLink = FLAGS.selfLink.decode('utf8')
     result = client.defaultObjectAccessControls.Insert(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class DefaultObjectAccessControlsList(apitools_base_cli.NewCmd):
@@ -1428,7 +1428,7 @@ class DefaultObjectAccessControlsList(apitools_base_cli.NewCmd):
       request.ifMetagenerationNotMatch = int(FLAGS.ifMetagenerationNotMatch)
     result = client.defaultObjectAccessControls.List(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class DefaultObjectAccessControlsPatch(apitools_base_cli.NewCmd):
@@ -1554,7 +1554,7 @@ class DefaultObjectAccessControlsPatch(apitools_base_cli.NewCmd):
       request.selfLink = FLAGS.selfLink.decode('utf8')
     result = client.defaultObjectAccessControls.Patch(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class DefaultObjectAccessControlsUpdate(apitools_base_cli.NewCmd):
@@ -1679,7 +1679,7 @@ class DefaultObjectAccessControlsUpdate(apitools_base_cli.NewCmd):
       request.selfLink = FLAGS.selfLink.decode('utf8')
     result = client.defaultObjectAccessControls.Update(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class NotificationsDelete(apitools_base_cli.NewCmd):
@@ -1703,7 +1703,7 @@ class NotificationsDelete(apitools_base_cli.NewCmd):
         )
     result = client.notifications.Delete(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class NotificationsGet(apitools_base_cli.NewCmd):
@@ -1727,7 +1727,7 @@ class NotificationsGet(apitools_base_cli.NewCmd):
         )
     result = client.notifications.Get(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class NotificationsInsert(apitools_base_cli.NewCmd):
@@ -1853,7 +1853,7 @@ class NotificationsInsert(apitools_base_cli.NewCmd):
       request.topic = FLAGS.topic.decode('utf8')
     result = client.notifications.Insert(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class NotificationsList(apitools_base_cli.NewCmd):
@@ -1877,7 +1877,7 @@ class NotificationsList(apitools_base_cli.NewCmd):
         )
     result = client.notifications.List(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ObjectAccessControlsDelete(apitools_base_cli.NewCmd):
@@ -1921,7 +1921,7 @@ class ObjectAccessControlsDelete(apitools_base_cli.NewCmd):
       request.generation = int(FLAGS.generation)
     result = client.objectAccessControls.Delete(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ObjectAccessControlsGet(apitools_base_cli.NewCmd):
@@ -1964,7 +1964,7 @@ class ObjectAccessControlsGet(apitools_base_cli.NewCmd):
       request.generation = int(FLAGS.generation)
     result = client.objectAccessControls.Get(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ObjectAccessControlsInsert(apitools_base_cli.NewCmd):
@@ -2012,7 +2012,7 @@ class ObjectAccessControlsInsert(apitools_base_cli.NewCmd):
       request.objectAccessControl = apitools_base.JsonToMessage(messages.ObjectAccessControl, FLAGS.objectAccessControl)
     result = client.objectAccessControls.Insert(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ObjectAccessControlsList(apitools_base_cli.NewCmd):
@@ -2051,7 +2051,7 @@ class ObjectAccessControlsList(apitools_base_cli.NewCmd):
       request.generation = int(FLAGS.generation)
     result = client.objectAccessControls.List(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ObjectAccessControlsPatch(apitools_base_cli.NewCmd):
@@ -2104,7 +2104,7 @@ class ObjectAccessControlsPatch(apitools_base_cli.NewCmd):
       request.objectAccessControl = apitools_base.JsonToMessage(messages.ObjectAccessControl, FLAGS.objectAccessControl)
     result = client.objectAccessControls.Patch(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ObjectAccessControlsUpdate(apitools_base_cli.NewCmd):
@@ -2156,7 +2156,7 @@ class ObjectAccessControlsUpdate(apitools_base_cli.NewCmd):
       request.objectAccessControl = apitools_base.JsonToMessage(messages.ObjectAccessControl, FLAGS.objectAccessControl)
     result = client.objectAccessControls.Update(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ObjectsCompose(apitools_base_cli.NewCmd):
@@ -2243,7 +2243,7 @@ class ObjectsCompose(apitools_base_cli.NewCmd):
           finish_callback=apitools_base.DownloadCompletePrinter)
     result = client.objects.Compose(
         request, global_params=global_params, download=download)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ObjectsCopy(apitools_base_cli.NewCmd):
@@ -2422,7 +2422,7 @@ class ObjectsCopy(apitools_base_cli.NewCmd):
           finish_callback=apitools_base.DownloadCompletePrinter)
     result = client.objects.Copy(
         request, global_params=global_params, download=download)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ObjectsDelete(apitools_base_cli.NewCmd):
@@ -2503,7 +2503,7 @@ class ObjectsDelete(apitools_base_cli.NewCmd):
       request.ifMetagenerationNotMatch = int(FLAGS.ifMetagenerationNotMatch)
     result = client.objects.Delete(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ObjectsGet(apitools_base_cli.NewCmd):
@@ -2608,7 +2608,7 @@ class ObjectsGet(apitools_base_cli.NewCmd):
           finish_callback=apitools_base.DownloadCompletePrinter)
     result = client.objects.Get(
         request, global_params=global_params, download=download)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ObjectsGetIamPolicy(apitools_base_cli.NewCmd):
@@ -2647,7 +2647,7 @@ class ObjectsGetIamPolicy(apitools_base_cli.NewCmd):
       request.generation = int(FLAGS.generation)
     result = client.objects.GetIamPolicy(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ObjectsInsert(apitools_base_cli.NewCmd):
@@ -2811,7 +2811,7 @@ class ObjectsInsert(apitools_base_cli.NewCmd):
           finish_callback=apitools_base.DownloadCompletePrinter)
     result = client.objects.Insert(
         request, global_params=global_params, upload=upload, download=download)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ObjectsList(apitools_base_cli.NewCmd):
@@ -2902,7 +2902,7 @@ class ObjectsList(apitools_base_cli.NewCmd):
       request.versions = FLAGS.versions
     result = client.objects.List(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ObjectsPatch(apitools_base_cli.NewCmd):
@@ -3007,7 +3007,7 @@ class ObjectsPatch(apitools_base_cli.NewCmd):
       request.projection = messages.StorageObjectsPatchRequest.ProjectionValueValuesEnum(FLAGS.projection)
     result = client.objects.Patch(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ObjectsRewrite(apitools_base_cli.NewCmd):
@@ -3206,7 +3206,7 @@ class ObjectsRewrite(apitools_base_cli.NewCmd):
       request.sourceGeneration = int(FLAGS.sourceGeneration)
     result = client.objects.Rewrite(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ObjectsSetIamPolicy(apitools_base_cli.NewCmd):
@@ -3253,7 +3253,7 @@ class ObjectsSetIamPolicy(apitools_base_cli.NewCmd):
       request.policy = apitools_base.JsonToMessage(messages.Policy, FLAGS.policy)
     result = client.objects.SetIamPolicy(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ObjectsTestIamPermissions(apitools_base_cli.NewCmd):
@@ -3295,7 +3295,7 @@ class ObjectsTestIamPermissions(apitools_base_cli.NewCmd):
       request.generation = int(FLAGS.generation)
     result = client.objects.TestIamPermissions(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ObjectsUpdate(apitools_base_cli.NewCmd):
@@ -3417,7 +3417,7 @@ class ObjectsUpdate(apitools_base_cli.NewCmd):
           finish_callback=apitools_base.DownloadCompletePrinter)
     result = client.objects.Update(
         request, global_params=global_params, download=download)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ObjectsWatchAll(apitools_base_cli.NewCmd):
@@ -3516,7 +3516,7 @@ class ObjectsWatchAll(apitools_base_cli.NewCmd):
       request.versions = FLAGS.versions
     result = client.objects.WatchAll(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 def main(_):

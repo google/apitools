@@ -124,7 +124,7 @@ def GetClientFromFlags():
         credentials_args=credentials_args,
         additional_http_headers=additional_http_headers)
   except apitools_base.CredentialsError as e:
-    print 'Error creating credentials: %s' % e
+    print('Error creating credentials: %s' % e)
     sys.exit(1)
   return client
 
@@ -201,7 +201,7 @@ class DatasetsDelete(apitools_base_cli.NewCmd):
       request.deleteContents = FLAGS.deleteContents
     result = client.datasets.Delete(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class DatasetsGet(apitools_base_cli.NewCmd):
@@ -227,7 +227,7 @@ class DatasetsGet(apitools_base_cli.NewCmd):
         )
     result = client.datasets.Get(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class DatasetsInsert(apitools_base_cli.NewCmd):
@@ -261,7 +261,7 @@ class DatasetsInsert(apitools_base_cli.NewCmd):
       request.dataset = apitools_base.JsonToMessage(messages.Dataset, FLAGS.dataset)
     result = client.datasets.Insert(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class DatasetsList(apitools_base_cli.NewCmd):
@@ -330,7 +330,7 @@ class DatasetsList(apitools_base_cli.NewCmd):
       request.pageToken = FLAGS.pageToken.decode('utf8')
     result = client.datasets.List(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class DatasetsPatch(apitools_base_cli.NewCmd):
@@ -369,7 +369,7 @@ class DatasetsPatch(apitools_base_cli.NewCmd):
       request.dataset = apitools_base.JsonToMessage(messages.Dataset, FLAGS.dataset)
     result = client.datasets.Patch(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class DatasetsUpdate(apitools_base_cli.NewCmd):
@@ -407,7 +407,7 @@ class DatasetsUpdate(apitools_base_cli.NewCmd):
       request.dataset = apitools_base.JsonToMessage(messages.Dataset, FLAGS.dataset)
     result = client.datasets.Update(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class JobsCancel(apitools_base_cli.NewCmd):
@@ -435,7 +435,7 @@ class JobsCancel(apitools_base_cli.NewCmd):
         )
     result = client.jobs.Cancel(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class JobsGet(apitools_base_cli.NewCmd):
@@ -463,7 +463,7 @@ class JobsGet(apitools_base_cli.NewCmd):
         )
     result = client.jobs.Get(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class JobsGetQueryResults(apitools_base_cli.NewCmd):
@@ -531,7 +531,7 @@ class JobsGetQueryResults(apitools_base_cli.NewCmd):
       request.timeoutMs = FLAGS.timeoutMs
     result = client.jobs.GetQueryResults(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class JobsInsert(apitools_base_cli.NewCmd):
@@ -587,7 +587,7 @@ class JobsInsert(apitools_base_cli.NewCmd):
           finish_callback=apitools_base.UploadCompletePrinter)
     result = client.jobs.Insert(
         request, global_params=global_params, upload=upload)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class JobsList(apitools_base_cli.NewCmd):
@@ -663,7 +663,7 @@ class JobsList(apitools_base_cli.NewCmd):
       request.stateFilter = [messages.BigqueryJobsListRequest.StateFilterValueValuesEnum(x) for x in FLAGS.stateFilter]
     result = client.jobs.List(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class JobsQuery(apitools_base_cli.NewCmd):
@@ -698,7 +698,7 @@ class JobsQuery(apitools_base_cli.NewCmd):
       request.queryRequest = apitools_base.JsonToMessage(messages.QueryRequest, FLAGS.queryRequest)
     result = client.jobs.Query(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ProjectsList(apitools_base_cli.NewCmd):
@@ -738,7 +738,7 @@ class ProjectsList(apitools_base_cli.NewCmd):
       request.pageToken = FLAGS.pageToken.decode('utf8')
     result = client.projects.List(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class TabledataInsertAll(apitools_base_cli.NewCmd):
@@ -779,7 +779,7 @@ class TabledataInsertAll(apitools_base_cli.NewCmd):
       request.tableDataInsertAllRequest = apitools_base.JsonToMessage(messages.TableDataInsertAllRequest, FLAGS.tableDataInsertAllRequest)
     result = client.tabledata.InsertAll(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class TabledataList(apitools_base_cli.NewCmd):
@@ -835,7 +835,7 @@ class TabledataList(apitools_base_cli.NewCmd):
       request.startIndex = int(FLAGS.startIndex)
     result = client.tabledata.List(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class TablesDelete(apitools_base_cli.NewCmd):
@@ -864,7 +864,7 @@ class TablesDelete(apitools_base_cli.NewCmd):
         )
     result = client.tables.Delete(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class TablesGet(apitools_base_cli.NewCmd):
@@ -894,7 +894,7 @@ class TablesGet(apitools_base_cli.NewCmd):
         )
     result = client.tables.Get(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class TablesInsert(apitools_base_cli.NewCmd):
@@ -930,7 +930,7 @@ class TablesInsert(apitools_base_cli.NewCmd):
       request.table = apitools_base.JsonToMessage(messages.Table, FLAGS.table)
     result = client.tables.Insert(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class TablesList(apitools_base_cli.NewCmd):
@@ -977,7 +977,7 @@ class TablesList(apitools_base_cli.NewCmd):
       request.pageToken = FLAGS.pageToken.decode('utf8')
     result = client.tables.List(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class TablesPatch(apitools_base_cli.NewCmd):
@@ -1018,7 +1018,7 @@ class TablesPatch(apitools_base_cli.NewCmd):
       request.table = apitools_base.JsonToMessage(messages.Table, FLAGS.table)
     result = client.tables.Patch(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class TablesUpdate(apitools_base_cli.NewCmd):
@@ -1058,7 +1058,7 @@ class TablesUpdate(apitools_base_cli.NewCmd):
       request.table = apitools_base.JsonToMessage(messages.Table, FLAGS.table)
     result = client.tables.Update(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 def main(_):

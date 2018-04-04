@@ -160,7 +160,7 @@ def GetClientFromFlags():
         credentials_args=credentials_args,
         additional_http_headers=additional_http_headers)
   except apitools_base.CredentialsError as e:
-    print 'Error creating credentials: %s' % e
+    print('Error creating credentials: %s' % e)
     sys.exit(1)
   return client
 
@@ -221,7 +221,7 @@ class OperationsGet(apitools_base_cli.NewCmd):
         )
     result = client.operations.Get(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ServicesConvertConfig(apitools_base_cli.NewCmd):
@@ -283,7 +283,7 @@ class ServicesConvertConfig(apitools_base_cli.NewCmd):
       request.swaggerSpec = apitools_base.JsonToMessage(messages.SwaggerSpec, FLAGS.swaggerSpec)
     result = client.services.ConvertConfig(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ServicesCreate(apitools_base_cli.NewCmd):
@@ -384,7 +384,7 @@ class ServicesCreate(apitools_base_cli.NewCmd):
       request.serviceName = FLAGS.serviceName.decode('utf8')
     result = client.services.Create(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ServicesDelete(apitools_base_cli.NewCmd):
@@ -409,7 +409,7 @@ class ServicesDelete(apitools_base_cli.NewCmd):
         )
     result = client.services.Delete(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ServicesDisable(apitools_base_cli.NewCmd):
@@ -447,7 +447,7 @@ class ServicesDisable(apitools_base_cli.NewCmd):
       request.disableServiceRequest = apitools_base.JsonToMessage(messages.DisableServiceRequest, FLAGS.disableServiceRequest)
     result = client.services.Disable(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ServicesEnable(apitools_base_cli.NewCmd):
@@ -485,7 +485,7 @@ class ServicesEnable(apitools_base_cli.NewCmd):
       request.enableServiceRequest = apitools_base.JsonToMessage(messages.EnableServiceRequest, FLAGS.enableServiceRequest)
     result = client.services.Enable(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ServicesGet(apitools_base_cli.NewCmd):
@@ -550,7 +550,7 @@ class ServicesGet(apitools_base_cli.NewCmd):
       request.view = messages.ServicemanagementServicesGetRequest.ViewValueValuesEnum(FLAGS.view)
     result = client.services.Get(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ServicesGetAccessPolicy(apitools_base_cli.NewCmd):
@@ -575,7 +575,7 @@ class ServicesGetAccessPolicy(apitools_base_cli.NewCmd):
         )
     result = client.services.GetAccessPolicy(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ServicesGetConfig(apitools_base_cli.NewCmd):
@@ -613,7 +613,7 @@ class ServicesGetConfig(apitools_base_cli.NewCmd):
       request.configId = FLAGS.configId.decode('utf8')
     result = client.services.GetConfig(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ServicesList(apitools_base_cli.NewCmd):
@@ -700,7 +700,7 @@ class ServicesList(apitools_base_cli.NewCmd):
       request.producerProjectId = FLAGS.producerProjectId.decode('utf8')
     result = client.services.List(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ServicesPatch(apitools_base_cli.NewCmd):
@@ -746,7 +746,7 @@ class ServicesPatch(apitools_base_cli.NewCmd):
       request.updateMask = FLAGS.updateMask.decode('utf8')
     result = client.services.Patch(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ServicesPatchConfig(apitools_base_cli.NewCmd):
@@ -791,7 +791,7 @@ class ServicesPatchConfig(apitools_base_cli.NewCmd):
       request.updateMask = FLAGS.updateMask.decode('utf8')
     result = client.services.PatchConfig(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ServicesUpdate(apitools_base_cli.NewCmd):
@@ -841,7 +841,7 @@ class ServicesUpdate(apitools_base_cli.NewCmd):
       request.updateMask = FLAGS.updateMask.decode('utf8')
     result = client.services.Update(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ServicesUpdateAccessPolicy(apitools_base_cli.NewCmd):
@@ -890,7 +890,7 @@ class ServicesUpdateAccessPolicy(apitools_base_cli.NewCmd):
       request.visibilityLabelAccessLists = apitools_base.JsonToMessage(messages.ServiceAccessPolicy.VisibilityLabelAccessListsValue, FLAGS.visibilityLabelAccessLists)
     result = client.services.UpdateAccessPolicy(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ServicesUpdateConfig(apitools_base_cli.NewCmd):
@@ -939,7 +939,7 @@ class ServicesUpdateConfig(apitools_base_cli.NewCmd):
       request.updateMask = FLAGS.updateMask.decode('utf8')
     result = client.services.UpdateConfig(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ServicesAccessPolicyQuery(apitools_base_cli.NewCmd):
@@ -977,7 +977,7 @@ class ServicesAccessPolicyQuery(apitools_base_cli.NewCmd):
       request.userEmail = FLAGS.userEmail.decode('utf8')
     result = client.services_accessPolicy.Query(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ServicesConfigsCreate(apitools_base_cli.NewCmd):
@@ -1014,7 +1014,7 @@ class ServicesConfigsCreate(apitools_base_cli.NewCmd):
       request.service = apitools_base.JsonToMessage(messages.Service, FLAGS.service)
     result = client.services_configs.Create(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ServicesConfigsGet(apitools_base_cli.NewCmd):
@@ -1043,7 +1043,7 @@ class ServicesConfigsGet(apitools_base_cli.NewCmd):
         )
     result = client.services_configs.Get(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ServicesConfigsList(apitools_base_cli.NewCmd):
@@ -1087,7 +1087,7 @@ class ServicesConfigsList(apitools_base_cli.NewCmd):
       request.pageToken = FLAGS.pageToken.decode('utf8')
     result = client.services_configs.List(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ServicesConfigsSubmit(apitools_base_cli.NewCmd):
@@ -1128,7 +1128,7 @@ class ServicesConfigsSubmit(apitools_base_cli.NewCmd):
       request.submitConfigSourceRequest = apitools_base.JsonToMessage(messages.SubmitConfigSourceRequest, FLAGS.submitConfigSourceRequest)
     result = client.services_configs.Submit(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ServicesCustomerSettingsGet(apitools_base_cli.NewCmd):
@@ -1178,7 +1178,7 @@ class ServicesCustomerSettingsGet(apitools_base_cli.NewCmd):
       request.view = messages.ServicemanagementServicesCustomerSettingsGetRequest.ViewValueValuesEnum(FLAGS.view)
     result = client.services_customerSettings.Get(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ServicesCustomerSettingsPatch(apitools_base_cli.NewCmd):
@@ -1230,7 +1230,7 @@ class ServicesCustomerSettingsPatch(apitools_base_cli.NewCmd):
       request.updateMask = FLAGS.updateMask.decode('utf8')
     result = client.services_customerSettings.Patch(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ServicesProjectSettingsGet(apitools_base_cli.NewCmd):
@@ -1279,7 +1279,7 @@ class ServicesProjectSettingsGet(apitools_base_cli.NewCmd):
       request.view = messages.ServicemanagementServicesProjectSettingsGetRequest.ViewValueValuesEnum(FLAGS.view)
     result = client.services_projectSettings.Get(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ServicesProjectSettingsPatch(apitools_base_cli.NewCmd):
@@ -1328,7 +1328,7 @@ class ServicesProjectSettingsPatch(apitools_base_cli.NewCmd):
       request.updateMask = FLAGS.updateMask.decode('utf8')
     result = client.services_projectSettings.Patch(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ServicesProjectSettingsUpdate(apitools_base_cli.NewCmd):
@@ -1415,7 +1415,7 @@ class ServicesProjectSettingsUpdate(apitools_base_cli.NewCmd):
       request.visibilitySettings = apitools_base.JsonToMessage(messages.VisibilitySettings, FLAGS.visibilitySettings)
     result = client.services_projectSettings.Update(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ConvertConfig(apitools_base_cli.NewCmd):
@@ -1477,7 +1477,7 @@ class ConvertConfig(apitools_base_cli.NewCmd):
       request.swaggerSpec = apitools_base.JsonToMessage(messages.SwaggerSpec, FLAGS.swaggerSpec)
     result = client.v1.ConvertConfig(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 def main(_):

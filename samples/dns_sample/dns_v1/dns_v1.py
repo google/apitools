@@ -124,7 +124,7 @@ def GetClientFromFlags():
         credentials_args=credentials_args,
         additional_http_headers=additional_http_headers)
   except apitools_base.CredentialsError as e:
-    print 'Error creating credentials: %s' % e
+    print('Error creating credentials: %s' % e)
     sys.exit(1)
   return client
 
@@ -196,7 +196,7 @@ class ChangesCreate(apitools_base_cli.NewCmd):
       request.change = apitools_base.JsonToMessage(messages.Change, FLAGS.change)
     result = client.changes.Create(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ChangesGet(apitools_base_cli.NewCmd):
@@ -226,7 +226,7 @@ class ChangesGet(apitools_base_cli.NewCmd):
         )
     result = client.changes.Get(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ChangesList(apitools_base_cli.NewCmd):
@@ -292,7 +292,7 @@ class ChangesList(apitools_base_cli.NewCmd):
       request.sortOrder = FLAGS.sortOrder.decode('utf8')
     result = client.changes.List(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ManagedZonesCreate(apitools_base_cli.NewCmd):
@@ -326,7 +326,7 @@ class ManagedZonesCreate(apitools_base_cli.NewCmd):
       request.managedZone = apitools_base.JsonToMessage(messages.ManagedZone, FLAGS.managedZone)
     result = client.managedZones.Create(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ManagedZonesDelete(apitools_base_cli.NewCmd):
@@ -353,7 +353,7 @@ class ManagedZonesDelete(apitools_base_cli.NewCmd):
         )
     result = client.managedZones.Delete(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ManagedZonesGet(apitools_base_cli.NewCmd):
@@ -380,7 +380,7 @@ class ManagedZonesGet(apitools_base_cli.NewCmd):
         )
     result = client.managedZones.Get(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ManagedZonesList(apitools_base_cli.NewCmd):
@@ -434,7 +434,7 @@ class ManagedZonesList(apitools_base_cli.NewCmd):
       request.pageToken = FLAGS.pageToken.decode('utf8')
     result = client.managedZones.List(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ProjectsGet(apitools_base_cli.NewCmd):
@@ -458,7 +458,7 @@ class ProjectsGet(apitools_base_cli.NewCmd):
         )
     result = client.projects.Get(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ResourceRecordSetsList(apitools_base_cli.NewCmd):
@@ -528,7 +528,7 @@ class ResourceRecordSetsList(apitools_base_cli.NewCmd):
       request.type = FLAGS.type.decode('utf8')
     result = client.resourceRecordSets.List(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 def main(_):

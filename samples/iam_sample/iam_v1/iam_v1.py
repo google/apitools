@@ -160,7 +160,7 @@ def GetClientFromFlags():
         credentials_args=credentials_args,
         additional_http_headers=additional_http_headers)
   except apitools_base.CredentialsError as e:
-    print 'Error creating credentials: %s' % e
+    print('Error creating credentials: %s' % e)
     sys.exit(1)
   return client
 
@@ -256,7 +256,7 @@ class IamPoliciesGetPolicyDetails(apitools_base_cli.NewCmd):
       request.pageToken = FLAGS.pageToken.decode('utf8')
     result = client.iamPolicies.GetPolicyDetails(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ProjectsServiceAccountsCreate(apitools_base_cli.NewCmd):
@@ -293,7 +293,7 @@ class ProjectsServiceAccountsCreate(apitools_base_cli.NewCmd):
       request.createServiceAccountRequest = apitools_base.JsonToMessage(messages.CreateServiceAccountRequest, FLAGS.createServiceAccountRequest)
     result = client.projects_serviceAccounts.Create(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ProjectsServiceAccountsDelete(apitools_base_cli.NewCmd):
@@ -321,7 +321,7 @@ class ProjectsServiceAccountsDelete(apitools_base_cli.NewCmd):
         )
     result = client.projects_serviceAccounts.Delete(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ProjectsServiceAccountsGet(apitools_base_cli.NewCmd):
@@ -349,7 +349,7 @@ class ProjectsServiceAccountsGet(apitools_base_cli.NewCmd):
         )
     result = client.projects_serviceAccounts.Get(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ProjectsServiceAccountsGetIamPolicy(apitools_base_cli.NewCmd):
@@ -377,7 +377,7 @@ class ProjectsServiceAccountsGetIamPolicy(apitools_base_cli.NewCmd):
         )
     result = client.projects_serviceAccounts.GetIamPolicy(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ProjectsServiceAccountsList(apitools_base_cli.NewCmd):
@@ -439,7 +439,7 @@ class ProjectsServiceAccountsList(apitools_base_cli.NewCmd):
       request.removeDeletedServiceAccounts = FLAGS.removeDeletedServiceAccounts
     result = client.projects_serviceAccounts.List(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ProjectsServiceAccountsSetIamPolicy(apitools_base_cli.NewCmd):
@@ -478,7 +478,7 @@ class ProjectsServiceAccountsSetIamPolicy(apitools_base_cli.NewCmd):
       request.setIamPolicyRequest = apitools_base.JsonToMessage(messages.SetIamPolicyRequest, FLAGS.setIamPolicyRequest)
     result = client.projects_serviceAccounts.SetIamPolicy(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ProjectsServiceAccountsSignBlob(apitools_base_cli.NewCmd):
@@ -517,7 +517,7 @@ class ProjectsServiceAccountsSignBlob(apitools_base_cli.NewCmd):
       request.signBlobRequest = apitools_base.JsonToMessage(messages.SignBlobRequest, FLAGS.signBlobRequest)
     result = client.projects_serviceAccounts.SignBlob(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ProjectsServiceAccountsSignJwt(apitools_base_cli.NewCmd):
@@ -559,7 +559,7 @@ class ProjectsServiceAccountsSignJwt(apitools_base_cli.NewCmd):
       request.signJwtRequest = apitools_base.JsonToMessage(messages.SignJwtRequest, FLAGS.signJwtRequest)
     result = client.projects_serviceAccounts.SignJwt(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ProjectsServiceAccountsTestIamPermissions(apitools_base_cli.NewCmd):
@@ -600,7 +600,7 @@ class ProjectsServiceAccountsTestIamPermissions(apitools_base_cli.NewCmd):
       request.testIamPermissionsRequest = apitools_base.JsonToMessage(messages.TestIamPermissionsRequest, FLAGS.testIamPermissionsRequest)
     result = client.projects_serviceAccounts.TestIamPermissions(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ProjectsServiceAccountsUpdate(apitools_base_cli.NewCmd):
@@ -698,7 +698,7 @@ class ProjectsServiceAccountsUpdate(apitools_base_cli.NewCmd):
       request.uniqueId = FLAGS.uniqueId.decode('utf8')
     result = client.projects_serviceAccounts.Update(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ProjectsServiceAccountsKeysCreate(apitools_base_cli.NewCmd):
@@ -738,7 +738,7 @@ class ProjectsServiceAccountsKeysCreate(apitools_base_cli.NewCmd):
       request.createServiceAccountKeyRequest = apitools_base.JsonToMessage(messages.CreateServiceAccountKeyRequest, FLAGS.createServiceAccountKeyRequest)
     result = client.projects_serviceAccounts_keys.Create(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ProjectsServiceAccountsKeysDelete(apitools_base_cli.NewCmd):
@@ -766,7 +766,7 @@ class ProjectsServiceAccountsKeysDelete(apitools_base_cli.NewCmd):
         )
     result = client.projects_serviceAccounts_keys.Delete(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ProjectsServiceAccountsKeysGet(apitools_base_cli.NewCmd):
@@ -807,7 +807,7 @@ class ProjectsServiceAccountsKeysGet(apitools_base_cli.NewCmd):
       request.publicKeyType = messages.IamProjectsServiceAccountsKeysGetRequest.PublicKeyTypeValueValuesEnum(FLAGS.publicKeyType)
     result = client.projects_serviceAccounts_keys.Get(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class ProjectsServiceAccountsKeysList(apitools_base_cli.NewCmd):
@@ -850,7 +850,7 @@ class ProjectsServiceAccountsKeysList(apitools_base_cli.NewCmd):
       request.keyTypes = [messages.IamProjectsServiceAccountsKeysListRequest.KeyTypesValueValuesEnum(x) for x in FLAGS.keyTypes]
     result = client.projects_serviceAccounts_keys.List(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 class RolesQueryGrantableRoles(apitools_base_cli.NewCmd):
@@ -888,7 +888,7 @@ class RolesQueryGrantableRoles(apitools_base_cli.NewCmd):
       request.fullResourceName = FLAGS.fullResourceName.decode('utf8')
     result = client.roles.QueryGrantableRoles(
         request, global_params=global_params)
-    print apitools_base_cli.FormatOutput(result)
+    print(apitools_base_cli.FormatOutput(result))
 
 
 def main(_):
