@@ -2,7 +2,7 @@ language: python
 sudo: false
 matrix:
   include:
-  - python: "2.7"
+  - python: "3.5"
     env: TOX_ENV=lint
   - python: "2.7"
     env: TOX_ENV=py27-oauth2client1
