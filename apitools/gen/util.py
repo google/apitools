@@ -223,14 +223,6 @@ class ClientInfo(collections.namedtuple('ClientInfo', (
         return self.package
 
     @property
-    def cli_rule_name(self):
-        return '%s_%s' % (self.package, self.version)
-
-    @property
-    def cli_file_name(self):
-        return '%s.py' % self.cli_rule_name
-
-    @property
     def client_rule_name(self):
         return '%s_%s_client' % (self.package, self.version)
 
@@ -263,6 +255,11 @@ def CleanDescription(description):
     """Return a version of description safe for printing in a docstring."""
     if not isinstance(description, six.string_types):
         return description
+    if six.PY3:
+        # https://docs.python.org/3/reference/lexical_analysis.html#index-18
+        description = description.replace('\\N', '\\\\N')
+        description = description.replace('\\u', '\\\\u')
+        description = description.replace('\\U', '\\\\U')
     return description.replace('"""', '" " "')
 
 
@@ -306,7 +303,8 @@ class SimplePrettyPrinter(object):
                 line = (args[0] % args[1:]).rstrip()
             else:
                 line = args[0].rstrip()
-            line = line.encode('ascii', 'backslashreplace')
+            if six.PY2:
+                line = line.encode('ascii', 'backslashreplace')
             print('%s%s' % (self.__indent, line), file=self.__out)
         else:
             print('', file=self.__out)
@@ -335,7 +333,10 @@ def FetchDiscoveryDoc(discovery_url, retries=5):
     for url in discovery_urls:
         for _ in range(retries):
             try:
-                discovery_doc = json.loads(urllib_request.urlopen(url).read())
+                content = urllib_request.urlopen(url).read()
+                if isinstance(content, bytes):
+                    content = content.decode('utf8')
+                discovery_doc = json.loads(content)
                 break
             except (urllib_error.HTTPError, urllib_error.URLError) as e:
                 logging.info(
