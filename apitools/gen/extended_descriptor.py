@@ -373,7 +373,7 @@ class _ProtoRpcPrinter(ProtoPrinter):
 
     def __PrintEnumDocstringLines(self, enum_type):
         description = enum_type.description or '%s enum type.' % enum_type.name
-        for line in textwrap.wrap('"""%s' % description,
+        for line in textwrap.wrap('r"""%s' % description,
                                   self.__printer.CalculateWidth()):
             self.__printer(line)
         PrintIndentedDescriptions(self.__printer, enum_type.values, 'Values')
@@ -433,9 +433,9 @@ class _ProtoRpcPrinter(ProtoPrinter):
             if short_description:
                 # Note that we use explicit string interpolation here since
                 # we're in comment context.
-                self.__printer('"""%s"""' % description)
+                self.__printer('r"""%s"""' % description)
                 return
-            for line in textwrap.wrap('"""%s' % description,
+            for line in textwrap.wrap('r"""%s' % description,
                                       self.__printer.CalculateWidth()):
                 self.__printer(line)
 
