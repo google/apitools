@@ -123,7 +123,7 @@ class BatchApiRequest(object):
             return response_code not in self.__retryable_codes
 
         def HandleResponse(self, http_response, exception):
-            """Handles an incoming http response to the request in http_request.
+            """Handles incoming http response to the request in http_request.
 
             This is intended to be used as a callback function for
             BatchHttpRequest.Add.
