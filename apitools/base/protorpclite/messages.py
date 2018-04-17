@@ -1520,12 +1520,12 @@ class StringField(Field):
         """Validate StringField allowing for str and unicode.
 
         Raises:
-          ValidationError if a str value is not 7-bit ascii.
+          ValidationError if a str value is not UTF-8.
         """
         # If value is str is it considered valid.  Satisfies "required=True".
         if isinstance(value, bytes):
             try:
-                six.text_type(value, 'ascii')
+                six.text_type(value, 'UTF-8')
             except UnicodeDecodeError as err:
                 try:
                     _ = self.name
