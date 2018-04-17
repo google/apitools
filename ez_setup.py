@@ -95,11 +95,7 @@ def use_setuptools(
              a more recent version first, using 'easy_install -U setuptools'.
             
 
-            (Currently using %r)"% egg_name , file=sys.stderr)
-            "The required version of setuptools (>=%s) is not available, and
-            can't be installed while this script is running. Please install
-             a more recent version first, using 'easy_install -U setuptools'.(Currently using %r)'''% (version, e.args[0]),file=sys.stderr)
-            sys.exit(2)
+            (Currently using %r)'''% (version, e.args[0]), file=sys.stderr)
     except pkg_resources.DistributionNotFound:
         pass
 
