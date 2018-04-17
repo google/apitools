@@ -615,10 +615,10 @@ class FieldTest(test_util.TestCase):
         self.assertRaisesWithRegexpMatch(
             messages.InvalidDefaultError,
             r"Invalid default value for StringField:.*: "
-            r"Field encountered non-ASCII string .*: "
-            r"'ascii' codec can't decode byte 0x89 in position 0: "
-            r"ordinal not in range",
-            messages.StringField, 1, default=b'\x89')
+            r"Field encountered non-UTF-8 string .*: "
+            r"'utf8' codec can't decode byte 0xc3 in position 0: "
+            r"invalid continuation byte",
+            messages.StringField, 1, default=b'\xc3\x28')
 
     def testDefaultFields_InvalidSingle(self):
         """Test default field is correct type (invalid single)."""
@@ -1159,17 +1159,6 @@ class FieldTest(test_util.TestCase):
         m2 = MyMessage()
         m2.my_field = None
         self.assertEquals(m1, m2)
-
-    def testNonAsciiStr(self):
-        """Test validation fails for non-ascii StringField values."""
-        class Thing(messages.Message):
-            string_field = messages.StringField(2)
-
-        thing = Thing()
-        self.assertRaisesWithRegexpMatch(
-            messages.ValidationError,
-            'Field string_field encountered non-ASCII string',
-            setattr, thing, 'string_field', test_util.BINARY)
 
 
 class MessageTest(test_util.TestCase):
