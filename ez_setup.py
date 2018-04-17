@@ -96,6 +96,7 @@ def use_setuptools(
             
 
             (Currently using %r)'''% (version, e.args[0]), file=sys.stderr)
+            sys.exit(2)
     except pkg_resources.DistributionNotFound:
         pass
 
