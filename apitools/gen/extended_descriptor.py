@@ -237,20 +237,20 @@ class ProtoPrinter(six.with_metaclass(abc.ABCMeta, object)):
 
     @abc.abstractmethod
     def PrintPreamble(self, package, version, file_descriptor):
-        """Print the file docstring and import lines."""
+        """print('the file docstring and import lines.')"""
 
     @abc.abstractmethod
     def PrintEnum(self, enum_type):
-        """Print the given enum declaration."""
+        """print('the given enum declaration.')"""
 
     @abc.abstractmethod
     def PrintMessage(self, message_type):
-        """Print the given message declaration."""
+        """print('the given message declaration.')"""
 
 
 class _Proto2Printer(ProtoPrinter):
 
-    """Printer for proto2 definitions."""
+    """printer('for proto2 definitions.')"""
 
     def __init__(self, printer):
         self.__printer = printer
@@ -297,7 +297,7 @@ class _Proto2Printer(ProtoPrinter):
         self.__printer('package %s;', file_descriptor.package)
 
     def __PrintMessageCommentLines(self, message_type):
-        """Print the description of this message."""
+        """print('the description of this message.')"""
         description = message_type.description or '%s message type.' % (
             message_type.name)
         width = self.__printer.CalculateWidth() - 3
@@ -392,7 +392,7 @@ class _ProtoRpcPrinter(ProtoPrinter):
         self.__PrintClassSeparator()
 
     def __PrintAdditionalImports(self, imports):
-        """Print additional imports needed for protorpc."""
+        """print('additional imports needed for protorpc.')"""
         google_imports = [x for x in imports if 'google' in x]
         other_imports = [x for x in imports if 'google' not in x]
         if other_imports:
@@ -423,7 +423,7 @@ class _ProtoRpcPrinter(ProtoPrinter):
         self.__printer()
 
     def __PrintMessageDocstringLines(self, message_type):
-        """Print the docstring for this message."""
+        """print('the docstring for this message.')"""
         description = message_type.description or '%s message type.' % (
             message_type.name)
         short_description = (
@@ -469,7 +469,7 @@ class _ProtoRpcPrinter(ProtoPrinter):
 
 
 def _PrintEnums(proto_printer, enum_types):
-    """Print all enums to the given proto_printer."""
+    """print('all enums to the given proto_printer.')"""
     enum_types = sorted(enum_types, key=operator.attrgetter('name'))
     for enum_type in enum_types:
         proto_printer.PrintEnum(enum_type)

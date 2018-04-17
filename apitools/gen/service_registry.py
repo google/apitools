@@ -59,7 +59,7 @@ class ServiceRegistry(object):
             '%sService' % self.__names.ClassName(service_name))
 
     def __PrintDocstring(self, printer, method_info, method_name, name):
-        """Print a docstring for a service method."""
+        """print('a docstring for a service method.')"""
         if method_info.description:
             description = util.CleanDescription(method_info.description)
             first_line, newline, remaining = method_info.description.partition(
@@ -97,7 +97,7 @@ class ServiceRegistry(object):
             printer()
             printer('_NAME = %s', repr(name))
 
-            # Print the configs for the methods first.
+            # print('the configs for the methods first.')'
             printer()
             printer('def __init__(self, client):')
             with printer.Indent():

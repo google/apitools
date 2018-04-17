@@ -289,7 +289,7 @@ class SimplePrettyPrinter(object):
 
     @contextlib.contextmanager
     def CommentContext(self):
-        """Print without any argument formatting."""
+        """print('without any argument formatting.')"""
         old_context = self.__comment_context
         self.__comment_context = True
         yield
