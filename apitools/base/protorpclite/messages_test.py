@@ -1160,6 +1160,17 @@ class FieldTest(test_util.TestCase):
         m2.my_field = None
         self.assertEquals(m1, m2)
 
+    def testNonUtf8Str(self):
+        """Test validation fails for non-UTF-8 StringField values."""
+        class Thing(messages.Message):
+            string_field = messages.StringField(2)
+
+        thing = Thing()
+        self.assertRaisesWithRegexpMatch(
+            messages.ValidationError,
+            'Field string_field encountered non-UTF-8 string',
+            setattr, thing, 'string_field', test_util.BINARY)
+
 
 class MessageTest(test_util.TestCase):
     """Tests for message class."""
