@@ -1531,11 +1531,11 @@ class StringField(Field):
                     _ = self.name
                 except AttributeError:
                     validation_error = ValidationError(
-                        'Field encountered non-ASCII string %r: %s' % (value,
+                        'Field encountered non-UTF-8 string %r: %s' % (value,
                                                                        err))
                 else:
                     validation_error = ValidationError(
-                        'Field %s encountered non-ASCII string %r: %s' % (
+                        'Field %s encountered non-UTF-8 string %r: %s' % (
                             self.name, value, err))
                     validation_error.field_name = self.name
                 raise validation_error
