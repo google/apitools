@@ -70,7 +70,7 @@ class ServiceRegistry(object):
         else:
             description = '%s method for the %s service.' % (method_name, name)
         with printer.CommentContext():
-            printer('"""%s' % description)
+            printer('r"""%s' % description)
         printer()
         printer('Args:')
         printer('  request: (%s) input message', method_info.request_type_name)
