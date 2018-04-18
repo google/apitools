@@ -616,7 +616,7 @@ class FieldTest(test_util.TestCase):
             messages.InvalidDefaultError,
             r"Invalid default value for StringField:.*: "
             r"Field encountered non-UTF-8 string .*: "
-            r"'utf.*8' codec can't decode byte 0xc3 in position 0: "
+            r"'utf.?8' codec can't decode byte 0xc3 in position 0: "
             r"invalid continuation byte",
             messages.StringField, 1, default=b'\xc3\x28')
 
