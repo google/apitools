@@ -322,7 +322,7 @@ class BatchHttpRequest(object):
         request_line = urllib_parse.urlunsplit(
             ('', '', parsed.path, parsed.query, ''))
         if not isinstance(request_line, six.text_type):
-          request_line = request_line.decode('utf-8')
+            request_line = request_line.decode('utf-8')
         status_line = u' '.join((
             request.http_method,
             request_line,
