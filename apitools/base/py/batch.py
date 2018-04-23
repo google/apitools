@@ -320,10 +320,12 @@ class BatchHttpRequest(object):
         # Construct status line
         parsed = urllib_parse.urlsplit(request.url)
         request_line = urllib_parse.urlunsplit(
-            (None, None, parsed.path, parsed.query, None))
+            ('', '', parsed.path, parsed.query, ''))
+        if not isinstance(request_line, six.text_type):
+            request_line = request_line.decode('utf-8')
         status_line = u' '.join((
             request.http_method,
-            request_line.decode('utf-8'),
+            request_line,
             u'HTTP/1.1\n'
         ))
         major, minor = request.headers.get(
