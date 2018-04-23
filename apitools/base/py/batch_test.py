@@ -427,6 +427,24 @@ class BatchTest(unittest2.TestCase):
         self.assertEqual(expected_serialized_request,
                          batch_request._SerializeRequest(request))
 
+    def testSerializeRequestWithPathAndQueryParams(self):
+        request = http_wrapper.Request(
+            url='my/path?query=param',
+            body='Hello World',
+            headers={'content-type': 'protocol/version'})
+        expected_serialized_request = '\n'.join([
+            'GET my/path?query=param HTTP/1.1',
+            'Content-Type: protocol/version',
+            'MIME-Version: 1.0',
+            'content-length: 11',
+            'Host: ',
+            '',
+            'Hello World',
+        ])
+        batch_request = batch.BatchHttpRequest('https://www.example.com')
+        self.assertEqual(expected_serialized_request,
+                         batch_request._SerializeRequest(request))
+
     def testDeserializeRequest(self):
         serialized_payload = '\n'.join([
             'GET  HTTP/1.1',
