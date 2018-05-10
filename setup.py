@@ -63,7 +63,7 @@ setuptools.setup(
     author='Craig Citro',
     author_email='craigcitro@google.com',
     # Contained modules and scripts.
-    packages=setuptools.find_packages(),
+    packages=setuptools.find_packages(include=['apitools']),
     entry_points={'console_scripts': CONSOLE_SCRIPTS},
     install_requires=REQUIRED_PACKAGES,
     tests_require=REQUIRED_PACKAGES + CLI_PACKAGES + TESTING_PACKAGES,
@@ -75,6 +75,15 @@ setuptools.setup(
     include_package_data=True,
     package_data={
         'apitools.data': ['*'],
+    },
+    exclude_package_data={
+        '': [
+            '*_test.py',
+            '*/testing/*',
+            '*/testdata/*',
+            'base/protorpclite/test_util.py',
+            'gen/test_utils.py',
+        ],
     },
     # PyPI package information.
     classifiers=[
