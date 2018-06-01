@@ -256,7 +256,6 @@ def ReplaceHomoglyphs(s):
     """Returns s with unicode homoglyphs replaced by ascii equivalents."""
     homoglyphs = {
         '\u00e3': '',  # TODO(gsfowler) drop after .proto spurious char elided
-        '\u29dd': '\\u29dd',  # .proto unicode example
         '\u00a9': '(C)',  # COPYRIGHT SIGN (would you believe "asciiglyph"?)
         '\u00ae': '(R)',  # REGISTERED SIGN (would you believe "asciiglyph"?)
         '\u2014': '-',  # EM DASH
@@ -268,7 +267,22 @@ def ReplaceHomoglyphs(s):
         '\u2e3a': '-',  # TWO-EM DASH
     }
 
-    return ''.join([homoglyphs.get(c, c) for c in s])
+    def _ReplaceOne(c):
+        """Returns the homoglyph or escaped replacement for c."""
+        equiv = homoglyphs.get(c)
+        if equiv is not None:
+            return equiv
+        try:
+            c.encode('ascii')
+            return c
+        except UnicodeError:
+            pass
+        try:
+            return c.encode('unicode-escape').decode('ascii')
+        except UnicodeError:
+            return '?'
+
+    return ''.join([_ReplaceOne(c) for c in s])
 
 
 def CleanDescription(description):
