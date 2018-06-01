@@ -18,6 +18,7 @@
 
 import argparse
 import contextlib
+import io
 import json
 import logging
 import os
@@ -30,7 +31,7 @@ from apitools.gen import util
 
 
 def _CopyLocalFile(filename):
-    with contextlib.closing(open(filename, 'w')) as out:
+    with contextlib.closing(io.open(filename, 'w')) as out:
         src_data = pkgutil.get_data(
             'apitools.base.py', filename)
         if src_data is None:
@@ -49,8 +50,8 @@ def _GetDiscoveryDocFromFlags(args):
                 'Could not fetch discovery doc')
 
     infile = os.path.expanduser(args.infile) or '/dev/stdin'
-    with open(infile) as f:
-        return json.load(f)
+    with io.open(infile, encoding='utf8') as f:
+        return json.loads(util.ReplaceHomoglyphs(f.read()))
 
 
 def _GetCodegenFromFlags(args):
@@ -63,8 +64,8 @@ def _GetCodegenFromFlags(args):
 
     if args.client_json:
         try:
-            with open(args.client_json) as client_json:
-                f = json.loads(client_json.read())
+            with io.open(args.client_json, encoding='utf8') as client_json:
+                f = json.loads(util.ReplaceHomoglyphs(client_json.read()))
                 web = f.get('installed', f.get('web', {}))
                 client_id = web.get('client_id')
                 client_secret = web.get('client_secret')
@@ -113,15 +114,15 @@ def _WriteBaseFiles(codegen):
 
 
 def _WriteIntermediateInit(codegen):
-    with open('__init__.py', 'w') as out:
+    with io.open('__init__.py', 'w') as out:
         codegen.WriteIntermediateInit(out)
 
 
 def _WriteProtoFiles(codegen):
     with util.Chdir(codegen.outdir):
-        with open(codegen.client_info.messages_proto_file_name, 'w') as out:
+        with io.open(codegen.client_info.messages_proto_file_name, 'w') as out:
             codegen.WriteMessagesProtoFile(out)
-        with open(codegen.client_info.services_proto_file_name, 'w') as out:
+        with io.open(codegen.client_info.services_proto_file_name, 'w') as out:
             codegen.WriteServicesProtoFile(out)
 
 
@@ -129,20 +130,20 @@ def _WriteGeneratedFiles(args, codegen):
     if codegen.use_proto2:
         _WriteProtoFiles(codegen)
     with util.Chdir(codegen.outdir):
-        with open(codegen.client_info.messages_file_name, 'w') as out:
+        with io.open(codegen.client_info.messages_file_name, 'w') as out:
             codegen.WriteMessagesFile(out)
-        with open(codegen.client_info.client_file_name, 'w') as out:
+        with io.open(codegen.client_info.client_file_name, 'w') as out:
             codegen.WriteClientLibrary(out)
 
 
 def _WriteInit(codegen):
     with util.Chdir(codegen.outdir):
-        with open('__init__.py', 'w') as out:
+        with io.open('__init__.py', 'w') as out:
             codegen.WriteInit(out)
 
 
 def _WriteSetupPy(codegen):
-    with open('setup.py', 'w') as out:
+    with io.open('setup.py', 'w') as out:
         codegen.WriteSetupPy(out)
 
 
