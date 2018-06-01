@@ -735,44 +735,44 @@ class Policy(_messages.Message):
 
     Fields:
       members: A collection of identifiers for members who may assume the
-        provided role. Recognized identifiers are as follows:   - allUsers \u2014 A
+        provided role. Recognized identifiers are as follows:   - allUsers - A
         special identifier that represents anyone on the internet; with or
-        without a Google account.   - allAuthenticatedUsers \u2014 A special
+        without a Google account.   - allAuthenticatedUsers - A special
         identifier that represents anyone who is authenticated with a Google
-        account or a service account.   - user:emailid \u2014 An email address that
+        account or a service account.   - user:emailid - An email address that
         represents a specific account. For example, user:alice@gmail.com or
-        user:joe@example.com.   - serviceAccount:emailid \u2014 An email address
+        user:joe@example.com.   - serviceAccount:emailid - An email address
         that represents a service account. For example,  serviceAccount:my-
-        other-app@appspot.gserviceaccount.com .   - group:emailid \u2014 An email
+        other-app@appspot.gserviceaccount.com .   - group:emailid - An email
         address that represents a Google group. For example,
-        group:admins@example.com.   - domain:domain \u2014 A Google Apps domain
+        group:admins@example.com.   - domain:domain - A Google Apps domain
         name that represents all the users of that domain. For example,
-        domain:google.com or domain:example.com.   - projectOwner:projectid \u2014
+        domain:google.com or domain:example.com.   - projectOwner:projectid -
         Owners of the given project. For example, projectOwner:my-example-
-        project   - projectEditor:projectid \u2014 Editors of the given project.
+        project   - projectEditor:projectid - Editors of the given project.
         For example, projectEditor:my-example-project   -
-        projectViewer:projectid \u2014 Viewers of the given project. For example,
+        projectViewer:projectid - Viewers of the given project. For example,
         projectViewer:my-example-project
       role: The role to which members belong. Two types of roles are
         supported: new IAM roles, which grant permissions that do not map
         directly to those provided by ACLs, and legacy IAM roles, which do map
         directly to ACL permissions. All roles are of the format
         roles/storage.specificRole. The new IAM roles are:   -
-        roles/storage.admin \u2014 Full control of Google Cloud Storage resources.
-        - roles/storage.objectViewer \u2014 Read-Only access to Google Cloud
-        Storage objects.   - roles/storage.objectCreator \u2014 Access to create
-        objects in Google Cloud Storage.   - roles/storage.objectAdmin \u2014 Full
+        roles/storage.admin - Full control of Google Cloud Storage resources.
+        - roles/storage.objectViewer - Read-Only access to Google Cloud
+        Storage objects.   - roles/storage.objectCreator - Access to create
+        objects in Google Cloud Storage.   - roles/storage.objectAdmin - Full
         control of Google Cloud Storage objects.   The legacy IAM roles are:
-        - roles/storage.legacyObjectReader \u2014 Read-only access to objects
+        - roles/storage.legacyObjectReader - Read-only access to objects
         without listing. Equivalent to an ACL entry on an object with the
-        READER role.   - roles/storage.legacyObjectOwner \u2014 Read/write access
+        READER role.   - roles/storage.legacyObjectOwner - Read/write access
         to existing objects without listing. Equivalent to an ACL entry on an
-        object with the OWNER role.   - roles/storage.legacyBucketReader \u2014
+        object with the OWNER role.   - roles/storage.legacyBucketReader -
         Read access to buckets with object listing. Equivalent to an ACL entry
         on a bucket with the READER role.   - roles/storage.legacyBucketWriter
-        \u2014 Read access to buckets with object listing/creation/deletion.
+        - Read access to buckets with object listing/creation/deletion.
         Equivalent to an ACL entry on a bucket with the WRITER role.   -
-        roles/storage.legacyBucketOwner \u2014 Read and write access to existing
+        roles/storage.legacyBucketOwner - Read and write access to existing
         buckets with object listing/creation/deletion. Equivalent to an ACL
         entry on a bucket with the OWNER role.
     """
@@ -2200,17 +2200,17 @@ class TestIamPermissionsResponse(_messages.Message):
     permissions: The permissions held by the caller. Permissions are always of
       the format storage.resource.capability, where resource is one of buckets
       or objects. The supported permissions are as follows:   -
-      storage.buckets.delete \u2014 Delete bucket.   - storage.buckets.get \u2014 Read
-      bucket metadata.   - storage.buckets.getIamPolicy \u2014 Read bucket IAM
-      policy.   - storage.buckets.create \u2014 Create bucket.   -
-      storage.buckets.list \u2014 List buckets.   - storage.buckets.setIamPolicy \u2014
-      Update bucket IAM policy.   - storage.buckets.update \u2014 Update bucket
-      metadata.   - storage.objects.delete \u2014 Delete object.   -
-      storage.objects.get \u2014 Read object data and metadata.   -
-      storage.objects.getIamPolicy \u2014 Read object IAM policy.   -
-      storage.objects.create \u2014 Create object.   - storage.objects.list \u2014 List
-      objects.   - storage.objects.setIamPolicy \u2014 Update object IAM policy.
-      - storage.objects.update \u2014 Update object metadata.
+      storage.buckets.delete - Delete bucket.   - storage.buckets.get - Read
+      bucket metadata.   - storage.buckets.getIamPolicy - Read bucket IAM
+      policy.   - storage.buckets.create - Create bucket.   -
+      storage.buckets.list - List buckets.   - storage.buckets.setIamPolicy -
+      Update bucket IAM policy.   - storage.buckets.update - Update bucket
+      metadata.   - storage.objects.delete - Delete object.   -
+      storage.objects.get - Read object data and metadata.   -
+      storage.objects.getIamPolicy - Read object IAM policy.   -
+      storage.objects.create - Create object.   - storage.objects.list - List
+      objects.   - storage.objects.setIamPolicy - Update object IAM policy.
+      - storage.objects.update - Update object metadata.
   """
 
   kind = _messages.StringField(1, default=u'storage#testIamPermissionsResponse')
