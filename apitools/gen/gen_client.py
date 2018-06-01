@@ -51,7 +51,7 @@ def _GetDiscoveryDocFromFlags(args):
 
     infile = os.path.expanduser(args.infile) or '/dev/stdin'
     with io.open(infile, encoding='utf8') as f:
-      return json.loads(util.ReplaceHomoglyphs(f.read()))
+        return json.loads(util.ReplaceHomoglyphs(f.read()))
 
 
 def _GetCodegenFromFlags(args):

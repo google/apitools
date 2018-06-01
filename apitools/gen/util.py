@@ -326,10 +326,10 @@ class SimplePrettyPrinter(object):
                 line = args[0].rstrip()
             line = ReplaceHomoglyphs(line)
             try:
-              print('%s%s' % (self.__indent, line), file=self.__out)
+                print('%s%s' % (self.__indent, line), file=self.__out)
             except UnicodeEncodeError:
-              line = line.encode('ascii', 'backslashreplace').decode('ascii')
-              print('%s%s' % (self.__indent, line), file=self.__out)
+                line = line.encode('ascii', 'backslashreplace').decode('ascii')
+                print('%s%s' % (self.__indent, line), file=self.__out)
         else:
             print('', file=self.__out)
 
