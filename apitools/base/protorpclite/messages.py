@@ -988,10 +988,8 @@ class Message(six.with_metaclass(_MessageClass, object)):
           my_message.integer_value = 42
           my_message.string_value = u'A string'
 
-          print my_message
-          >>> <MyMessage
-          ...  integer_value: 42
-          ...  string_value: u'A string'>
+          print(my_message)
+
 
         Returns:
           String representation of message, including the values

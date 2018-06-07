@@ -53,7 +53,7 @@ RESUMABLE_UPLOAD = 'resumable'
 
 
 def DownloadProgressPrinter(response, unused_download):
-    """Print download progress based on response."""
+    """print('download progress based on response.')"""
     if 'content-range' in response.info:
         print('Received %s' % response.info['content-range'])
     else:
@@ -61,17 +61,17 @@ def DownloadProgressPrinter(response, unused_download):
 
 
 def DownloadCompletePrinter(unused_response, unused_download):
-    """Print information about a completed download."""
+    """print('information about a completed download.')"""
     print('Download complete')
 
 
 def UploadProgressPrinter(response, unused_upload):
-    """Print upload progress based on response."""
+    """print('upload progress based on response.')"""
     print('Sent %s' % response.info['range'])
 
 
 def UploadCompletePrinter(unused_response, unused_upload):
-    """Print information about a completed upload."""
+    """print('information about a completed upload.')"""
     print('Upload complete')
 
 
