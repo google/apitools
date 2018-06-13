@@ -40,9 +40,9 @@ from apitools.base.protorpclite import test_util
 # pylint:disable=too-many-lines
 
 try:
-  long        # Python 2
+    long        # Python 2
 except NameError:
-  long = int  # Python 3
+    long = int  # Python 3
 
 
 class ModuleInterfaceTest(test_util.ModuleInterfaceTest,
