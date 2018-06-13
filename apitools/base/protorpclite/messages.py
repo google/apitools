@@ -49,6 +49,12 @@ import six
 
 from apitools.base.protorpclite import util
 
+try:
+  cmp             # Python 2
+except NameError:
+  def cmp(x, y):  # Python 3
+    return (x > y) - (x < y)
+
 __all__ = [
     'MAX_ENUM_VALUE',
     'MAX_FIELD_NUMBER',
