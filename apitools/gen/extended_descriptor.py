@@ -36,7 +36,7 @@ import six
 from apitools.base.protorpclite import descriptor as protorpc_descriptor
 from apitools.base.protorpclite import message_types
 from apitools.base.protorpclite import messages
-import apitools.base.py as apitools_base
+from apitools.base.py import extra_types
 
 
 class ExtendedEnumValueDescriptor(messages.Message):
@@ -507,7 +507,7 @@ def _PrintFields(fields, printer):
             field_type = message_field
         elif field.type_name == 'extra_types.DateField':
             printed_field_info['module'] = 'extra_types'
-            field_type = apitools_base.DateField
+            field_type = extra_types.DateField
         else:
             field_type = messages.Field.lookup_field_type_by_variant(
                 field.variant)

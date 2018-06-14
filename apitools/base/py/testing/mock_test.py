@@ -21,7 +21,8 @@ import six
 
 from apitools.base.protorpclite import messages
 
-import apitools.base.py as apitools_base
+from apitools.base.py import base_api
+from apitools.base.py import exceptions
 from apitools.base.py.testing import mock
 from samples.fusiontables_sample.fusiontables_v1 import \
     fusiontables_v1_client as fusiontables
@@ -34,7 +35,7 @@ def _GetApiServices(api_client_class):
         (name, potential_service)
         for name, potential_service in six.iteritems(api_client_class.__dict__)
         if (isinstance(potential_service, type) and
-            issubclass(potential_service, apitools_base.BaseApiService)))
+            issubclass(potential_service, base_api.BaseApiService)))
 
 
 class CustomException(Exception):
@@ -55,9 +56,9 @@ class MockTest(unittest2.TestCase):
         with mock.Client(fusiontables.FusiontablesV1) as client_class:
             client_class.column.List.Expect(
                 request=1,
-                exception=apitools_base.HttpError({'status': 404}, '', ''))
+                exception=exceptions.HttpError({'status': 404}, '', ''))
             client = fusiontables.FusiontablesV1(get_credentials=False)
-            with self.assertRaises(apitools_base.HttpError):
+            with self.assertRaises(exceptions.HttpError):
                 client.column.List(1)
 
     def testMockIfAnotherException(self):
