@@ -25,7 +25,7 @@ import unittest
 
 import six
 
-import apitools.base.py as apitools_base
+from apitools.base.py import exceptions
 import storage
 
 _CLIENT = None
@@ -81,7 +81,7 @@ class DownloadsTest(unittest.TestCase):
 
     def testObjectDoesNotExist(self):
         self.__ResetDownload(auto_transfer=True)
-        with self.assertRaises(apitools_base.HttpError):
+        with self.assertRaises(exceptions.HttpError):
             self.__GetFile(self.__GetRequest('nonexistent_file'))
 
     def testAutoTransfer(self):
