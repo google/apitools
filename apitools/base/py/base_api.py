@@ -598,6 +598,7 @@ class BaseApiService(object):
     def __ProcessHttpResponse(self, method_config, http_response, request):
         """Process the given http response."""
         if http_response.status_code not in (http_client.OK,
+                                             http_client.CREATED,
                                              http_client.NO_CONTENT):
             raise exceptions.HttpError.FromResponse(
                 http_response, method_config=method_config, request=request)
