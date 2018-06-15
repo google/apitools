@@ -27,7 +27,7 @@ import six.moves.urllib.parse as urllib_parse
 import six.moves.urllib.request as urllib_request
 
 from apitools.base.protorpclite import messages
-from apitools.base.py import encoding
+from apitools.base.py import encoding_helper as encoding
 from apitools.base.py import exceptions
 
 __all__ = [
