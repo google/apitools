@@ -255,7 +255,9 @@ class ClientInfo(collections.namedtuple('ClientInfo', (
 def ReplaceHomoglyphs(s):
     """Returns s with unicode homoglyphs replaced by ascii equivalents."""
     homoglyphs = {
+        '\xa0': ' ',  # &nbsp; ?
         '\u00e3': '',  # TODO(gsfowler) drop after .proto spurious char elided
+        '\u00a0': ' ',  # &nbsp; ?
         '\u00a9': '(C)',  # COPYRIGHT SIGN (would you believe "asciiglyph"?)
         '\u00ae': '(R)',  # REGISTERED SIGN (would you believe "asciiglyph"?)
         '\u2014': '-',  # EM DASH
