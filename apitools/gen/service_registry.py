@@ -443,6 +443,7 @@ class ServiceRegistry(object):
 
     def AddServiceFromResource(self, service_name, methods):
         """Add a new service named service_name with the given methods."""
+        service_name = self.__names.CleanName(service_name)
         method_descriptions = methods.get('methods', {})
         method_info_map = collections.OrderedDict()
         items = sorted(method_descriptions.items())
