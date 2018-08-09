@@ -740,9 +740,15 @@ class Upload(_Transfer):
             # cannot happen.
             if self.__gzip_encoded:
                 http_request.headers['Content-Encoding'] = 'gzip'
-                body_buffer = six.BytesIO(http_request.body)
-                body, _, _ = compression.CompressStream(body_buffer)
-                http_request.body = body
+                # Turn the body into a stream so that we can compress it, then
+                # read the compressed bytes.  In the event of a retry (e.g. if
+                # our access token has expired), we need to be able to re-read
+                # the body, which we can't do with a stream. So, we consume the
+                # bytes from the stream now and store them in a re-readable
+                # bytes container.
+                http_request.body = (
+                    compression.CompressStream(
+                        six.BytesIO(http_request.body))[0].read())
         else:
             url_builder.relative_path = upload_config.resumable_path
             url_builder.query_params['uploadType'] = 'resumable'
