@@ -708,7 +708,7 @@ def GetUserinfo(credentials, http=None):  # pylint: disable=invalid-name
 
 
 def _GetUserinfoUrl(credentials):
-    url_root = 'https://www.googleapis.com/oauth2/v2/tokeninfo'
+    url_root = 'https://oauth2.googleapis.com/tokeninfo'
     query_args = {'access_token': credentials.access_token}
     return '?'.join((url_root, urllib.parse.urlencode(query_args)))
 
