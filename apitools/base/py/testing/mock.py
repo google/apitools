@@ -207,7 +207,7 @@ class _MockedMethod(object):
 
         Raises:
           exceptions.ConfigurationValueError: If the type of the message was
-             not correctly.
+             not correct.
         """
         if is_request:
             mode = 'request'
