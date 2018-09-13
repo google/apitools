@@ -197,6 +197,31 @@ class _MockedMethod(object):
         self.__response_type = getattr(self.__mocked_client.MESSAGES_MODULE,
                                        config.response_type_name)
 
+    def _TypeCheck(self, msg, is_request):
+        """Ensure the given message is of the expected type of this method.
+
+        Args:
+          msg: The message instance to check.
+          is_request: True to validate against the expected request type,
+             False to validate against the expected response type.
+
+        Raises:
+          exceptions.ConfigurationValueError: If the type of the message was
+             not correctly.
+        """
+        if is_request:
+            mode = 'request'
+            real_type = self.__request_type
+        else:
+            mode = 'response'
+            real_type = self.__response_type
+
+        if not isinstance(msg, real_type):
+            raise exceptions.ConfigurationValueError(
+                'Expected {} is not of the correct type for this method.\n'
+                '   Required: [{}]\n'
+                '   Given:    [{}]'.format(mode, real_type, type(msg)))
+
     def Expect(self, request, response=None, exception=None,
                enable_type_checking=True, **unused_kwargs):
         """Add an expectation on the mocked method.
@@ -219,20 +244,9 @@ class _MockedMethod(object):
         # Ensure that the registered request and response mocks actually
         # match what this method accepts and returns.
         if enable_type_checking:
-            if not isinstance(request, self.__request_type):
-                raise exceptions.ConfigurationValueError(
-                    'Expected request is not of the correct type for this '
-                    'method.\n'
-                    '   Required: [{}]\n'
-                    '   Given:    [{}]'.format(self.__request_type,
-                                            type(request)))
-            if response and not isinstance(response, self.__response_type):
-                raise exceptions.ConfigurationValueError(
-                    'Registered response is not of the correct type for this '
-                    'method.\n'
-                    '  Required: [{}]\n'
-                    '  Given:    [{}]'.format(self.__response_type,
-                                              type(response)))
+            self._TypeCheck(request, is_request=True)
+            if response:
+                self._TypeCheck(response, is_request=False)
 
         # pylint: disable=protected-access
         # Class in same module.
