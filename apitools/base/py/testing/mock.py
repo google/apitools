@@ -191,8 +191,14 @@ class _MockedMethod(object):
         self.__mocked_client = mocked_client
         self.__real_method = real_method
         self.method_config = real_method.method_config
+        config = self.method_config()
+        self.__request_type = getattr(self.__mocked_client.MESSAGES_MODULE,
+                                      config.request_type_name)
+        self.__response_type = getattr(self.__mocked_client.MESSAGES_MODULE,
+                                       config.response_type_name)
 
-    def Expect(self, request, response=None, exception=None, **unused_kwargs):
+    def Expect(self, request, response=None, exception=None,
+               enable_type_checking=True, **unused_kwargs):
         """Add an expectation on the mocked method.
 
         Exactly one of response and exception should be specified.
@@ -202,11 +208,31 @@ class _MockedMethod(object):
           response: The response that should be returned or None if
               exception is provided.
           exception: An exception that should be thrown, or None.
-
+          enable_type_checking: When true, the message type of the request
+              and response (if provided) will be checked against the types
+              required by this method.
         """
         # TODO(jasmuth): the unused_kwargs provides a placeholder for
         # future things that can be passed to Expect(), like special
         # params to the method call.
+
+        # Ensure that the registered request and response mocks actually
+        # match what this method accepts and returns.
+        if enable_type_checking:
+            if not isinstance(request, self.__request_type):
+                raise exceptions.ConfigurationValueError(
+                    'Expected request is not of the correct type for this '
+                    'method.\n'
+                    '   Required: [{}]\n'
+                    '   Given:    [{}]'.format(self.__request_type,
+                                            type(request)))
+            if response and not isinstance(response, self.__response_type):
+                raise exceptions.ConfigurationValueError(
+                    'Registered response is not of the correct type for this '
+                    'method.\n'
+                    '  Required: [{}]\n'
+                    '  Given:    [{}]'.format(self.__response_type,
+                                              type(response)))
 
         # pylint: disable=protected-access
         # Class in same module.
