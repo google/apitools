@@ -218,9 +218,10 @@ class _MockedMethod(object):
 
         if not isinstance(msg, real_type):
             raise exceptions.ConfigurationValueError(
-                'Expected {} is not of the correct type for this method.\n'
+                'Expected {} is not of the correct type for method [{}].\n'
                 '   Required: [{}]\n'
-                '   Given:    [{}]'.format(mode, real_type, type(msg)))
+                '   Given:    [{}]'.format(
+                    mode, self.__key, real_type, type(msg)))
 
     def Expect(self, request, response=None, exception=None,
                enable_type_checking=True, **unused_kwargs):
