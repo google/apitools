@@ -336,10 +336,12 @@ class Download(_Transfer):
         if end is not None:
             if start < 0:
                 raise exceptions.TransferInvalidError(
-                    'Cannot have end index with negative start index')
+                    'Cannot have end index with negative start index ' +
+                    '[start=%d, end=%d]' % (start, end))
             elif start >= self.total_size:
                 raise exceptions.TransferInvalidError(
-                    'Cannot have start index greater than total size')
+                    'Cannot have start index greater than total size ' +
+                    '[start=%d, total_size=%d]' % (start, self.total_size))
             end = min(end, self.total_size - 1)
             if end < start:
                 raise exceptions.TransferInvalidError(
@@ -481,6 +483,13 @@ class Download(_Transfer):
             response = self.__ProcessResponse(response)
             progress += response.length
             if response.length == 0:
+                if response.status_code == http_client.OK:
+                    # There can legitimately be no Content-Length header sent
+                    # in some cases (e.g., when there's a Transfer-Encoding
+                    # header) and if this was a 200 response (as opposed to
+                    # 206 Partial Content) we know we're done now without
+                    # looping further on received length.
+                    return
                 raise exceptions.TransferRetryError(
                     'Zero bytes unexpectedly returned in download response')
 
