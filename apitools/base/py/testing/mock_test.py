@@ -93,6 +93,8 @@ class MockTest(unittest2.TestCase):
                 messages.FusiontablesColumnInsertRequest(),
                 messages.Column(),
                 enable_type_checking=False)
+            client_class.column.List(
+                messages.FusiontablesColumnInsertRequest())
 
     def testMockIfAnotherException(self):
         with self.assertRaises(CustomException):
