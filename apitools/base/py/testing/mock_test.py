@@ -46,8 +46,8 @@ class MockTest(unittest2.TestCase):
 
     def testMockFusionBasic(self):
         with mock.Client(fusiontables.FusiontablesV1) as client_class:
-            client_class.column.List.Expect(request=1, response=2,
-                enable_type_checking=False)
+            client_class.column.List.Expect(
+                request=1, response=2, enable_type_checking=False)
             client = fusiontables.FusiontablesV1(get_credentials=False)
             self.assertEqual(client.column.List(1), 2)
             with self.assertRaises(mock.UnexpectedRequestException):
@@ -99,26 +99,26 @@ class MockTest(unittest2.TestCase):
     def testMockIfAnotherException(self):
         with self.assertRaises(CustomException):
             with mock.Client(fusiontables.FusiontablesV1) as client_class:
-                client_class.column.List.Expect(request=1, response=2,
-                enable_type_checking=False)
+                client_class.column.List.Expect(
+                    request=1, response=2, enable_type_checking=False)
                 raise CustomException('Something when wrong')
 
     def testMockFusionOrder(self):
         with mock.Client(fusiontables.FusiontablesV1) as client_class:
-            client_class.column.List.Expect(request=1, response=2,
-                enable_type_checking=False)
-            client_class.column.List.Expect(request=2, response=1,
-                enable_type_checking=False)
+            client_class.column.List.Expect(
+                request=1, response=2, enable_type_checking=False)
+            client_class.column.List.Expect(
+                request=2, response=1, enable_type_checking=False)
             client = fusiontables.FusiontablesV1(get_credentials=False)
             self.assertEqual(client.column.List(1), 2)
             self.assertEqual(client.column.List(2), 1)
 
     def testMockFusionWrongOrder(self):
         with mock.Client(fusiontables.FusiontablesV1) as client_class:
-            client_class.column.List.Expect(request=1, response=2,
-                enable_type_checking=False)
-            client_class.column.List.Expect(request=2, response=1,
-                enable_type_checking=False)
+            client_class.column.List.Expect(
+                request=1, response=2, enable_type_checking=False)
+            client_class.column.List.Expect(
+                request=2, response=1, enable_type_checking=False)
             client = fusiontables.FusiontablesV1(get_credentials=False)
             with self.assertRaises(mock.UnexpectedRequestException):
                 self.assertEqual(client.column.List(2), 1)
@@ -127,8 +127,8 @@ class MockTest(unittest2.TestCase):
 
     def testMockFusionTooMany(self):
         with mock.Client(fusiontables.FusiontablesV1) as client_class:
-            client_class.column.List.Expect(request=1, response=2,
-                enable_type_checking=False)
+            client_class.column.List.Expect(
+                request=1, response=2, enable_type_checking=False)
             client = fusiontables.FusiontablesV1(get_credentials=False)
             self.assertEqual(client.column.List(1), 2)
             with self.assertRaises(mock.UnexpectedRequestException):
@@ -137,10 +137,10 @@ class MockTest(unittest2.TestCase):
     def testMockFusionTooFew(self):
         with self.assertRaises(mock.ExpectedRequestsException):
             with mock.Client(fusiontables.FusiontablesV1) as client_class:
-                client_class.column.List.Expect(request=1, response=2,
-                enable_type_checking=False)
-                client_class.column.List.Expect(request=2, response=1,
-                enable_type_checking=False)
+                client_class.column.List.Expect(
+                    request=1, response=2, enable_type_checking=False)
+                client_class.column.List.Expect(
+                    request=2, response=1, enable_type_checking=False)
                 client = fusiontables.FusiontablesV1(get_credentials=False)
                 self.assertEqual(client.column.List(1), 2)
 
