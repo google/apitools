@@ -610,7 +610,7 @@ class BaseApiService(object):
                 request_url=http_response.request_url)
 
         content = http_response.content
-        if self._client.response_encoding:
+        if self._client.response_encoding and isinstance(content, bytes):
             content = content.decode(self._client.response_encoding)
 
         if self.__client.response_type_model == 'json':

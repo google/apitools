@@ -446,8 +446,12 @@ class BatchHttpRequest(object):
         # Prepend with a content-type header so Parser can handle it.
         header = 'content-type: %s\r\n\r\n' % response.info['content-type']
 
+        content = response.content
+        if isinstance(content, bytes):
+            content = response.content.decode('utf-8')
+
         parser = email_parser.Parser()
-        mime_response = parser.parsestr(header + response.content)
+        mime_response = parser.parsestr(header + content)
 
         if not mime_response.is_multipart():
             raise exceptions.BatchError(
