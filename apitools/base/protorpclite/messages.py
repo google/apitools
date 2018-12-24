@@ -49,12 +49,6 @@ import six
 
 from apitools.base.protorpclite import util
 
-try:
-    cmp             # Python 2
-except NameError:
-    def cmp(x, y):  # Python 3
-        return (x > y) - (x < y)
-
 __all__ = [
     'MAX_ENUM_VALUE',
     'MAX_FIELD_NUMBER',
@@ -481,12 +475,6 @@ class Enum(six.with_metaclass(_EnumClass, object)):
 
         """
         return self.__class__, (self.number,)
-
-    def __cmp__(self, other):
-        """Order is by number."""
-        if isinstance(other, type(self)):
-            return cmp(self.number, other.number)
-        return NotImplemented
 
     def __lt__(self, other):
         """Order is by number."""
