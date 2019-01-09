@@ -336,12 +336,10 @@ class Download(_Transfer):
         if end is not None:
             if start < 0:
                 raise exceptions.TransferInvalidError(
-                    'Cannot have end index with negative start index ' +
-                    '[start=%d, end=%d]' % (start, end))
+                    'Cannot have end index with negative start index')
             elif start >= self.total_size:
                 raise exceptions.TransferInvalidError(
-                    'Cannot have start index greater than total size ' +
-                    '[start=%d, total_size=%d]' % (start, self.total_size))
+                    'Cannot have start index greater than total size')
             end = min(end, self.total_size - 1)
             if end < start:
                 raise exceptions.TransferInvalidError(
@@ -426,7 +424,13 @@ class Download(_Transfer):
                 raise exceptions.TransferRetryError(response.content)
         if response.status_code in (http_client.OK,
                                     http_client.PARTIAL_CONTENT):
-            self.stream.write(response.content)
+            if (six.PY3
+                and hasattr(self.stream, 'mode')
+                and 'b' in self.stream.mode
+                and isinstance(response.content, str)):
+                self.stream.write(response.content.encode('utf-8'))
+            else:
+                self.stream.write(response.content)
             self.__progress += response.length
             if response.info and 'content-encoding' in response.info:
                 # TODO(craigcitro): Handle the case where this changes over a
@@ -483,13 +487,6 @@ class Download(_Transfer):
             response = self.__ProcessResponse(response)
             progress += response.length
             if response.length == 0:
-                if response.status_code == http_client.OK:
-                    # There can legitimately be no Content-Length header sent
-                    # in some cases (e.g., when there's a Transfer-Encoding
-                    # header) and if this was a 200 response (as opposed to
-                    # 206 Partial Content) we know we're done now without
-                    # looping further on received length.
-                    return
                 raise exceptions.TransferRetryError(
                     'Zero bytes unexpectedly returned in download response')
 
@@ -539,6 +536,27 @@ class Download(_Transfer):
                     self.progress >= self.total_size):
                 break
         self._ExecuteCallback(finish_callback, response)
+
+
+if six.PY3:
+    class MultipartBytesGenerator(email_generator.BytesGenerator):
+        """Generates a bytes version of a Message object tree for multipart messages
+
+        This is a BytesGenerator that has been modified to not attempt line
+        termination character modification in the bytes payload. Known to work
+        with the compat32 policy only. It may work on others, but not tested.
+
+        The outfp object must accept bytes in its write method.
+        """
+        def _handle_text(self, msg):
+            # If the string has surrogates the original source was bytes, so
+            # just write it back out.
+            if msg._payload is None:
+                return
+            self.write(msg._payload)
+
+        # Default body handler
+        _writeBody = _handle_text
 
 
 class Upload(_Transfer):
@@ -749,15 +767,9 @@ class Upload(_Transfer):
             # cannot happen.
             if self.__gzip_encoded:
                 http_request.headers['Content-Encoding'] = 'gzip'
-                # Turn the body into a stream so that we can compress it, then
-                # read the compressed bytes.  In the event of a retry (e.g. if
-                # our access token has expired), we need to be able to re-read
-                # the body, which we can't do with a stream. So, we consume the
-                # bytes from the stream now and store them in a re-readable
-                # bytes container.
-                http_request.body = (
-                    compression.CompressStream(
-                        six.BytesIO(http_request.body))[0].read())
+                body_buffer = six.BytesIO(http_request.body)
+                body, _, _ = compression.CompressStream(body_buffer)
+                http_request.body = body
         else:
             url_builder.relative_path = upload_config.resumable_path
             url_builder.query_params['uploadType'] = 'resumable'
@@ -793,7 +805,7 @@ class Upload(_Transfer):
         #       `> ` to `From ` lines.
         fp = six.BytesIO()
         if six.PY3:
-            generator_class = email_generator.BytesGenerator
+            generator_class = MultipartBytesGenerator
         else:
             generator_class = email_generator.Generator
         g = generator_class(fp, mangle_from_=False)

@@ -115,8 +115,6 @@ class ApiMethodInfo(messages.Message):
     request_field = messages.StringField(11, default='')
     upload_config = messages.MessageField(ApiUploadInfo, 12)
     supports_download = messages.BooleanField(13, default=False)
-
-
 REQUEST_IS_BODY = '<request>'
 
 
@@ -241,8 +239,7 @@ class BaseApiClient(object):
                  model=None, log_request=False, log_response=False,
                  num_retries=5, max_retry_wait=60, credentials_args=None,
                  default_global_params=None, additional_http_headers=None,
-                 check_response_func=None, retry_func=None,
-                 response_encoding=None):
+                 check_response_func=None, retry_func=None):
         _RequireClassAttrs(self, ('_package', '_scopes', 'messages_module'))
         if default_global_params is not None:
             util.Typecheck(default_global_params, self.params_type)
@@ -270,7 +267,6 @@ class BaseApiClient(object):
         self.additional_http_headers = additional_http_headers or {}
         self.check_response_func = check_response_func
         self.retry_func = retry_func
-        self.response_encoding = response_encoding
 
         # TODO(craigcitro): Finish deprecating these fields.
         _ = model
@@ -536,12 +532,17 @@ class BaseApiService(object):
         """Encode value for the URL, using field to skip encoding for bytes."""
         if isinstance(field, messages.BytesField) and value is not None:
             return base64.urlsafe_b64encode(value)
-        elif isinstance(value, six.text_type):
-            return value.encode('utf8')
-        elif isinstance(value, six.binary_type):
-            return value.decode('utf8')
         elif isinstance(value, datetime.datetime):
             return value.isoformat()
+        if six.PY3:
+            if isinstance(value, bytes):
+                return value.decode('utf-8')
+            return value
+        else:
+            if isinstance(value, six.text_type):
+                return value.encode('utf8')
+            elif isinstance(value, six.binary_type):
+                return value.decode('utf8')
         return value
 
     def __ConstructQueryParams(self, query_params, request, global_params):
@@ -598,7 +599,6 @@ class BaseApiService(object):
     def __ProcessHttpResponse(self, method_config, http_response, request):
         """Process the given http response."""
         if http_response.status_code not in (http_client.OK,
-                                             http_client.CREATED,
                                              http_client.NO_CONTENT):
             raise exceptions.HttpError.FromResponse(
                 http_response, method_config=method_config, request=request)
@@ -608,16 +608,12 @@ class BaseApiService(object):
             http_response = http_wrapper.Response(
                 info=http_response.info, content='{}',
                 request_url=http_response.request_url)
-
-        content = http_response.content
-        if self._client.response_encoding:
-            content = content.decode(self._client.response_encoding)
-
         if self.__client.response_type_model == 'json':
-            return content
+            return http_response.content
         response_type = _LoadClass(method_config.response_type_name,
                                    self.__client.MESSAGES_MODULE)
-        return self.__client.DeserializeMessage(response_type, content)
+        return self.__client.DeserializeMessage(
+            response_type, http_response.content)
 
     def __SetBaseHeaders(self, http_request, client):
         """Fill in the basic headers on http_request."""
