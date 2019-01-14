@@ -609,7 +609,8 @@ class BatchTest(unittest2.TestCase):
                     http_wrapper.Request(body='first'), None, None),
             }
 
-            batch_request = batch.BatchHttpRequest('https://www.example.com')
+            batch_request = batch.BatchHttpRequest('https://www.example.com',
+                                                   response_encoding='utf-8')
             batch_request._BatchHttpRequest__request_response_handlers = (
                 test_request)
 
