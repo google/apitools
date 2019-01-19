@@ -426,7 +426,7 @@ class Download(_Transfer):
                 raise exceptions.TransferRetryError(response.content)
         if response.status_code in (http_client.OK,
                                     http_client.PARTIAL_CONTENT):
-            self.stream.write(response.content)
+            self.stream.write(six.ensure_binary(response.content))
             self.__progress += response.length
             if response.info and 'content-encoding' in response.info:
                 # TODO(craigcitro): Handle the case where this changes over a
