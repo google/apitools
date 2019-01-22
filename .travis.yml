@@ -1,8 +1,10 @@
 language: python
-sudo: false
 matrix:
   include:
-  - python: "3.5"
+  - python: "2.7"
+    env: TOX_ENV=lint
+  - python: "3.7"
+    dist: xenial
     env: TOX_ENV=lint
   - python: "2.7"
     env: TOX_ENV=py27-oauth2client1
