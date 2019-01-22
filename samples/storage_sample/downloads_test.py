@@ -171,7 +171,7 @@ class DownloadsTest(unittest.TestCase):
     def testSerializedDownload(self):
 
         def _ProgressCallback(unused_response, download_object):
-            print 'Progress %s' % download_object.progress
+            print('Progress %s' % download_object.progress)
 
         file_contents = self.__GetTestdataFileContents('fifteen_byte_file')
         object_name = os.path.join(self._TESTDATA_PREFIX, 'fifteen_byte_file')
