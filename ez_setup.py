@@ -59,10 +59,10 @@ def _validate_md5(egg_name, data):
     if egg_name in md5_data:
         digest = md5(data).hexdigest()
         if digest != md5_data[egg_name]:
-            print((
+            print(
                 "md5 validation of %s failed!  (Possible download problem?)"
                 % egg_name
-            ), file=sys.stderr)
+            , file=sys.stderr)
             sys.exit(2)
     return data
 
@@ -205,10 +205,10 @@ def main(argv, version=DEFAULT_VERSION):
                 os.unlink(egg)
     else:
         if setuptools.__version__ == '0.0.1':
-            print((
+            print(
             "You have an obsolete version of setuptools installed.  Please\n"
             "remove it from your system entirely before rerunning this script."
-            ), file=sys.stderr)
+            , file=sys.stderr)
             sys.exit(2)
 
     req = "setuptools>="+version
