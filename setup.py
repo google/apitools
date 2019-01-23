@@ -28,7 +28,7 @@ except ImportError:
 # Configure the required packages and scripts to install, depending on
 # Python version and OS.
 REQUIRED_PACKAGES = [
-    'httplib2>=0.12',
+    'httplib2>=0.8',
     'fasteners>=0.14',
     'oauth2client>=1.4.12',
     'six>=1.9.0',
