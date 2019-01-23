@@ -60,9 +60,9 @@ def _validate_md5(egg_name, data):
         digest = md5(data).hexdigest()
         if digest != md5_data[egg_name]:
             print(
-                "md5 validation of %s failed!  (Possible download problem?)"
-                % egg_name
-            , file=sys.stderr)
+                "md5 validation of %s failed!  (Possible download problem?)" % (
+                    egg_name),
+                file=sys.stderr)
             sys.exit(2)
     return data
 
@@ -94,12 +94,13 @@ def use_setuptools(
         pkg_resources.require("setuptools>="+version); return
     except pkg_resources.VersionConflict as e:
         if was_imported:
-            print((
-            "The required version of setuptools (>=%s) is not available, and\n"
-            "can't be installed while this script is running. Please install\n"
-            " a more recent version first, using 'easy_install -U setuptools'."
-            "\n\n(Currently using %r)"
-            ) % (version, e.args[0]), file=sys.stderr)
+            print(
+                "The required version of setuptools (>=%s) is not available,\n"
+                "and can't be installed while this script is running. Please\n"
+                "install a more recent version first, using\n"
+                "'easy_install -U setuptools'.\n\n(Currently using %r)" % (
+                    version, e.args[0]),
+                file=sys.stderr)
             sys.exit(2)
     except pkg_resources.DistributionNotFound:
         pass
@@ -206,9 +207,10 @@ def main(argv, version=DEFAULT_VERSION):
     else:
         if setuptools.__version__ == '0.0.1':
             print(
-            "You have an obsolete version of setuptools installed.  Please\n"
-            "remove it from your system entirely before rerunning this script."
-            , file=sys.stderr)
+                "You have an obsolete version of setuptools installed. Please\n"
+                "remove it from your system entirely before rerunning this "
+                "script.",
+                file=sys.stderr)
             sys.exit(2)
 
     req = "setuptools>="+version
@@ -227,7 +229,8 @@ def main(argv, version=DEFAULT_VERSION):
             from setuptools.command.easy_install import main
             main(argv)
         else:
-            print("Setuptools version",version,"or greater has been installed.")
+            print("Setuptools version %s or greater has been installed."
+                  % version)
             print('(Run "ez_setup.py -U setuptools" to reinstall or upgrade.)')
 
 def update_md5(filenames):
