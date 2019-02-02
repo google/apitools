@@ -34,12 +34,12 @@ class MetadataMock(object):
 
     def __call__(self, request_url):
         if request_url.endswith('scopes'):
-            return six.StringIO(''.join(self._scopes))
+            return six.BytesIO(''.join(self._scopes).encode('utf-8'))
         elif request_url.endswith('service-accounts'):
-            return six.StringIO(self._sa)
+            return six.BytesIO(self._sa.encode('utf-8'))
         elif request_url.endswith(
                 '/service-accounts/%s/token' % self._sa):
-            return six.StringIO('{"access_token": "token"}')
+            return six.BytesIO('{"access_token": "token"}'.encode('utf-8'))
         self.fail('Unexpected HTTP request to %s' % request_url)
 
 
@@ -132,11 +132,11 @@ class CredentialsLibTest(unittest2.TestCase):
         creds = self._GetServiceCreds()
         opener = mock.MagicMock()
         opener.open = mock.MagicMock()
-        opener.open.return_value = six.StringIO('default/\nanother')
+        opener.open.return_value = six.BytesIO(b'default/\nanother')
         with mock.patch.object(six.moves.urllib.request, 'build_opener',
                                return_value=opener,
                                autospec=True) as build_opener:
-            creds.GetServiceAccount('default')
+            creds.GetServiceAccount(b'default')
             self.assertEqual(1, build_opener.call_count)
             self.assertEqual(1, opener.open.call_count)
             req = opener.open.call_args[0][0]

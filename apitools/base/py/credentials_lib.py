@@ -352,7 +352,7 @@ class GceAssertionCredentials(gce.AppAssertionCredentials):
     def GetServiceAccount(self, account):
         relative_url = 'instance/service-accounts'
         response = _GceMetadataRequest(relative_url)
-        response_lines = [line.rstrip('/\n\r')
+        response_lines = [line.rstrip(b'/\n\r').decode('utf-8')
                           for line in response.readlines()]
         return account in response_lines
 
@@ -395,7 +395,7 @@ class GceAssertionCredentials(gce.AppAssertionCredentials):
             raise
         content = response.read()
         try:
-            credential_info = json.loads(content)
+            credential_info = json.loads(content.decode('utf-8'))
         except ValueError:
             raise exceptions.CredentialsError(
                 'Could not parse response as JSON: %s' % content)
