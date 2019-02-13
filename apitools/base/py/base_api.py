@@ -608,6 +608,11 @@ class BaseApiService(object):
             http_response = http_wrapper.Response(
                 info=http_response.info, content='{}',
                 request_url=http_response.request_url)
+
+        content = http_response.content
+        if self._client.response_encoding and isinstance(content, bytes):
+            content = content.decode(self._client.response_encoding)
+
         if self.__client.response_type_model == 'json':
             return http_response.content
         response_type = _LoadClass(method_config.response_type_name,

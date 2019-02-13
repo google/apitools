@@ -140,16 +140,19 @@ class BatchApiRequest(object):
                 self.__response = self.__service.ProcessHttpResponse(
                     self.__method_config, self.__http_response)
 
-    def __init__(self, batch_url=None, retryable_codes=None):
+    def __init__(self, batch_url=None, retryable_codes=None,
+                 response_encoding=None):
         """Initialize a batch API request object.
 
         Args:
           batch_url: Base URL for batch API calls.
           retryable_codes: A list of integer HTTP codes that can be retried.
+          response_encoding: The encoding type of response content.
         """
         self.api_requests = []
         self.retryable_codes = retryable_codes or []
         self.batch_url = batch_url or 'https://www.googleapis.com/batch'
+        self.response_encoding = response_encoding
 
     def Add(self, service, method, request, global_params=None):
         """Add a request to the batch.
@@ -213,7 +216,8 @@ class BatchApiRequest(object):
                 # incomplete requests.
                 batch_http_request = BatchHttpRequest(
                     batch_url=self.batch_url,
-                    callback=batch_request_callback
+                    callback=batch_request_callback,
+                    response_encoding=self.response_encoding
                 )
                 for request in itertools.islice(requests,
                                                 i, i + batch_size):
@@ -240,7 +244,7 @@ class BatchHttpRequest(object):
 
     """Batches multiple http_wrapper.Request objects into a single request."""
 
-    def __init__(self, batch_url, callback=None):
+    def __init__(self, batch_url, callback=None, response_encoding=None):
         """Constructor for a BatchHttpRequest.
 
         Args:
@@ -251,6 +255,7 @@ class BatchHttpRequest(object):
               apiclient.errors.HttpError exception object if an HTTP error
               occurred while processing the request, or None if no error
               occurred.
+          response_encoding: The encoding type of response content.
         """
         # Endpoint to which these requests are sent.
         self.__batch_url = batch_url
@@ -258,6 +263,9 @@ class BatchHttpRequest(object):
         # Global callback to be called for each individual response in the
         # batch.
         self.__callback = callback
+
+        # Response content will be decoded if this is provided.
+        self.__response_encoding = response_encoding
 
         # List of requests, responses and handlers.
         self.__request_response_handlers = {}
@@ -446,8 +454,12 @@ class BatchHttpRequest(object):
         # Prepend with a content-type header so Parser can handle it.
         header = 'content-type: %s\r\n\r\n' % response.info['content-type']
 
+        content = response.content
+        if isinstance(content, bytes) and self.__response_encoding:
+            content = response.content.decode(self.__response_encoding)
+
         parser = email_parser.Parser()
-        mime_response = parser.parsestr(header + response.content)
+        mime_response = parser.parsestr(header + content)
 
         if not mime_response.is_multipart():
             raise exceptions.BatchError(

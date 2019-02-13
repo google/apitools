@@ -582,6 +582,49 @@ class BatchTest(unittest2.TestCase):
             self.assertIn(
                 'Second response', test_responses['2'].response.content)
 
+    def testInternalExecuteWithEncodedResponse(self):
+        with mock.patch.object(http_wrapper, 'MakeRequest',
+                               autospec=True) as mock_request:
+            self.__ConfigureMock(
+                mock_request,
+                http_wrapper.Request('https://www.example.com', 'POST', {
+                    'content-type': 'multipart/mixed; boundary="None"',
+                    'content-length': 274,
+                }, 'x' * 274),
+                http_wrapper.Response({
+                    'status': '200',
+                    'content-type': 'multipart/mixed; boundary="boundary"',
+                }, textwrap.dedent("""\
+                --boundary
+                content-type: text/plain
+                content-id: <id+1>
+
+                HTTP/1.1 200 OK
+                response
+
+                --boundary--""").encode('utf-8'), None))
+
+            test_request = {
+                '1': batch.RequestResponseAndHandler(
+                    http_wrapper.Request(body='first'), None, None),
+            }
+
+            batch_request = batch.BatchHttpRequest('https://www.example.com',
+                                                   response_encoding='utf-8')
+            batch_request._BatchHttpRequest__request_response_handlers = (
+                test_request)
+
+            batch_request._Execute(FakeHttp())
+
+            test_responses = (
+                batch_request._BatchHttpRequest__request_response_handlers)
+
+            self.assertEqual(http_client.OK,
+                             test_responses['1'].response.status_code)
+
+            self.assertIn(
+                'response', test_responses['1'].response.content)
+
     def testPublicExecute(self):
 
         def LocalCallback(response, exception):

@@ -39,6 +39,11 @@ from apitools.base.protorpclite import test_util
 # pylint:disable=unused-variable
 # pylint:disable=too-many-lines
 
+try:
+    long        # Python 2
+except NameError:
+    long = int  # Python 3
+
 
 class ModuleInterfaceTest(test_util.ModuleInterfaceTest,
                           test_util.TestCase):
