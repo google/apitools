@@ -529,20 +529,51 @@ class BaseApiService(object):
         return query_info
 
     def __FinalUrlValue(self, value, field):
-        """Encode value for the URL, using field to skip encoding for bytes."""
+        """Returns the appropriate "string" type for the given field.
+
+        For all field types except `messages.BytesField`:
+        For PY2 values, we want bytes; for PY3, we want unicode. Regardless of
+        language version, all returned values will be able to be encoded
+        appropriately to be sent over the wire later. If passed bytes that
+        cannot be represented with the utf-8 encoding, this method will raise
+        an exception when trying to convert them to unicode.
+
+        Note regarding BytesField fields:
+        The "field" parameter, if it's given and is an instance of
+        `messages.BytesField`, will result in using a B64-encoded representation
+        of the bytes. If in PY3, these bytes will be decoded to unicode.
+
+        This method returns a value of type `six.text_type` (bytes for PY2,
+        unicode for PY3).
+        """
+
+        # Otherwise, we want to return the language version's native type for
+        # "strings" (unicode in PY3, bytes, encoded such that they're valid for
+        # use in URLs, in PY3).
         if isinstance(field, messages.BytesField) and value is not None:
-            return base64.urlsafe_b64encode(value)
-        elif isinstance(value, datetime.datetime):
-            return value.isoformat()
-        if six.PY3:
-            if isinstance(value, bytes):
+            value = base64.urlsafe_b64encode(value)
+            if six.PY2:
+                return value
+            else:  # Python >= 3:
+                # Base64 charset can be represented using ascii/utf-8.
                 return value.decode('utf-8')
-            return value
-        else:
+        if isinstance(value, datetime.datetime):
+            # The isoformat() method returns the language's "string" type.
+            return value.isoformat()
+        if six.PY2:
             if isinstance(value, six.text_type):
                 return value.encode('utf8')
-            elif isinstance(value, six.binary_type):
-                return value.decode('utf8')
+            if isinstance(value, six.binary_type):
+                # First ensure that bytes can be decoded as utf-8. This ensures
+                # that we don't pass along bytes that are invalid for use with
+                # URLs, e.g. latin-1 encoded bytes.
+                _ = value.decode('utf-8')  # Throws an exception if invalid.
+                return value
+        else:  # Python >= 3
+            if isinstance(value, six.text_type):
+                return value
+            if isinstance(value, six.binary_type):
+                return value.decode('utf-8')
         return value
 
     def __ConstructQueryParams(self, query_params, request, global_params):
@@ -614,7 +645,7 @@ class BaseApiService(object):
             content = content.decode(self._client.response_encoding)
 
         if self.__client.response_type_model == 'json':
-            return http_response.content
+            return content
         response_type = _LoadClass(method_config.response_type_name,
                                    self.__client.MESSAGES_MODULE)
         return self.__client.DeserializeMessage(
