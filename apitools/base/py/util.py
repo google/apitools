@@ -224,6 +224,7 @@ def MapRequestParams(params, request_type):
             request_type, python_name=param_name)
         if field_remapping is not None:
             new_params[field_remapping] = new_params.pop(param_name)
+            param_name = field_remapping
         if isinstance(value, messages.Enum):
             new_params[param_name] = encoding.GetCustomJsonEnumMapping(
                 type(value), python_name=str(value)) or str(value)
