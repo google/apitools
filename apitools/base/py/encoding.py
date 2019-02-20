@@ -307,7 +307,8 @@ class _ProtoJsonApiTools(protojson.ProtoJson):
             value = result.value
             if result.complete:
                 return value
-        if isinstance(field, messages.MessageField):
+        if isinstance(field, messages.MessageField) and not isinstance(
+              field, message_types.DateTimeField):
             field_value = self.decode_message(
                 field.message_type, json.dumps(value))
         elif isinstance(field, messages.EnumField):
