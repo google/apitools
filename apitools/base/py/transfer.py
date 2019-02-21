@@ -544,6 +544,25 @@ class Download(_Transfer):
         self._ExecuteCallback(finish_callback, response)
 
 
+if six.PY3:
+    class MultipartBytesGenerator(email_generator.BytesGenerator):
+        """Generates a bytes version of a Message object tree for multipart messages
+        This is a BytesGenerator that has been modified to not attempt line
+        termination character modification in the bytes payload. Known to work
+        with the compat32 policy only. It may work on others, but not tested.
+        The outfp object must accept bytes in its write method.
+        """
+        def _handle_text(self, msg):
+            # If the string has surrogates the original source was bytes, so
+            # just write it back out.
+            if msg._payload is None:
+                return
+            self.write(msg._payload)
+
+        # Default body handler
+        _writeBody = _handle_text
+
+
 class Upload(_Transfer):
 
     """Data for a single Upload.
@@ -796,7 +815,7 @@ class Upload(_Transfer):
         #       `> ` to `From ` lines.
         fp = six.BytesIO()
         if six.PY3:
-            generator_class = email_generator.BytesGenerator
+            generator_class = MultipartBytesGenerator
         else:
             generator_class = email_generator.Generator
         g = generator_class(fp, mangle_from_=False)
