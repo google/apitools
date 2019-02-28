@@ -203,7 +203,7 @@ def ServiceAccountCredentialsFromP12File(
         return credentials
     else:
         # oauth2client < 2.0.0
-        with open(private_key_filename) as key_file:
+        with open(private_key_filename, 'rb') as key_file:
             return oauth2client.client.SignedJwtAssertionCredentials(
                 service_account_name, key_file.read(), scopes,
                 user_agent=user_agent)
