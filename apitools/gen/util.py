@@ -368,16 +368,27 @@ def _NormalizeDiscoveryUrls(discovery_url):
 
 
 def _Gunzip(gzipped_content):
-  """Returns gunzipped content from gzipped contents."""
-  try:
+    """Returns gunzipped content from gzipped contents."""
     f = tempfile.NamedTemporaryFile(suffix='gz', mode='w+b', delete=False)
-    f.write(gzipped_content)
-    f.close()  # force file synchronization
-    with gzip.open(f.name, 'rb') as h:
-      decompressed_content = h.read()
-    return decompressed_content
-  finally:
-    os.unlink(f.name)
+    try:
+        f.write(gzipped_content)
+        f.close()  # force file synchronization
+        with gzip.open(f.name, 'rb') as h:
+            decompressed_content = h.read()
+        return decompressed_content
+    finally:
+        os.unlink(f.name)
+
+
+def _GetURLContent(url):
+    """Download and return the content of URL."""
+    response = urllib_request.urlopen(url)
+    encoding = response.info().get('Content-Encoding')
+    if encoding == 'gzip':
+        content = _Gunzip(response.read())
+    else:
+        content = response.read()
+    return content
 
 
 def FetchDiscoveryDoc(discovery_url, retries=5):
@@ -388,16 +399,7 @@ def FetchDiscoveryDoc(discovery_url, retries=5):
     for url in discovery_urls:
         for _ in range(retries):
             try:
-                response = urllib_request.urlopen(url)
-                encoding = response.info().get('Content-Encoding')
-                if encoding == 'gzip':
-                  content = _Gunzip(response.read())
-                elif encoding == 'deflate':
-                  content = response.read()
-                else:
-                  logging.warning('Unknown encoding')
-                  content = response.read()
-
+                content = _GetURLContent(url)
                 if isinstance(content, bytes):
                     content = content.decode('utf8')
                 discovery_doc = json.loads(content)
