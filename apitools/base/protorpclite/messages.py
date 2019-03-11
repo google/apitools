@@ -758,8 +758,6 @@ class Message(six.with_metaclass(_MessageClass, object)):
 
     """
 
-    __hash__ = object.__hash__
-
     def __init__(self, **kwargs):
         """Initialize internal messages state.
 
@@ -1059,6 +1057,10 @@ class Message(six.with_metaclass(_MessageClass, object)):
           other: Other message to compare with.
         """
         return not self.__eq__(other)
+
+    def __hash__(self):
+        """Hash by __tags"""
+        return hash(self.__tags)
 
 
 class FieldList(list):
