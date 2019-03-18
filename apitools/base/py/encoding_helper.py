@@ -528,7 +528,7 @@ def _ProcessUnknownEnums(message, encoded_message):
     """
     if not encoded_message:
         return message
-    decoded_message = json.loads(encoded_message)
+    decoded_message = json.loads(six.ensure_str(encoded_message))
     for field in message.all_fields():
         if (isinstance(field, messages.EnumField) and
                 field.name in decoded_message and
@@ -556,7 +556,7 @@ def _ProcessUnknownMessages(message, encoded_message):
     """
     if not encoded_message:
         return message
-    decoded_message = json.loads(encoded_message)
+    decoded_message = json.loads(six.ensure_str(encoded_message))
     message_fields = [x.name for x in message.all_fields()] + list(
         message.all_unrecognized_fields())
     missing_fields = [x for x in decoded_message.keys()

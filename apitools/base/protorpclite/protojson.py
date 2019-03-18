@@ -206,6 +206,7 @@ class ProtoJson(object):
           ValueError: If encoded_message is not valid JSON.
           messages.ValidationError if merged message is not initialized.
         """
+        encoded_message = six.ensure_str(encoded_message)
         if not encoded_message.strip():
             return message_type()
 
