@@ -546,11 +546,12 @@ class Download(_Transfer):
 
 if six.PY3:
     class MultipartBytesGenerator(email_generator.BytesGenerator):
-        """Generates a bytes version of a Message object tree for multipart messages
+        """Generates a bytes Message object tree for multipart messages
+
         This is a BytesGenerator that has been modified to not attempt line
-        termination character modification in the bytes payload. Known to work
-        with the compat32 policy only. It may work on others, but not tested.
-        The outfp object must accept bytes in its write method.
+        termination character modification in the bytes payload. Known to
+        work with the compat32 policy only. It may work on others, but not
+        tested. The outfp object must accept bytes in its write method.
         """
         def _handle_text(self, msg):
             # If the string has surrogates the original source was bytes, so

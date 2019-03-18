@@ -31,7 +31,7 @@ REQUIRED_PACKAGES = [
     'httplib2>=0.8',
     'fasteners>=0.14',
     'oauth2client>=1.4.12',
-    'six>=1.9.0',
+    'six>=1.12.0',
     ]
 
 CLI_PACKAGES = [
