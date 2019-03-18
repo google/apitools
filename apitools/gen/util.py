@@ -20,11 +20,13 @@ from __future__ import unicode_literals
 
 import collections
 import contextlib
+import gzip
 import json
 import keyword
 import logging
 import os
 import re
+import tempfile
 
 import six
 from six.moves import urllib_parse
@@ -365,6 +367,30 @@ def _NormalizeDiscoveryUrls(discovery_url):
     ]
 
 
+def _Gunzip(gzipped_content):
+    """Returns gunzipped content from gzipped contents."""
+    f = tempfile.NamedTemporaryFile(suffix='gz', mode='w+b', delete=False)
+    try:
+        f.write(gzipped_content)
+        f.close()  # force file synchronization
+        with gzip.open(f.name, 'rb') as h:
+            decompressed_content = h.read()
+        return decompressed_content
+    finally:
+        os.unlink(f.name)
+
+
+def _GetURLContent(url):
+    """Download and return the content of URL."""
+    response = urllib_request.urlopen(url)
+    encoding = response.info().get('Content-Encoding')
+    if encoding == 'gzip':
+        content = _Gunzip(response.read())
+    else:
+        content = response.read()
+    return content
+
+
 def FetchDiscoveryDoc(discovery_url, retries=5):
     """Fetch the discovery document at the given url."""
     discovery_urls = _NormalizeDiscoveryUrls(discovery_url)
@@ -373,7 +399,7 @@ def FetchDiscoveryDoc(discovery_url, retries=5):
     for url in discovery_urls:
         for _ in range(retries):
             try:
-                content = urllib_request.urlopen(url).read()
+                content = _GetURLContent(url)
                 if isinstance(content, bytes):
                     content = content.decode('utf8')
                 discovery_doc = json.loads(content)
