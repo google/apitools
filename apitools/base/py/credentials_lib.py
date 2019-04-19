@@ -17,6 +17,7 @@
 """Common credentials classes and constructors."""
 from __future__ import print_function
 
+import argparse
 import contextlib
 import datetime
 import json
@@ -512,10 +513,6 @@ def _GetRunFlowFlags(args=None):
     # since they're bringing their own credentials. So we just allow this
     # to fail with an ImportError in those cases.
     #
-    # TODO(craigcitro): Move this import back to the top when we drop
-    # python 2.6 support (eg when gsutil does).
-    import argparse
-
     parser = argparse.ArgumentParser(parents=[tools.argparser])
     # Get command line argparse flags.
     flags, _ = parser.parse_known_args(args=args)
