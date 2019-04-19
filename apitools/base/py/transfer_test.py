@@ -16,12 +16,12 @@
 
 """Tests for transfer.py."""
 import string
+import unittest
 
 import httplib2
 import mock
 import six
 from six.moves import http_client
-import unittest2
 
 from apitools.base.py import base_api
 from apitools.base.py import exceptions
@@ -30,7 +30,7 @@ from apitools.base.py import http_wrapper
 from apitools.base.py import transfer
 
 
-class TransferTest(unittest2.TestCase):
+class TransferTest(unittest.TestCase):
 
     def assertRangeAndContentRangeCompatible(self, request, response):
         request_prefix = 'bytes='
@@ -311,7 +311,7 @@ class TransferTest(unittest2.TestCase):
             self.assertTrue(rewritten_upload_contents.endswith(upload_bytes))
 
 
-class UploadTest(unittest2.TestCase):
+class UploadTest(unittest.TestCase):
 
     def setUp(self):
         # Sample highly compressible data.

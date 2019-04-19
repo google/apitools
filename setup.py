@@ -39,7 +39,6 @@ CLI_PACKAGES = [
 ]
 
 TESTING_PACKAGES = [
-    'unittest2>=0.5.1',
     'mock>=1.0.1',
 ]
 

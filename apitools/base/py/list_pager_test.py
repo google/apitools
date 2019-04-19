@@ -15,7 +15,7 @@
 
 """Tests for list_pager."""
 
-import unittest2
+import unittest
 
 from apitools.base.py import list_pager
 from apitools.base.py.testing import mock
@@ -27,7 +27,7 @@ from samples.iam_sample.iam_v1 import iam_v1_client as iam_client
 from samples.iam_sample.iam_v1 import iam_v1_messages as iam_messages
 
 
-class ListPagerTest(unittest2.TestCase):
+class ListPagerTest(unittest.TestCase):
 
     def _AssertInstanceSequence(self, results, n):
         counter = 0
@@ -243,7 +243,7 @@ class ListPagerTest(unittest2.TestCase):
         self._AssertInstanceSequence(results, 3)
 
 
-class ListPagerAttributeTest(unittest2.TestCase):
+class ListPagerAttributeTest(unittest.TestCase):
 
     def setUp(self):
         self.mocked_client = mock.Client(iam_client.IamV1)

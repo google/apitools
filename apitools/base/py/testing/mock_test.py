@@ -15,8 +15,9 @@
 
 """Tests for apitools.base.py.testing.mock."""
 
+import unittest
+
 import httplib2
-import unittest2
 import six
 
 from apitools.base.protorpclite import messages
@@ -42,7 +43,7 @@ class CustomException(Exception):
     pass
 
 
-class MockTest(unittest2.TestCase):
+class MockTest(unittest.TestCase):
 
     def testMockFusionBasic(self):
         with mock.Client(fusiontables.FusiontablesV1) as client_class:
@@ -220,7 +221,7 @@ class _NestedNestedMessage(messages.Message):
     nested = messages.MessageField(_NestedMessage, 1)
 
 
-class UtilTest(unittest2.TestCase):
+class UtilTest(unittest.TestCase):
 
     def testMessagesEqual(self):
         self.assertFalse(mock._MessagesEqual(
