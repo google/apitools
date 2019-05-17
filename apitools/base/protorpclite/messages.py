@@ -1358,7 +1358,7 @@ class Field(six.with_metaclass(_FieldMeta, object)):
             return validate_element(value)
         else:
             # Must be a list or tuple, may not be a string.
-            if isinstance(value, (list, tuple)):
+            if isinstance(value, (list, tuple, set)):
                 result = []
                 for element in value:
                     if element is None:
@@ -1644,7 +1644,7 @@ class MessageField(Field):
         t = self.type
         if isinstance(t, type) and issubclass(t, Message):
             if self.repeated:
-                if value and isinstance(value, (list, tuple)):
+                if value and isinstance(value, (list, tuple, set)):
                     value = [(t(**v) if isinstance(v, dict) else v)
                              for v in value]
             elif isinstance(value, dict):
