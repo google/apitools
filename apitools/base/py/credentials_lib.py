@@ -15,7 +15,6 @@
 # limitations under the License.
 
 """Common credentials classes and constructors."""
-from __future__ import unicode_literals
 from __future__ import print_function
 
 import contextlib
@@ -356,7 +355,7 @@ class GceAssertionCredentials(gce.AppAssertionCredentials):
     def GetServiceAccount(self, account):
         relative_url = 'instance/service-accounts'
         response = _GceMetadataRequest(relative_url)
-        response_lines = [six.ensure_text(line).rstrip('/\n\r')
+        response_lines = [six.ensure_text(line).rstrip(u'/\n\r')
                           for line in response.readlines()]
         return account in response_lines
 
