@@ -250,7 +250,9 @@ class GceAssertionCredentials(gce.AppAssertionCredentials):
         # identified these scopes in the same execution. However, the
         # available scopes don't change once an instance is created,
         # so there is no reason to perform more than one query.
-        self.__service_account_name = service_account_name
+        self.__service_account_name = six.ensure_text(
+            service_account_name,
+            encoding='utf-8',)
         cached_scopes = None
         cache_filename = kwds.get('cache_filename')
         if cache_filename:
@@ -317,7 +319,8 @@ class GceAssertionCredentials(gce.AppAssertionCredentials):
           scopes: Scopes for the desired credentials.
         """
         # Credentials metadata dict.
-        creds = {'scopes': sorted(list(scopes)),
+        scopes = sorted([six.ensure_text(scope) for scope in scopes])
+        creds = {'scopes': scopes,
                  'svc_acct_name': self.__service_account_name}
         creds_str = json.dumps(creds)
         cache_file = _MultiProcessCacheFile(cache_filename)
@@ -352,7 +355,7 @@ class GceAssertionCredentials(gce.AppAssertionCredentials):
     def GetServiceAccount(self, account):
         relative_url = 'instance/service-accounts'
         response = _GceMetadataRequest(relative_url)
-        response_lines = [line.rstrip('/\n\r')
+        response_lines = [six.ensure_text(line).rstrip(u'/\n\r')
                           for line in response.readlines()]
         return account in response_lines
 
