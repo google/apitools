@@ -137,6 +137,15 @@ def GetCredentials(package_name, scopes, client_id, client_secret, user_agent,
                    **kwds):
     """Attempt to get credentials, using an oauth dance as the last resort."""
     scopes = util.NormalizeScopes(scopes)
+    if isinstance(scope_spec, six.string_types):
+        scope_spec = six.ensure_str(scope_spec)
+        return set(scope_spec.split(' '))
+    elif isinstance(scope_spec, collections.Iterable):
+        scope_spec = [six.ensure_str(x) for x in scope_spec]
+        return set(scope_spec)
+    raise exceptions.TypecheckError(
+        'NormalizeScopes expected string or iterable, found %s' % (
+            type(scope_spec),))
     client_info = {
         'client_id': client_id,
         'client_secret': client_secret,
@@ -355,7 +364,7 @@ class GceAssertionCredentials(gce.AppAssertionCredentials):
     def GetServiceAccount(self, account):
         relative_url = 'instance/service-accounts'
         response = _GceMetadataRequest(relative_url)
-        response_lines = [six.ensure_text(line).rstrip(u'/\n\r')
+        response_lines = [six.ensure_str(line).rstrip(u'/\n\r')
                           for line in response.readlines()]
         return account in response_lines
 
@@ -363,7 +372,7 @@ class GceAssertionCredentials(gce.AppAssertionCredentials):
         relative_url = 'instance/service-accounts/{0}/scopes'.format(
             self.__service_account_name)
         response = _GceMetadataRequest(relative_url)
-        return util.NormalizeScopes(scope.strip()
+        return util.NormalizeScopes(six.ensure_str(scope).strip()
                                     for scope in response.readlines())
 
     # pylint: disable=arguments-differ
