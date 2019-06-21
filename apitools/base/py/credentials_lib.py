@@ -405,7 +405,7 @@ class GceAssertionCredentials(gce.AppAssertionCredentials):
             if self.store:
                 self.store.locked_put(self)
             raise
-        content = response.read()
+        content = six.ensure_str(response.read())
         try:
             credential_info = json.loads(content)
         except ValueError:
