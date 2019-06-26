@@ -85,7 +85,7 @@ class GetURLContentTest(unittest2.TestCase):
 
     def testUnspecifiedContentEncoding(self):
         data = 'regular non-gzipped content'
-        with patch.object(urllib_request, 'urlopen', 
+        with patch.object(urllib_request, 'urlopen',
                           return_value=MockRequestResponse(data, '')):
             self.assertEqual(data, util._GetURLContent('unused_url_parameter'))
 
@@ -93,6 +93,7 @@ class GetURLContentTest(unittest2.TestCase):
         data = u'¿Hola qué tal?'
         compressed_data = _Gzip(data.encode('utf-8'))
         with patch.object(urllib_request, 'urlopen',
-                          return_value=MockRequestResponse(compressed_data, 'gzip')):
+                          return_value=MockRequestResponse(
+                              compressed_data, 'gzip')):
             self.assertEqual(data, util._GetURLContent(
                 'unused_url_parameter').decode('utf-8'))
