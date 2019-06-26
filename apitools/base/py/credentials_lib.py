@@ -137,15 +137,6 @@ def GetCredentials(package_name, scopes, client_id, client_secret, user_agent,
                    **kwds):
     """Attempt to get credentials, using an oauth dance as the last resort."""
     scopes = util.NormalizeScopes(scopes)
-    if isinstance(scope_spec, six.string_types):
-        scope_spec = six.ensure_str(scope_spec)
-        return set(scope_spec.split(' '))
-    elif isinstance(scope_spec, collections.Iterable):
-        scope_spec = [six.ensure_str(x) for x in scope_spec]
-        return set(scope_spec)
-    raise exceptions.TypecheckError(
-        'NormalizeScopes expected string or iterable, found %s' % (
-            type(scope_spec),))
     client_info = {
         'client_id': client_id,
         'client_secret': client_secret,
