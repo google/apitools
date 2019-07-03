@@ -174,6 +174,7 @@ def AcceptableMimeType(accept_patterns, mime_type):
     Returns:
       Whether or not mime_type matches (at least) one of these patterns.
     """
+    mime_type = six.ensure_str(mime_type)
     if '/' not in mime_type:
         raise exceptions.InvalidUserInputError(
             'Invalid MIME type: "%s"' % mime_type)
