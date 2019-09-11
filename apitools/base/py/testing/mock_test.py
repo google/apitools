@@ -151,6 +151,34 @@ class MockTest(unittest2.TestCase):
         client = fusiontables.FusiontablesV1(get_credentials=False)
         self.assertNotEqual(type(client.column), mocked_service_type)
 
+    def testRequestMacher(self):
+        class Matcher(object):
+            def __init__(self, eq):
+                self._eq = eq
+
+            def __eq__(self, other):
+                return self._eq(other)
+
+        with mock.Client(fusiontables.FusiontablesV1) as client_class:
+            is_even = lambda x: x % 2 == 0
+            client_class.column.List.Expect(
+                request=Matcher(is_even), response=1,
+                enable_type_checking=False)
+            is_odd = lambda x: not is_even(x)
+            client_class.column.List.Expect(
+                request=Matcher(is_odd), response=2, enable_type_checking=False)
+            client_class.column.List.Expect(
+                request=Matcher(is_even), response=3,
+                enable_type_checking=False)
+            client_class.column.List.Expect(
+                request=Matcher(is_odd), response=4, enable_type_checking=False)
+
+            client = fusiontables.FusiontablesV1(get_credentials=False)
+            self.assertEqual(client.column.List(2), 1)
+            self.assertEqual(client.column.List(1), 2)
+            self.assertEqual(client.column.List(20), 3)
+            self.assertEqual(client.column.List(23), 4)
+
     def testClientUnmock(self):
         mock_client = mock.Client(fusiontables.FusiontablesV1)
         self.assertFalse(isinstance(mock_client, fusiontables.FusiontablesV1))
