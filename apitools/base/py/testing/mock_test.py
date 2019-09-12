@@ -162,8 +162,10 @@ class MockTest(unittest2.TestCase):
         with mock.Client(fusiontables.FusiontablesV1) as client_class:
             def IsEven(x):
                 return x % 2 == 0
+
             def IsOdd(x):
                 return not IsEven(x)
+
             client_class.column.List.Expect(
                 request=Matcher(IsEven), response=1,
                 enable_type_checking=False)
