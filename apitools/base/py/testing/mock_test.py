@@ -160,18 +160,18 @@ class MockTest(unittest2.TestCase):
                 return self._eq(other)
 
         with mock.Client(fusiontables.FusiontablesV1) as client_class:
-            is_even = lambda x: x % 2 == 0
+            def IsEven(x): return x % 2 == 0
+            def IsOdd(x): return not IsEven(x)
             client_class.column.List.Expect(
-                request=Matcher(is_even), response=1,
-                enable_type_checking=False)
-            is_odd = lambda x: not is_even(x)
-            client_class.column.List.Expect(
-                request=Matcher(is_odd), response=2, enable_type_checking=False)
-            client_class.column.List.Expect(
-                request=Matcher(is_even), response=3,
+                request=Matcher(IsEven), response=1,
                 enable_type_checking=False)
             client_class.column.List.Expect(
-                request=Matcher(is_odd), response=4, enable_type_checking=False)
+                request=Matcher(IsOdd), response=2, enable_type_checking=False)
+            client_class.column.List.Expect(
+                request=Matcher(IsEven), response=3,
+                enable_type_checking=False)
+            client_class.column.List.Expect(
+                request=Matcher(IsOdd), response=4, enable_type_checking=False)
 
             client = fusiontables.FusiontablesV1(get_credentials=False)
             self.assertEqual(client.column.List(2), 1)
