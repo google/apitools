@@ -22,6 +22,24 @@ __all__ = [
     'YieldFromList',
 ]
 
+def _GetattrNested(message, attribute):
+  if isinstance(attribute, str):
+    return getattr(message, attribute)
+  elif len(attribute) == 0:
+    return message
+  else:
+    return _GetattrNested(getattr(message, attribute[0]), attribute[1:])
+
+def _SetattrNested(message, attribute, value):
+  if isinstance(attribute, str):
+    return setattr(message, attribute, value)
+  elif len(attribute) < 1:
+    raise ValueError("Need an attribute to set")
+  elif len(attribute) == 1:
+    return setattr(message, attribute[0], value)
+  else:
+    return setattr(_GetattrNested(message, attribute[:-1]), attribute[-1], value)
+
 
 def YieldFromList(
         service, request, global_params=None, limit=None, batch_size=100,
@@ -45,12 +63,12 @@ def YieldFromList(
       method: str, The name of the method used to fetch resources.
       field: str, The field in the response that will be a list of items.
       predicate: lambda, A function that returns true for items to be yielded.
-      current_token_attribute: str, The name of the attribute in a
+      current_token_attribute: str or tuple, The name of the attribute in a
           request message holding the page token for the page being
           requested.
-      next_token_attribute: str, The name of the attribute in a
+      next_token_attribute: str or tuple, The name of the attribute in a
           response message holding the page token for the next page.
-      batch_size_attribute: str, The name of the attribute in a
+      batch_size_attribute: str or tuple, The name of the attribute in a
           response message holding the maximum number of results to be
           returned. None if caller-specified batch size is unsupported.
 
@@ -59,7 +77,7 @@ def YieldFromList(
 
     """
     request = encoding.CopyProtoMessage(request)
-    setattr(request, current_token_attribute, None)
+    _SetattrNested(request, current_token_attribute, None)
     while limit is None or limit:
         if batch_size_attribute:
             # On Py3, None is not comparable so min() below will fail.
@@ -72,10 +90,10 @@ def YieldFromList(
                 request_batch_size = None
             else:
                 request_batch_size = min(batch_size, limit or batch_size)
-            setattr(request, batch_size_attribute, request_batch_size)
+            _SetattrNested(request, batch_size_attribute, request_batch_size)
         response = getattr(service, method)(request,
                                             global_params=global_params)
-        items = getattr(response, field)
+        items = _GetattrNested(response, field)
         if predicate:
             items = list(filter(predicate, items))
         for item in items:
@@ -85,7 +103,7 @@ def YieldFromList(
             limit -= 1
             if not limit:
                 return
-        token = getattr(response, next_token_attribute)
+        token = _GetattrNested(response, next_token_attribute)
         if not token:
             return
-        setattr(request, current_token_attribute, token)
+        _SetattrNested(request, current_token_attribute, token)
