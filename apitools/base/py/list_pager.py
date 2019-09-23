@@ -22,23 +22,26 @@ __all__ = [
     'YieldFromList',
 ]
 
+
 def _GetattrNested(message, attribute):
-  if isinstance(attribute, str):
-    return getattr(message, attribute)
-  elif len(attribute) == 0:
-    return message
-  else:
-    return _GetattrNested(getattr(message, attribute[0]), attribute[1:])
+    if isinstance(attribute, str):
+        return getattr(message, attribute)
+    elif len(attribute) == 0:
+        return message
+    else:
+        return _GetattrNested(getattr(message, attribute[0]), attribute[1:])
+
 
 def _SetattrNested(message, attribute, value):
-  if isinstance(attribute, str):
-    return setattr(message, attribute, value)
-  elif len(attribute) < 1:
-    raise ValueError("Need an attribute to set")
-  elif len(attribute) == 1:
-    return setattr(message, attribute[0], value)
-  else:
-    return setattr(_GetattrNested(message, attribute[:-1]), attribute[-1], value)
+    if isinstance(attribute, str):
+        return setattr(message, attribute, value)
+    elif len(attribute) < 1:
+        raise ValueError("Need an attribute to set")
+    elif len(attribute) == 1:
+        return setattr(message, attribute[0], value)
+    else:
+        return setattr(_GetattrNested(message, attribute[:-1]),
+                       attribute[-1], value)
 
 
 def YieldFromList(
@@ -65,12 +68,14 @@ def YieldFromList(
       predicate: lambda, A function that returns true for items to be yielded.
       current_token_attribute: str or tuple, The name of the attribute in a
           request message holding the page token for the page being
-          requested.
+          requested. If a tuple, path to attribute.
       next_token_attribute: str or tuple, The name of the attribute in a
-          response message holding the page token for the next page.
+          response message holding the page token for the next page. If a
+          tuple, path to the attribute.
       batch_size_attribute: str or tuple, The name of the attribute in a
           response message holding the maximum number of results to be
           returned. None if caller-specified batch size is unsupported.
+          If a tuple, path to the attribute.
 
     Yields:
       protorpc.message.Message, The resources listed by the service.
