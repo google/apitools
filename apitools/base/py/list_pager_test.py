@@ -26,11 +26,13 @@ from samples.fusiontables_sample.fusiontables_v1 \
 from samples.iam_sample.iam_v1 import iam_v1_client as iam_client
 from samples.iam_sample.iam_v1 import iam_v1_messages as iam_messages
 
+
 class Example(object):
-  def __init__(self):
-    self.a = 'aaa'
-    self.b = 'bbb'
-    self.c = 'ccc'
+    def __init__(self):
+        self.a = 'aaa'
+        self.b = 'bbb'
+        self.c = 'ccc'
+
 
 class GetterSetterTest(unittest2.TestCase):
 

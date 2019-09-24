@@ -25,6 +25,14 @@ __all__ = [
 
 
 def _GetattrNested(message, attribute):
+    """Gets a possibly nested attribute.
+
+    Same as getattr() if attribute is a string;
+    if attribute is a tuple, returns the nested attribute referred to by
+    the fields in the tuple as if they were a dotted accessor path.
+
+    (ex _GetattrNested(msg, ('foo', 'bar', 'baz')) gets msg.foo.bar.baz
+    """
     if isinstance(attribute, six.string_types):
         return getattr(message, attribute)
     elif len(attribute) == 0:
@@ -34,6 +42,16 @@ def _GetattrNested(message, attribute):
 
 
 def _SetattrNested(message, attribute, value):
+      """Sets a possibly nested attribute.
+
+    Same as setattr() if attribute is a string;
+    if attribute is a tuple, sets the nested attribute referred to by
+    the fields in the tuple as if they were a dotted accessor path.
+
+    (ex _SetattrNested(msg, ('foo', 'bar', 'baz'), 'v') sets msg.foo.bar.baz
+    to 'v'
+    """
+
     if isinstance(attribute, six.string_types):
         return setattr(message, attribute, value)
     elif len(attribute) < 1:
