@@ -42,7 +42,7 @@ def _GetattrNested(message, attribute):
 
 
 def _SetattrNested(message, attribute, value):
-      """Sets a possibly nested attribute.
+    """Sets a possibly nested attribute.
 
     Same as setattr() if attribute is a string;
     if attribute is a tuple, sets the nested attribute referred to by
@@ -51,7 +51,6 @@ def _SetattrNested(message, attribute, value):
     (ex _SetattrNested(msg, ('foo', 'bar', 'baz'), 'v') sets msg.foo.bar.baz
     to 'v'
     """
-
     if isinstance(attribute, six.string_types):
         return setattr(message, attribute, value)
     elif len(attribute) < 1:
