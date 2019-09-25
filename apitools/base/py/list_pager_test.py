@@ -27,6 +27,32 @@ from samples.iam_sample.iam_v1 import iam_v1_client as iam_client
 from samples.iam_sample.iam_v1 import iam_v1_messages as iam_messages
 
 
+class Example(object):
+    def __init__(self):
+        self.a = 'aaa'
+        self.b = 'bbb'
+        self.c = 'ccc'
+
+
+class GetterSetterTest(unittest2.TestCase):
+
+    def testGetattrNested(self):
+        o = Example()
+        self.assertEqual(list_pager._GetattrNested(o, 'a'), 'aaa')
+        self.assertEqual(list_pager._GetattrNested(o, ('a',)), 'aaa')
+        o.b = Example()
+        self.assertEqual(list_pager._GetattrNested(o, ('b', 'c')), 'ccc')
+
+    def testSetattrNested(self):
+        o = Example()
+        list_pager._SetattrNested(o, 'b', Example())
+        self.assertEqual(o.b.a, 'aaa')
+        list_pager._SetattrNested(o, ('b', 'a'), 'AAA')
+        self.assertEqual(o.b.a, 'AAA')
+        list_pager._SetattrNested(o, ('c',), 'CCC')
+        self.assertEqual(o.c, 'CCC')
+
+
 class ListPagerTest(unittest2.TestCase):
 
     def _AssertInstanceSequence(self, results, n):
