@@ -76,8 +76,10 @@ def DetectGce():
 def NormalizeScopes(scope_spec):
     """Normalize scope_spec to a set of strings."""
     if isinstance(scope_spec, six.string_types):
+        scope_spec = six.ensure_str(scope_spec)
         return set(scope_spec.split(' '))
     elif isinstance(scope_spec, collections.Iterable):
+        scope_spec = [six.ensure_str(x) for x in scope_spec]
         return set(scope_spec)
     raise exceptions.TypecheckError(
         'NormalizeScopes expected string or iterable, found %s' % (

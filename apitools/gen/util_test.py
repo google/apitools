@@ -24,7 +24,7 @@ import tempfile
 import unittest
 
 from apitools.gen import util
-from mock import MagicMock
+from mock import patch
 
 
 class NormalizeVersionTest(unittest.TestCase):
@@ -85,16 +85,15 @@ class GetURLContentTest(unittest.TestCase):
 
     def testUnspecifiedContentEncoding(self):
         data = 'regular non-gzipped content'
-        urllib_request.urlopen = MagicMock(
-            return_value=MockRequestResponse(data, ''))
-
-        self.assertEqual(data, util._GetURLContent('unused_url_parameter'))
+        with patch.object(urllib_request, 'urlopen',
+                          return_value=MockRequestResponse(data, '')):
+            self.assertEqual(data, util._GetURLContent('unused_url_parameter'))
 
     def testGZippedContent(self):
         data = u'¿Hola qué tal?'
         compressed_data = _Gzip(data.encode('utf-8'))
-        urllib_request.urlopen = MagicMock(
-            return_value=MockRequestResponse(compressed_data, 'gzip'))
-
-        self.assertEqual(data, util._GetURLContent(
-            'unused_url_parameter').decode('utf-8'))
+        with patch.object(urllib_request, 'urlopen',
+                          return_value=MockRequestResponse(
+                              compressed_data, 'gzip')):
+            self.assertEqual(data, util._GetURLContent(
+                'unused_url_parameter').decode('utf-8'))

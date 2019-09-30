@@ -48,7 +48,7 @@ CONSOLE_SCRIPTS = [
 
 py_version = platform.python_version()
 
-_APITOOLS_VERSION = '0.5.27'
+_APITOOLS_VERSION = '0.5.30'
 
 with open('README.rst') as fileobj:
     README = fileobj.read()
