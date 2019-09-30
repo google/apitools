@@ -34,7 +34,7 @@ class Example(object):
         self.c = 'ccc'
 
 
-class GetterSetterTest(unittest2.TestCase):
+class GetterSetterTest(unittest.TestCase):
 
     def testGetattrNested(self):
         o = Example()
@@ -53,7 +53,7 @@ class GetterSetterTest(unittest2.TestCase):
         self.assertEqual(o.c, 'CCC')
 
 
-class ListPagerTest(unittest2.TestCase):
+class ListPagerTest(unittest.TestCase):
 
     def _AssertInstanceSequence(self, results, n):
         counter = 0
