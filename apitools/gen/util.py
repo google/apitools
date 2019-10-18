@@ -403,7 +403,8 @@ def FetchDiscoveryDoc(discovery_url, retries=5):
                 if isinstance(content, bytes):
                     content = content.decode('utf8')
                 discovery_doc = json.loads(content)
-                break
+                if discovery_doc:
+                    return discovery_doc
             except (urllib_error.HTTPError, urllib_error.URLError) as e:
                 logging.info(
                     'Attempting to fetch discovery doc again after "%s"', e)
@@ -412,4 +413,3 @@ def FetchDiscoveryDoc(discovery_url, retries=5):
         raise CommunicationError(
             'Could not find discovery doc at any of %s: %s' % (
                 discovery_urls, last_exception))
-    return discovery_doc
