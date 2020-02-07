@@ -95,6 +95,7 @@ def YieldFromList(
           response message holding the maximum number of results to be
           returned. None if caller-specified batch size is unsupported.
           If a tuple, path to the attribute.
+      get_field_fn: lambda, A function that returns the items to be yielded.
 
     Yields:
       protorpc.message.Message, The resources listed by the service.
