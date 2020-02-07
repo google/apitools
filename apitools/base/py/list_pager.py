@@ -67,7 +67,8 @@ def YieldFromList(
         method='List', field='items', predicate=None,
         current_token_attribute='pageToken',
         next_token_attribute='nextPageToken',
-        batch_size_attribute='maxResults'):
+        batch_size_attribute='maxResults',
+        get_field_fn=_GetattrNested):
     """Make a series of List requests, keeping track of page tokens.
 
     Args:
@@ -116,7 +117,7 @@ def YieldFromList(
             _SetattrNested(request, batch_size_attribute, request_batch_size)
         response = getattr(service, method)(request,
                                             global_params=global_params)
-        items = _GetattrNested(response, field)
+        items = get_field_fn(response, field)
         if predicate:
             items = list(filter(predicate, items))
         for item in items:
