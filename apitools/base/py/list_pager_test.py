@@ -289,7 +289,7 @@ class ListPagerTest(unittest2.TestCase):
         client = fusiontables.FusiontablesV1(get_credentials=False)
         request = messages.FusiontablesColumnListRequest(tableId='mytable')
         results = list_pager.YieldFromList(
-            client.column, request, get_field_fn=Custom_Getter)
+            client.column, request, get_field_func=Custom_Getter)
 
         self._AssertInstanceSequence(results, 1)
         self.assertEquals(1, len(custom_getter_called))
