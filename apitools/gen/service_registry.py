@@ -218,6 +218,7 @@ class ServiceRegistry(object):
             printer()
             printer('MESSAGES_MODULE = messages')
             printer('BASE_URL = {0!r}'.format(client_info.base_url))
+            printer('MTLS_BASE_URL = {0!r}'.format(client_info.mtls_base_url))
             printer()
             printer('_PACKAGE = {0!r}'.format(client_info.package))
             printer('_SCOPES = {0!r}'.format(
