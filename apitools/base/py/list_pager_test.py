@@ -267,7 +267,7 @@ class ListPagerTest(unittest2.TestCase):
             client.column, request, predicate=lambda x: 'c' in x.name)
 
         self._AssertInstanceSequence(results, 3)
-    
+ 
     def testYieldFromListWithCustomGetFieldFunction(self):
         self.mocked_client.column.List.Expect(
             messages.FusiontablesColumnListRequest(
