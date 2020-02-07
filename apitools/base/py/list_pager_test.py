@@ -125,7 +125,8 @@ class ListPagerTest(unittest2.TestCase):
 
         client = fusiontables.FusiontablesV1(get_credentials=False)
         request = messages.FusiontablesColumnListRequest(tableId='mytable')
-        results = list_pager.YieldFromList(client.column, request, get_field_fn=Custom_Getter)
+        results = list_pager.YieldFromList(
+            client.column, request, get_field_fn=Custom_Getter)
 
         self._AssertInstanceSequence(results, 1)
         self.assertTrue(custom_getter_called)
