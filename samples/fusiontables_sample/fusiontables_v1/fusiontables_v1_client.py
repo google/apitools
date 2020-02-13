@@ -9,6 +9,7 @@ class FusiontablesV1(base_api.BaseApiClient):
 
   MESSAGES_MODULE = messages
   BASE_URL = u'https://www.googleapis.com/fusiontables/v1/'
+  MTLS_BASE_URL = u''
 
   _PACKAGE = u'fusiontables'
   _SCOPES = [u'https://www.googleapis.com/auth/fusiontables', u'https://www.googleapis.com/auth/fusiontables.readonly']

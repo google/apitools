@@ -174,9 +174,21 @@ def NormalizeVersion(version):
     return version.replace('.', '_')
 
 
-def _ComputePaths(package, version, discovery_doc):
-    full_path = urllib_parse.urljoin(
-        discovery_doc['rootUrl'], discovery_doc['servicePath'])
+def _ComputePaths(package, version, root_url, service_path):
+    """Compute the base url and base path.
+
+    Attributes:
+      package: name field of the discovery, i.e. 'storage' for storage service.
+      version: version of the service, i.e. 'v1'.
+      root_url: root url of the service, i.e. 'https://www.googleapis.com/'.
+      service_path: path of the service under the rool url, i.e. 'storage/v1/'.
+
+    Returns:
+      base url: string, base url of the service,
+        'https://www.googleapis.com/storage/v1/' for the storage service.
+      base path: string, common prefix of service endpoints after the base url.
+    """
+    full_path = urllib_parse.urljoin(root_url, service_path)
     api_path_component = '/'.join((package, version, ''))
     if api_path_component not in full_path:
         return full_path, ''
@@ -187,7 +199,7 @@ def _ComputePaths(package, version, discovery_doc):
 class ClientInfo(collections.namedtuple('ClientInfo', (
         'package', 'scopes', 'version', 'client_id', 'client_secret',
         'user_agent', 'client_class_name', 'url_version', 'api_key',
-        'base_url', 'base_path'))):
+        'base_url', 'base_path', 'mtls_base_url'))):
 
     """Container for client-related info and names."""
 
@@ -201,7 +213,15 @@ class ClientInfo(collections.namedtuple('ClientInfo', (
         package = discovery_doc['name']
         url_version = discovery_doc['version']
         base_url, base_path = _ComputePaths(package, url_version,
-                                            discovery_doc)
+                                            discovery_doc['rootUrl'],
+                                            discovery_doc['servicePath'])
+
+        mtls_root_url = discovery_doc.get('mtlsRootUrl', '')
+        mtls_base_url = ''
+        if mtls_root_url:
+            mtls_base_url, _ = _ComputePaths(package, url_version,
+                                             mtls_root_url,
+                                             discovery_doc['servicePath'])
 
         client_info = {
             'package': package,
@@ -214,6 +234,7 @@ class ClientInfo(collections.namedtuple('ClientInfo', (
             'api_key': api_key,
             'base_url': base_url,
             'base_path': base_path,
+            'mtls_base_url': mtls_base_url,
         }
         client_class_name = '%s%s' % (
             names.ClassName(client_info['package']),
