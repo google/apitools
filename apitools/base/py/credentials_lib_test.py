@@ -69,7 +69,7 @@ class CredentialsLibTest(unittest2.TestCase):
                 credentials = self._RunGceAssertionCredentials(
                     service_account_name=service_account_name,
                     scopes=scopes)
-            self.assertEqual(3, opener_mock.call_count)
+            self.assertEqual(2, opener_mock.call_count)
         return credentials
 
     def testGceServiceAccounts(self):
@@ -119,10 +119,10 @@ class CredentialsLibTest(unittest2.TestCase):
             finally:
                 shutil.rmtree(tempd)
         self.assertEqual(creds1.client_id, creds2.client_id)
-        self.assertEqual(pre_cache_call_count, 3)
+        self.assertEqual(pre_cache_call_count, 2)
         # Caching obviates the need for extra metadata server requests.
         # Only one metadata request is made if the cache is hit.
-        self.assertEqual(opener_mock.call_count, 4)
+        self.assertEqual(opener_mock.call_count, 3)
 
     def testGetServiceAccount(self):
         # We'd also like to test the metadata calls, which requires

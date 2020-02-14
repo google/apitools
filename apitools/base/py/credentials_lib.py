@@ -337,10 +337,6 @@ class GceAssertionCredentials(gce.AppAssertionCredentials):
         if not util.DetectGce():
             raise exceptions.ResourceUnavailableError(
                 'GCE credentials requested outside a GCE instance')
-        if not self.GetServiceAccount(self.__service_account_name):
-            raise exceptions.ResourceUnavailableError(
-                'GCE credentials requested but service account '
-                '%s does not exist.' % self.__service_account_name)
         if scopes:
             scope_ls = util.NormalizeScopes(scopes)
             instance_scopes = self.GetInstanceScopes()
