@@ -15,7 +15,7 @@
 
 """Tests for list_pager."""
 
-import unittest2
+import unittest
 
 from apitools.base.py import list_pager
 from apitools.base.py.testing import mock
@@ -34,7 +34,7 @@ class Example(object):
         self.c = 'ccc'
 
 
-class GetterSetterTest(unittest2.TestCase):
+class GetterSetterTest(unittest.TestCase):
 
     def testGetattrNested(self):
         o = Example()
@@ -53,7 +53,7 @@ class GetterSetterTest(unittest2.TestCase):
         self.assertEqual(o.c, 'CCC')
 
 
-class ListPagerTest(unittest2.TestCase):
+class ListPagerTest(unittest.TestCase):
 
     def _AssertInstanceSequence(self, results, n):
         counter = 0
@@ -295,7 +295,7 @@ class ListPagerTest(unittest2.TestCase):
         self.assertEquals(1, len(custom_getter_called))
 
 
-class ListPagerAttributeTest(unittest2.TestCase):
+class ListPagerAttributeTest(unittest.TestCase):
 
     def setUp(self):
         self.mocked_client = mock.Client(iam_client.IamV1)
