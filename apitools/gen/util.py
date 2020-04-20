@@ -93,7 +93,7 @@ class Names(object):
         name = re.sub('[^_A-Za-z0-9]', '_', name)
         if name[0].isdigit():
             name = '_%s' % name
-        while keyword.iskeyword(name):
+        while keyword.iskeyword(name) or name is 'exec':
             name = '%s_' % name
         # If we end up with __ as a prefix, we'll run afoul of python
         # field renaming, so we manually correct for it.
