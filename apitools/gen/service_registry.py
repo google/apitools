@@ -207,7 +207,7 @@ class ServiceRegistry(object):
         if self.__root_package:
             import_prefix = 'from {0} '.format(self.__root_package)
         else:
-            import_prefix = 'from . '
+            import_prefix = ''
         printer('%simport %s as messages', import_prefix,
                 client_info.messages_rule_name)
         printer()
