@@ -73,6 +73,8 @@ class ClientGenCliTest(unittest.TestCase):
             init_file = _GetContent(os.path.join(tmp_dir_path, '__init__.py'))
             self.assertEqual("""\"""Package marker file.\"""
 
+from __future__ import absolute_import
+
 import pkgutil
 
 __path__ = pkgutil.extend_path(__path__, __name__)
