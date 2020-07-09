@@ -64,5 +64,14 @@ class ClientGenerationTest(unittest.TestCase):
 
                 sys.path.insert(0, os.path.join(os.getcwd(), 'generated'))
                 # Ensure we can import the generated client.
+                client_file = '{}_{}_client.py'.format(*api.split('.'))
+                from itertools import islice
+                with open(os.path.join(os.getcwd(), 'generated', client_file)) as f:
+                    logging.info('client is: \n\n{}'.format(
+                        ''.join(list(islice(f, 20)))
+                    ))
                 importlib.import_module('{}_{}_client'.format(
                     *api.split('.')))
+
+if __name__ == '__main__':
+    unittest.main()
