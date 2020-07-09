@@ -66,6 +66,3 @@ class ClientGenerationTest(unittest.TestCase):
                 # Ensure we can import the generated client.
                 importlib.import_module('{}_{}_client'.format(
                     *api.split('.')))
-
-if __name__ == '__main__':
-    unittest.main()
