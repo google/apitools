@@ -19,7 +19,7 @@ class BigqueryV2(base_api.BaseApiClient):
   _VERSION = u'v2'
   _CLIENT_ID = None
   _CLIENT_SECRET = None
-  _USER_AGENT = None
+  _USER_AGENT = None 
   _CLIENT_CLASS_NAME = u'BigqueryV2'
   _URL_VERSION = u'v2'
   _API_KEY = None
