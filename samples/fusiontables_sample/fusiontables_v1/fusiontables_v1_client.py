@@ -17,9 +17,9 @@ class FusiontablesV1(base_api.BaseApiClient):
   _PACKAGE = u'fusiontables'
   _SCOPES = [u'https://www.googleapis.com/auth/fusiontables', u'https://www.googleapis.com/auth/fusiontables.readonly']
   _VERSION = u'v1'
-  _CLIENT_ID = '1042881264118.apps.googleusercontent.com'
-  _CLIENT_SECRET = 'x_Tw5K8nnjoRAqULM9PFAC2b'
-  _USER_AGENT = 'x_Tw5K8nnjoRAqULM9PFAC2b'
+  _CLIENT_ID = None
+  _CLIENT_SECRET = None
+  _USER_AGENT = None
   _CLIENT_CLASS_NAME = u'FusiontablesV1'
   _URL_VERSION = u'v1'
   _API_KEY = None
