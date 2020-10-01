@@ -374,14 +374,21 @@ class ProtojsonTest(test_util.TestCase,
                           MyMessage, '{"a_datetime": "invalid"}')
 
     def testDecodeInvalidMessage(self):
-        encoded = """{
-        "a_nested_datetime": {
-          "nested_dt_value": "invalid"
-          }
-        }
-        """
-        self.assertRaises(messages.DecodeError, protojson.decode_message,
-                          MyMessage, encoded)
+        for encoded in (
+                """{
+                  "a_nested_datetime": {
+                    "nested_dt_value": "invalid"
+                    }
+                  }
+                """,
+                """{
+                  "a_nested_datetime": [{
+                    "nested_dt_value": "2012-09-30T15:31:50.262"
+                    }]
+                  }
+                """):
+            self.assertRaises(messages.DecodeError, protojson.decode_message,
+                              MyMessage, encoded)
 
     def testEncodeDateTime(self):
         for datetime_string, datetime_vals in (
