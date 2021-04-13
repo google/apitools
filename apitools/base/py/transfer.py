@@ -560,6 +560,9 @@ if six.PY3:
                 return
             self.write(msg._payload)
 
+        def _encode(self, s):
+            return s.encode('ascii', 'surrogateescape')
+
         # Default body handler
         _writeBody = _handle_text
 
