@@ -182,6 +182,8 @@ class DateTimeTests(test_util.TestCase):
         """Test that a RFC 3339 datetime string is decoded properly."""
         for datetime_string, datetime_vals in (
                 ('2012-09-30T15:31:50.262', (2012, 9, 30, 15, 31, 50, 262000)),
+                ('2012-09-30T15:31:50.262343123',
+                 (2012, 9, 30, 15, 31, 50, 262343)),
                 ('2012-09-30T15:31:50', (2012, 9, 30, 15, 31, 50, 0))):
             decoded = util.decode_datetime(datetime_string)
             expected = datetime.datetime(*datetime_vals)
