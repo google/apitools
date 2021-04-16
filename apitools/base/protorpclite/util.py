@@ -20,6 +20,7 @@ from __future__ import with_statement
 import datetime
 import functools
 import inspect
+import logging
 import os
 import re
 import sys
@@ -271,9 +272,15 @@ def decode_datetime(encoded_datetime):
         if '.' in time_string:
             datetime_string, decimal_secs = time_string.split('.')
             if len(decimal_secs) > 6:
+                # datetime can handle only microsecs precision.
+                truncated_time_string = '{}.{}'.format(
+                    datetime_string, decimal_secs[:6])
                 decoded_datetime = datetime.datetime.strptime(
-                    '{}.{}'.format(datetime_string, decimal_secs[:6]),
+                    truncated_time_string,
                     format_string)
+                logging.warning(
+                    'Truncating the datetime string from %s to %s',
+                    time_string, truncated_time_string)
             else:
                 raise
         else:
