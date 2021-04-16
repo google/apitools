@@ -264,7 +264,20 @@ def decode_datetime(encoded_datetime):
     else:
         format_string = '%Y-%m-%dT%H:%M:%S'
 
-    decoded_datetime = datetime.datetime.strptime(time_string, format_string)
+    try:
+        decoded_datetime = datetime.datetime.strptime(time_string,
+                                                      format_string)
+    except ValueError:
+        if '.' in time_string:
+            datetime_string, decimal_secs = time_string.split('.')
+            if len(decimal_secs) > 6:
+                decoded_datetime = datetime.datetime.strptime(
+                    '{}.{}'.format(datetime_string, decimal_secs[:6]),
+                    format_string)
+            else:
+                raise
+        else:
+            raise
 
     if not time_zone_match:
         return decoded_datetime
