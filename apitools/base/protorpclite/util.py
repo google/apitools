@@ -239,11 +239,13 @@ class TimeZoneOffset(datetime.tzinfo):
         return datetime.timedelta(0)
 
 
-def decode_datetime(encoded_datetime):
+def decode_datetime(encoded_datetime, truncate_time=False):
     """Decode a DateTimeField parameter from a string to a python datetime.
 
     Args:
       encoded_datetime: A string in RFC 3339 format.
+      truncate_time: If true, truncate time string with precision higher than
+          microsecs.
 
     Returns:
       A datetime object with the date and time specified in encoded_datetime.
@@ -269,7 +271,7 @@ def decode_datetime(encoded_datetime):
         decoded_datetime = datetime.datetime.strptime(time_string,
                                                       format_string)
     except ValueError:
-        if '.' in time_string:
+        if truncate_time and '.' in time_string:
             datetime_string, decimal_secs = time_string.split('.')
             if len(decimal_secs) > 6:
                 # datetime can handle only microsecs precision.

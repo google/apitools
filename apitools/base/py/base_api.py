@@ -443,7 +443,7 @@ class BaseApiClient(object):
     def DeserializeMessage(self, response_type, data):
         """Deserialize the given data as method_config.response_type."""
         try:
-            message = encoding.JsonToMessage(response_type, data)
+            message = encoding.JsonToMessage(response_type, data  )
         except (exceptions.InvalidDataFromServerError,
                 messages.ValidationError, ValueError) as e:
             raise exceptions.InvalidDataFromServerError(
