@@ -19,6 +19,7 @@ import string
 import unittest
 
 import httplib2
+import json
 import mock
 import six
 from six.moves import http_client
@@ -242,6 +243,21 @@ class TransferTest(unittest.TestCase):
             download_stream.seek(0)
             self.assertEqual(string.ascii_lowercase + string.ascii_uppercase,
                              download_stream.getvalue())
+
+    # @mock.patch.object(transfer.Upload, 'RefreshResumableUploadState',
+    #                    new=mock.Mock())
+    def testFinalizesTransferUrlIfClientPresent(self):
+        """Tests download's enforcement of client custom endpoints."""
+        mock_client = mock.Mock()
+        fake_json_data = json.dumps({
+            'auto_transfer': False,
+            'progress': 0,
+            'total_size': 0,
+            'url': 'url',
+        })
+        transfer.Download.FromData(six.BytesIO(), fake_json_data,
+                                   client=mock_client)
+        mock_client.FinalizeTransferUrl.assert_called_once_with('url')
 
     def testMultipartEncoding(self):
         # This is really a table test for various issues we've seen in
@@ -574,3 +590,19 @@ class UploadTest(unittest.TestCase):
 
             # Ensure the mock was called the correct number of times.
             self.assertEquals(make_request.call_count, len(responses))
+
+    @mock.patch.object(transfer.Upload, 'RefreshResumableUploadState',
+                       new=mock.Mock())
+    def testFinalizesTransferUrlIfClientPresent(self):
+        """Tests upload's enforcement of client custom endpoints."""
+        mock_client = mock.Mock()
+        mock_http = mock.Mock()
+        fake_json_data = json.dumps({
+            'auto_transfer': False,
+            'mime_type': '',
+            'total_size': 0,
+            'url': 'url',
+        })
+        transfer.Upload.FromData(self.sample_stream, fake_json_data, mock_http,
+                                 client=mock_client)
+        mock_client.FinalizeTransferUrl.assert_called_once_with('url')
