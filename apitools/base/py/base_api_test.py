@@ -329,6 +329,15 @@ class BaseApiTest(unittest.TestCase):
         self.assertEqual('http://www.example.com/path:withJustColon',
                          http_request.url)
 
+    def testOverwritesTransferUrlBase(self):
+        client = self.__GetFakeClient()
+        client.overwrite_transfer_urls_with_client_base = True
+        client._url = 'http://custom.p.googleapis.com/'
+        observed = client.FinalizeTransferUrl(
+            'http://normal.googleapis.com/path')
+        expected = 'http://custom.p.googleapis.com/path'
+        self.assertEqual(observed, expected)
+
 
 if __name__ == '__main__':
     unittest.main()
