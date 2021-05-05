@@ -30,7 +30,6 @@ except ImportError:
 REQUIRED_PACKAGES = [
     'httplib2>=0.8',
     'fasteners>=0.14',
-    'rsa<=4.0; python_version < "3.5"',
     'oauth2client>=1.4.12',
     'six>=1.12.0',
     ]
