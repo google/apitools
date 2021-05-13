@@ -440,7 +440,7 @@ class ProtojsonTest(test_util.TestCase,
         """Test decoding improperly encoded base64 bytes value."""
         self.assertRaisesWithRegexpMatch(
             messages.DecodeError,
-            'Base64 decoding error: Incorrect padding',
+            'Base64 decoding error',
             protojson.decode_message,
             test_util.OptionalMessage,
             '{"bytes_value": "abcdefghijklmnopq"}')
