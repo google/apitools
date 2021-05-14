@@ -27,7 +27,6 @@ except ImportError:
 
 # Configure the required packages and scripts to install, depending on
 # Python version and OS.
-# Adding a comment just to trigger the travis build
 REQUIRED_PACKAGES = [
     'httplib2>=0.8',
     'fasteners>=0.14',
