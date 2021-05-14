@@ -27,6 +27,7 @@ except ImportError:
 
 # Configure the required packages and scripts to install, depending on
 # Python version and OS.
+# Adding a comment just to trigger the travis build
 REQUIRED_PACKAGES = [
     'rsa<=4.0; python_version < "3.5"',
     'httplib2>=0.8',
