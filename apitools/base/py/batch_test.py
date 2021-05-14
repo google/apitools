@@ -357,7 +357,7 @@ class BatchTest(unittest.TestCase):
         self._DoTestConvertIdToHeader('blah', '<%s+blah>')
 
     def testConvertIdThatNeedsEscaping(self):
-        self._DoTestConvertIdToHeader('~tilde1', '<%s+%%7Etilde1>')
+        self._DoTestConvertIdToHeader(' space1', '<%s+%%20space1>')
 
     def _DoTestConvertHeaderToId(self, header, expected_id):
         batch_request = batch.BatchHttpRequest('https://www.example.com')
