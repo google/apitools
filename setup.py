@@ -28,7 +28,6 @@ except ImportError:
 # Configure the required packages and scripts to install, depending on
 # Python version and OS.
 REQUIRED_PACKAGES = [
-    'rsa<=4.0; python_version < "3.5"',
     'httplib2>=0.8',
     'fasteners>=0.14',
     'oauth2client>=1.4.12',
