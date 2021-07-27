@@ -1139,12 +1139,14 @@ class FieldList(list):
 
     def append(self, value):
         """Validate item appending to list."""
-        self.__field.validate_element(value)
+        if getattr(self, '_FieldList__field', None):
+            self.__field.validate_element(value)
         return list.append(self, value)
 
     def extend(self, sequence):
         """Validate extension of list."""
-        self.__field.validate(sequence)
+        if getattr(self, '_FieldList__field', None):
+            self.__field.validate(sequence)
         return list.extend(self, sequence)
 
     def insert(self, index, value):
