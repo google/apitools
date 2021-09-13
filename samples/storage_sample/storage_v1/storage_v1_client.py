@@ -17,9 +17,9 @@ class StorageV1(base_api.BaseApiClient):
   _PACKAGE = u'storage'
   _SCOPES = [u'https://www.googleapis.com/auth/cloud-platform', u'https://www.googleapis.com/auth/cloud-platform.read-only', u'https://www.googleapis.com/auth/devstorage.full_control', u'https://www.googleapis.com/auth/devstorage.read_only', u'https://www.googleapis.com/auth/devstorage.read_write']
   _VERSION = u'v1'
-  _CLIENT_ID = '1042881264118.apps.googleusercontent.com'
-  _CLIENT_SECRET = 'x_Tw5K8nnjoRAqULM9PFAC2b'
-  _USER_AGENT = 'x_Tw5K8nnjoRAqULM9PFAC2b'
+  _CLIENT_ID = None
+  _CLIENT_SECRET = None
+  _USER_AGENT = None
   _CLIENT_CLASS_NAME = u'StorageV1'
   _URL_VERSION = u'v1'
   _API_KEY = None
