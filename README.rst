@@ -1,3 +1,5 @@
+**DEPRECATED - Please see alternatives below**
+
 google-apitools
 ===============
 
@@ -6,9 +8,14 @@ google-apitools
 ``google-apitools`` is a collection of utilities to make it easier to build
 client-side tools, especially those that talk to Google APIs.
 
-**NOTE**: This library is stable, but in maintenance mode, and not under
-active development. However, any bugs or security issues will be fixed
-promptly.
+**NOTE**: This library is deprecated and unsupported. Please read below for suggested alternatives.
+
+Alternatives to apitools
+-----------------------
+For the official Cloud client libraries used to communicating with Google Cloud APIs, go to https://cloud.google.com/apis/docs/cloud-client-libraries.
+
+To generate Python API client libraries for APIs specified by protos, such as those inside Google, see https://github.com/googleapis/gapic-generator-python. 
+API client library generators for other languages can be found in https://github.com/googleapis.
 
 Installing as a library
 -----------------------
