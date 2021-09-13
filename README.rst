@@ -1,4 +1,4 @@
-DEPRECATED - 
+**DEPRECATED - Please see alternatives below**
 
 google-apitools
 ===============
