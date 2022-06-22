@@ -355,7 +355,7 @@ class ServiceRegistry(object):
             config.max_size = self.__MaxSizeToInt(
                 media_upload_config['maxSize'])
         if 'accept' not in media_upload_config:
-            logging.warn(
+            logging.warning(
                 'No accept types found for upload configuration in '
                 'method %s, using */*', method_id)
         config.accept.extend([
@@ -363,7 +363,7 @@ class ServiceRegistry(object):
 
         for accept_pattern in config.accept:
             if not _MIME_PATTERN_RE.match(accept_pattern):
-                logging.warn('Unexpected MIME type: %s', accept_pattern)
+                logging.warning('Unexpected MIME type: %s', accept_pattern)
         protocols = media_upload_config.get('protocols', {})
         for protocol in ('simple', 'resumable'):
             media = protocols.get(protocol, {})
