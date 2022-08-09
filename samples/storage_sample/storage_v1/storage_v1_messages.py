@@ -205,7 +205,7 @@ class Bucket(_messages.Message):
   defaultObjectAcl = _messages.MessageField('ObjectAccessControl', 3, repeated=True)
   etag = _messages.StringField(4)
   id = _messages.StringField(5)
-  kind = _messages.StringField(6, default=u'storage#bucket')
+  kind = _messages.StringField(6, default='storage#bucket')
   lifecycle = _messages.MessageField('LifecycleValue', 7)
   location = _messages.StringField(8)
   logging = _messages.MessageField('LoggingValue', 9)
@@ -267,7 +267,7 @@ class BucketAccessControl(_messages.Message):
   entityId = _messages.StringField(5)
   etag = _messages.StringField(6)
   id = _messages.StringField(7)
-  kind = _messages.StringField(8, default=u'storage#bucketAccessControl')
+  kind = _messages.StringField(8, default='storage#bucketAccessControl')
   projectTeam = _messages.MessageField('ProjectTeamValue', 9)
   role = _messages.StringField(10)
   selfLink = _messages.StringField(11)
@@ -283,7 +283,7 @@ class BucketAccessControls(_messages.Message):
   """
 
   items = _messages.MessageField('BucketAccessControl', 1, repeated=True)
-  kind = _messages.StringField(2, default=u'storage#bucketAccessControls')
+  kind = _messages.StringField(2, default='storage#bucketAccessControls')
 
 
 class Buckets(_messages.Message):
@@ -299,7 +299,7 @@ class Buckets(_messages.Message):
   """
 
   items = _messages.MessageField('Bucket', 1, repeated=True)
-  kind = _messages.StringField(2, default=u'storage#buckets')
+  kind = _messages.StringField(2, default='storage#buckets')
   nextPageToken = _messages.StringField(3)
 
 
@@ -355,7 +355,7 @@ class Channel(_messages.Message):
   address = _messages.StringField(1)
   expiration = _messages.IntegerField(2)
   id = _messages.StringField(3)
-  kind = _messages.StringField(4, default=u'api#channel')
+  kind = _messages.StringField(4, default='api#channel')
   params = _messages.MessageField('ParamsValue', 5)
   payload = _messages.BooleanField(6)
   resourceId = _messages.StringField(7)
@@ -409,7 +409,7 @@ class ComposeRequest(_messages.Message):
     objectPreconditions = _messages.MessageField('ObjectPreconditionsValue', 3)
 
   destination = _messages.MessageField('Object', 1)
-  kind = _messages.StringField(2, default=u'storage#composeRequest')
+  kind = _messages.StringField(2, default='storage#composeRequest')
   sourceObjects = _messages.MessageField('SourceObjectsValueListEntry', 3, repeated=True)
 
 
@@ -475,10 +475,10 @@ class Notification(_messages.Message):
   etag = _messages.StringField(3)
   event_types = _messages.StringField(4, repeated=True)
   id = _messages.StringField(5)
-  kind = _messages.StringField(6, default=u'storage#notification')
-  object_metadata_format = _messages.StringField(7, default=u'JSON_API_V1')
+  kind = _messages.StringField(6, default='storage#notification')
+  object_metadata_format = _messages.StringField(7, default='JSON_API_V1')
   object_name_prefix = _messages.StringField(8)
-  payload_content = _messages.StringField(9, default=u'OBJECT_METADATA')
+  payload_content = _messages.StringField(9, default='OBJECT_METADATA')
   selfLink = _messages.StringField(10)
   topic = _messages.StringField(11)
 
@@ -493,7 +493,7 @@ class Notifications(_messages.Message):
   """
 
   items = _messages.MessageField('Notification', 1, repeated=True)
-  kind = _messages.StringField(2, default=u'storage#notifications')
+  kind = _messages.StringField(2, default='storage#notifications')
 
 
 class Object(_messages.Message):
@@ -609,7 +609,7 @@ class Object(_messages.Message):
   etag = _messages.StringField(11)
   generation = _messages.IntegerField(12)
   id = _messages.StringField(13)
-  kind = _messages.StringField(14, default=u'storage#object')
+  kind = _messages.StringField(14, default='storage#object')
   md5Hash = _messages.StringField(15)
   mediaLink = _messages.StringField(16)
   metadata = _messages.MessageField('MetadataValue', 17)
@@ -672,7 +672,7 @@ class ObjectAccessControl(_messages.Message):
   etag = _messages.StringField(6)
   generation = _messages.IntegerField(7)
   id = _messages.StringField(8)
-  kind = _messages.StringField(9, default=u'storage#objectAccessControl')
+  kind = _messages.StringField(9, default='storage#objectAccessControl')
   object = _messages.StringField(10)
   projectTeam = _messages.MessageField('ProjectTeamValue', 11)
   role = _messages.StringField(12)
@@ -689,7 +689,7 @@ class ObjectAccessControls(_messages.Message):
   """
 
   items = _messages.MessageField('extra_types.JsonValue', 1, repeated=True)
-  kind = _messages.StringField(2, default=u'storage#objectAccessControls')
+  kind = _messages.StringField(2, default='storage#objectAccessControls')
 
 
 class Objects(_messages.Message):
@@ -707,7 +707,7 @@ class Objects(_messages.Message):
   """
 
   items = _messages.MessageField('Object', 1, repeated=True)
-  kind = _messages.StringField(2, default=u'storage#objects')
+  kind = _messages.StringField(2, default='storage#objects')
   nextPageToken = _messages.StringField(3)
   prefixes = _messages.StringField(4, repeated=True)
 
@@ -784,7 +784,7 @@ class Policy(_messages.Message):
 
   bindings = _messages.MessageField('BindingsValueListEntry', 1, repeated=True)
   etag = _messages.BytesField(2)
-  kind = _messages.StringField(3, default=u'storage#policy')
+  kind = _messages.StringField(3, default='storage#policy')
   resourceId = _messages.StringField(4)
 
 
@@ -808,7 +808,7 @@ class RewriteResponse(_messages.Message):
   """
 
   done = _messages.BooleanField(1)
-  kind = _messages.StringField(2, default=u'storage#rewriteResponse')
+  kind = _messages.StringField(2, default='storage#rewriteResponse')
   objectSize = _messages.IntegerField(3, variant=_messages.Variant.UINT64)
   resource = _messages.MessageField('Object', 4)
   rewriteToken = _messages.StringField(5)
@@ -846,7 +846,7 @@ class StandardQueryParameters(_messages.Message):
     """
     json = 0
 
-  alt = _messages.EnumField('AltValueValuesEnum', 1, default=u'json')
+  alt = _messages.EnumField('AltValueValuesEnum', 1, default='json')
   fields = _messages.StringField(2)
   key = _messages.StringField(3)
   oauth_token = _messages.StringField(4)
@@ -2215,7 +2215,7 @@ class TestIamPermissionsResponse(_messages.Message):
       - storage.objects.update - Update object metadata.
   """
 
-  kind = _messages.StringField(1, default=u'storage#testIamPermissionsResponse')
+  kind = _messages.StringField(1, default='storage#testIamPermissionsResponse')
   permissions = _messages.StringField(2, repeated=True)
 
 

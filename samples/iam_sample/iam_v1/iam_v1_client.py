@@ -11,17 +11,17 @@ class IamV1(base_api.BaseApiClient):
   """Generated client library for service iam version v1."""
 
   MESSAGES_MODULE = messages
-  BASE_URL = u'https://iam.googleapis.com/'
-  MTLS_BASE_URL = u''
+  BASE_URL = 'https://iam.googleapis.com/'
+  MTLS_BASE_URL = ''
 
-  _PACKAGE = u'iam'
-  _SCOPES = [u'https://www.googleapis.com/auth/cloud-platform']
-  _VERSION = u'v1'
-  _CLIENT_ID = '1042881264118.apps.googleusercontent.com'
-  _CLIENT_SECRET = 'x_Tw5K8nnjoRAqULM9PFAC2b'
+  _PACKAGE = 'iam'
+  _SCOPES = ['https://www.googleapis.com/auth/cloud-platform']
+  _VERSION = 'v1'
+  _CLIENT_ID = 'CLIENT_ID'
+  _CLIENT_SECRET = 'CLIENT_SECRET'
   _USER_AGENT = 'x_Tw5K8nnjoRAqULM9PFAC2b'
-  _CLIENT_CLASS_NAME = u'IamV1'
-  _URL_VERSION = u'v1'
+  _CLIENT_CLASS_NAME = 'IamV1'
+  _URL_VERSION = 'v1'
   _API_KEY = None
 
   def __init__(self, url='', credentials=None,
@@ -48,7 +48,7 @@ class IamV1(base_api.BaseApiClient):
   class IamPoliciesService(base_api.BaseApiService):
     """Service class for the iamPolicies resource."""
 
-    _NAME = u'iamPolicies'
+    _NAME = 'iamPolicies'
 
     def __init__(self, client):
       super(IamV1.IamPoliciesService, self).__init__(client)
@@ -70,22 +70,22 @@ that the user has access to.
           config, request, global_params=global_params)
 
     GetPolicyDetails.method_config = lambda: base_api.ApiMethodInfo(
-        http_method=u'POST',
-        method_id=u'iam.iamPolicies.getPolicyDetails',
+        http_method='POST',
+        method_id='iam.iamPolicies.getPolicyDetails',
         ordered_params=[],
         path_params=[],
         query_params=[],
-        relative_path=u'v1/iamPolicies:getPolicyDetails',
+        relative_path='v1/iamPolicies:getPolicyDetails',
         request_field='<request>',
-        request_type_name=u'GetPolicyDetailsRequest',
-        response_type_name=u'GetPolicyDetailsResponse',
+        request_type_name='GetPolicyDetailsRequest',
+        response_type_name='GetPolicyDetailsResponse',
         supports_download=False,
     )
 
   class ProjectsServiceAccountsKeysService(base_api.BaseApiService):
     """Service class for the projects_serviceAccounts_keys resource."""
 
-    _NAME = u'projects_serviceAccounts_keys'
+    _NAME = 'projects_serviceAccounts_keys'
 
     def __init__(self, client):
       super(IamV1.ProjectsServiceAccountsKeysService, self).__init__(client)
@@ -107,16 +107,16 @@ and returns it.
           config, request, global_params=global_params)
 
     Create.method_config = lambda: base_api.ApiMethodInfo(
-        flat_path=u'v1/projects/{projectsId}/serviceAccounts/{serviceAccountsId}/keys',
-        http_method=u'POST',
-        method_id=u'iam.projects.serviceAccounts.keys.create',
-        ordered_params=[u'name'],
-        path_params=[u'name'],
+        flat_path='v1/projects/{projectsId}/serviceAccounts/{serviceAccountsId}/keys',
+        http_method='POST',
+        method_id='iam.projects.serviceAccounts.keys.create',
+        ordered_params=['name'],
+        path_params=['name'],
         query_params=[],
-        relative_path=u'v1/{+name}/keys',
-        request_field=u'createServiceAccountKeyRequest',
-        request_type_name=u'IamProjectsServiceAccountsKeysCreateRequest',
-        response_type_name=u'ServiceAccountKey',
+        relative_path='v1/{+name}/keys',
+        request_field='createServiceAccountKeyRequest',
+        request_type_name='IamProjectsServiceAccountsKeysCreateRequest',
+        response_type_name='ServiceAccountKey',
         supports_download=False,
     )
 
@@ -134,16 +134,16 @@ and returns it.
           config, request, global_params=global_params)
 
     Delete.method_config = lambda: base_api.ApiMethodInfo(
-        flat_path=u'v1/projects/{projectsId}/serviceAccounts/{serviceAccountsId}/keys/{keysId}',
-        http_method=u'DELETE',
-        method_id=u'iam.projects.serviceAccounts.keys.delete',
-        ordered_params=[u'name'],
-        path_params=[u'name'],
+        flat_path='v1/projects/{projectsId}/serviceAccounts/{serviceAccountsId}/keys/{keysId}',
+        http_method='DELETE',
+        method_id='iam.projects.serviceAccounts.keys.delete',
+        ordered_params=['name'],
+        path_params=['name'],
         query_params=[],
-        relative_path=u'v1/{+name}',
+        relative_path='v1/{+name}',
         request_field='',
-        request_type_name=u'IamProjectsServiceAccountsKeysDeleteRequest',
-        response_type_name=u'Empty',
+        request_type_name='IamProjectsServiceAccountsKeysDeleteRequest',
+        response_type_name='Empty',
         supports_download=False,
     )
 
@@ -162,16 +162,16 @@ by key id.
           config, request, global_params=global_params)
 
     Get.method_config = lambda: base_api.ApiMethodInfo(
-        flat_path=u'v1/projects/{projectsId}/serviceAccounts/{serviceAccountsId}/keys/{keysId}',
-        http_method=u'GET',
-        method_id=u'iam.projects.serviceAccounts.keys.get',
-        ordered_params=[u'name'],
-        path_params=[u'name'],
-        query_params=[u'publicKeyType'],
-        relative_path=u'v1/{+name}',
+        flat_path='v1/projects/{projectsId}/serviceAccounts/{serviceAccountsId}/keys/{keysId}',
+        http_method='GET',
+        method_id='iam.projects.serviceAccounts.keys.get',
+        ordered_params=['name'],
+        path_params=['name'],
+        query_params=['publicKeyType'],
+        relative_path='v1/{+name}',
         request_field='',
-        request_type_name=u'IamProjectsServiceAccountsKeysGetRequest',
-        response_type_name=u'ServiceAccountKey',
+        request_type_name='IamProjectsServiceAccountsKeysGetRequest',
+        response_type_name='ServiceAccountKey',
         supports_download=False,
     )
 
@@ -189,23 +189,23 @@ by key id.
           config, request, global_params=global_params)
 
     List.method_config = lambda: base_api.ApiMethodInfo(
-        flat_path=u'v1/projects/{projectsId}/serviceAccounts/{serviceAccountsId}/keys',
-        http_method=u'GET',
-        method_id=u'iam.projects.serviceAccounts.keys.list',
-        ordered_params=[u'name'],
-        path_params=[u'name'],
-        query_params=[u'keyTypes'],
-        relative_path=u'v1/{+name}/keys',
+        flat_path='v1/projects/{projectsId}/serviceAccounts/{serviceAccountsId}/keys',
+        http_method='GET',
+        method_id='iam.projects.serviceAccounts.keys.list',
+        ordered_params=['name'],
+        path_params=['name'],
+        query_params=['keyTypes'],
+        relative_path='v1/{+name}/keys',
         request_field='',
-        request_type_name=u'IamProjectsServiceAccountsKeysListRequest',
-        response_type_name=u'ListServiceAccountKeysResponse',
+        request_type_name='IamProjectsServiceAccountsKeysListRequest',
+        response_type_name='ListServiceAccountKeysResponse',
         supports_download=False,
     )
 
   class ProjectsServiceAccountsService(base_api.BaseApiService):
     """Service class for the projects_serviceAccounts resource."""
 
-    _NAME = u'projects_serviceAccounts'
+    _NAME = 'projects_serviceAccounts'
 
     def __init__(self, client):
       super(IamV1.ProjectsServiceAccountsService, self).__init__(client)
@@ -227,16 +227,16 @@ and returns it.
           config, request, global_params=global_params)
 
     Create.method_config = lambda: base_api.ApiMethodInfo(
-        flat_path=u'v1/projects/{projectsId}/serviceAccounts',
-        http_method=u'POST',
-        method_id=u'iam.projects.serviceAccounts.create',
-        ordered_params=[u'name'],
-        path_params=[u'name'],
+        flat_path='v1/projects/{projectsId}/serviceAccounts',
+        http_method='POST',
+        method_id='iam.projects.serviceAccounts.create',
+        ordered_params=['name'],
+        path_params=['name'],
         query_params=[],
-        relative_path=u'v1/{+name}/serviceAccounts',
-        request_field=u'createServiceAccountRequest',
-        request_type_name=u'IamProjectsServiceAccountsCreateRequest',
-        response_type_name=u'ServiceAccount',
+        relative_path='v1/{+name}/serviceAccounts',
+        request_field='createServiceAccountRequest',
+        request_type_name='IamProjectsServiceAccountsCreateRequest',
+        response_type_name='ServiceAccount',
         supports_download=False,
     )
 
@@ -254,16 +254,16 @@ and returns it.
           config, request, global_params=global_params)
 
     Delete.method_config = lambda: base_api.ApiMethodInfo(
-        flat_path=u'v1/projects/{projectsId}/serviceAccounts/{serviceAccountsId}',
-        http_method=u'DELETE',
-        method_id=u'iam.projects.serviceAccounts.delete',
-        ordered_params=[u'name'],
-        path_params=[u'name'],
+        flat_path='v1/projects/{projectsId}/serviceAccounts/{serviceAccountsId}',
+        http_method='DELETE',
+        method_id='iam.projects.serviceAccounts.delete',
+        ordered_params=['name'],
+        path_params=['name'],
         query_params=[],
-        relative_path=u'v1/{+name}',
+        relative_path='v1/{+name}',
         request_field='',
-        request_type_name=u'IamProjectsServiceAccountsDeleteRequest',
-        response_type_name=u'Empty',
+        request_type_name='IamProjectsServiceAccountsDeleteRequest',
+        response_type_name='Empty',
         supports_download=False,
     )
 
@@ -281,16 +281,16 @@ and returns it.
           config, request, global_params=global_params)
 
     Get.method_config = lambda: base_api.ApiMethodInfo(
-        flat_path=u'v1/projects/{projectsId}/serviceAccounts/{serviceAccountsId}',
-        http_method=u'GET',
-        method_id=u'iam.projects.serviceAccounts.get',
-        ordered_params=[u'name'],
-        path_params=[u'name'],
+        flat_path='v1/projects/{projectsId}/serviceAccounts/{serviceAccountsId}',
+        http_method='GET',
+        method_id='iam.projects.serviceAccounts.get',
+        ordered_params=['name'],
+        path_params=['name'],
         query_params=[],
-        relative_path=u'v1/{+name}',
+        relative_path='v1/{+name}',
         request_field='',
-        request_type_name=u'IamProjectsServiceAccountsGetRequest',
-        response_type_name=u'ServiceAccount',
+        request_type_name='IamProjectsServiceAccountsGetRequest',
+        response_type_name='ServiceAccount',
         supports_download=False,
     )
 
@@ -308,16 +308,16 @@ and returns it.
           config, request, global_params=global_params)
 
     GetIamPolicy.method_config = lambda: base_api.ApiMethodInfo(
-        flat_path=u'v1/projects/{projectsId}/serviceAccounts/{serviceAccountsId}:getIamPolicy',
-        http_method=u'POST',
-        method_id=u'iam.projects.serviceAccounts.getIamPolicy',
-        ordered_params=[u'resource'],
-        path_params=[u'resource'],
+        flat_path='v1/projects/{projectsId}/serviceAccounts/{serviceAccountsId}:getIamPolicy',
+        http_method='POST',
+        method_id='iam.projects.serviceAccounts.getIamPolicy',
+        ordered_params=['resource'],
+        path_params=['resource'],
         query_params=[],
-        relative_path=u'v1/{+resource}:getIamPolicy',
+        relative_path='v1/{+resource}:getIamPolicy',
         request_field='',
-        request_type_name=u'IamProjectsServiceAccountsGetIamPolicyRequest',
-        response_type_name=u'Policy',
+        request_type_name='IamProjectsServiceAccountsGetIamPolicyRequest',
+        response_type_name='Policy',
         supports_download=False,
     )
 
@@ -335,16 +335,16 @@ and returns it.
           config, request, global_params=global_params)
 
     List.method_config = lambda: base_api.ApiMethodInfo(
-        flat_path=u'v1/projects/{projectsId}/serviceAccounts',
-        http_method=u'GET',
-        method_id=u'iam.projects.serviceAccounts.list',
-        ordered_params=[u'name'],
-        path_params=[u'name'],
-        query_params=[u'pageSize', u'pageToken', u'removeDeletedServiceAccounts'],
-        relative_path=u'v1/{+name}/serviceAccounts',
+        flat_path='v1/projects/{projectsId}/serviceAccounts',
+        http_method='GET',
+        method_id='iam.projects.serviceAccounts.list',
+        ordered_params=['name'],
+        path_params=['name'],
+        query_params=['pageSize', 'pageToken', 'removeDeletedServiceAccounts'],
+        relative_path='v1/{+name}/serviceAccounts',
         request_field='',
-        request_type_name=u'IamProjectsServiceAccountsListRequest',
-        response_type_name=u'ListServiceAccountsResponse',
+        request_type_name='IamProjectsServiceAccountsListRequest',
+        response_type_name='ListServiceAccountsResponse',
         supports_download=False,
     )
 
@@ -362,16 +362,16 @@ and returns it.
           config, request, global_params=global_params)
 
     SetIamPolicy.method_config = lambda: base_api.ApiMethodInfo(
-        flat_path=u'v1/projects/{projectsId}/serviceAccounts/{serviceAccountsId}:setIamPolicy',
-        http_method=u'POST',
-        method_id=u'iam.projects.serviceAccounts.setIamPolicy',
-        ordered_params=[u'resource'],
-        path_params=[u'resource'],
+        flat_path='v1/projects/{projectsId}/serviceAccounts/{serviceAccountsId}:setIamPolicy',
+        http_method='POST',
+        method_id='iam.projects.serviceAccounts.setIamPolicy',
+        ordered_params=['resource'],
+        path_params=['resource'],
         query_params=[],
-        relative_path=u'v1/{+resource}:setIamPolicy',
-        request_field=u'setIamPolicyRequest',
-        request_type_name=u'IamProjectsServiceAccountsSetIamPolicyRequest',
-        response_type_name=u'Policy',
+        relative_path='v1/{+resource}:setIamPolicy',
+        request_field='setIamPolicyRequest',
+        request_type_name='IamProjectsServiceAccountsSetIamPolicyRequest',
+        response_type_name='Policy',
         supports_download=False,
     )
 
@@ -389,16 +389,16 @@ and returns it.
           config, request, global_params=global_params)
 
     SignBlob.method_config = lambda: base_api.ApiMethodInfo(
-        flat_path=u'v1/projects/{projectsId}/serviceAccounts/{serviceAccountsId}:signBlob',
-        http_method=u'POST',
-        method_id=u'iam.projects.serviceAccounts.signBlob',
-        ordered_params=[u'name'],
-        path_params=[u'name'],
+        flat_path='v1/projects/{projectsId}/serviceAccounts/{serviceAccountsId}:signBlob',
+        http_method='POST',
+        method_id='iam.projects.serviceAccounts.signBlob',
+        ordered_params=['name'],
+        path_params=['name'],
         query_params=[],
-        relative_path=u'v1/{+name}:signBlob',
-        request_field=u'signBlobRequest',
-        request_type_name=u'IamProjectsServiceAccountsSignBlobRequest',
-        response_type_name=u'SignBlobResponse',
+        relative_path='v1/{+name}:signBlob',
+        request_field='signBlobRequest',
+        request_type_name='IamProjectsServiceAccountsSignBlobRequest',
+        response_type_name='SignBlobResponse',
         supports_download=False,
     )
 
@@ -421,16 +421,16 @@ will fail.
           config, request, global_params=global_params)
 
     SignJwt.method_config = lambda: base_api.ApiMethodInfo(
-        flat_path=u'v1/projects/{projectsId}/serviceAccounts/{serviceAccountsId}:signJwt',
-        http_method=u'POST',
-        method_id=u'iam.projects.serviceAccounts.signJwt',
-        ordered_params=[u'name'],
-        path_params=[u'name'],
+        flat_path='v1/projects/{projectsId}/serviceAccounts/{serviceAccountsId}:signJwt',
+        http_method='POST',
+        method_id='iam.projects.serviceAccounts.signJwt',
+        ordered_params=['name'],
+        path_params=['name'],
         query_params=[],
-        relative_path=u'v1/{+name}:signJwt',
-        request_field=u'signJwtRequest',
-        request_type_name=u'IamProjectsServiceAccountsSignJwtRequest',
-        response_type_name=u'SignJwtResponse',
+        relative_path='v1/{+name}:signJwt',
+        request_field='signJwtRequest',
+        request_type_name='IamProjectsServiceAccountsSignJwtRequest',
+        response_type_name='SignJwtResponse',
         supports_download=False,
     )
 
@@ -449,16 +449,16 @@ for the specified IAM resource.
           config, request, global_params=global_params)
 
     TestIamPermissions.method_config = lambda: base_api.ApiMethodInfo(
-        flat_path=u'v1/projects/{projectsId}/serviceAccounts/{serviceAccountsId}:testIamPermissions',
-        http_method=u'POST',
-        method_id=u'iam.projects.serviceAccounts.testIamPermissions',
-        ordered_params=[u'resource'],
-        path_params=[u'resource'],
+        flat_path='v1/projects/{projectsId}/serviceAccounts/{serviceAccountsId}:testIamPermissions',
+        http_method='POST',
+        method_id='iam.projects.serviceAccounts.testIamPermissions',
+        ordered_params=['resource'],
+        path_params=['resource'],
         query_params=[],
-        relative_path=u'v1/{+resource}:testIamPermissions',
-        request_field=u'testIamPermissionsRequest',
-        request_type_name=u'IamProjectsServiceAccountsTestIamPermissionsRequest',
-        response_type_name=u'TestIamPermissionsResponse',
+        relative_path='v1/{+resource}:testIamPermissions',
+        request_field='testIamPermissionsRequest',
+        request_type_name='IamProjectsServiceAccountsTestIamPermissionsRequest',
+        response_type_name='TestIamPermissionsResponse',
         supports_download=False,
     )
 
@@ -480,23 +480,23 @@ The `etag` is mandatory.
           config, request, global_params=global_params)
 
     Update.method_config = lambda: base_api.ApiMethodInfo(
-        flat_path=u'v1/projects/{projectsId}/serviceAccounts/{serviceAccountsId}',
-        http_method=u'PUT',
-        method_id=u'iam.projects.serviceAccounts.update',
-        ordered_params=[u'name'],
-        path_params=[u'name'],
+        flat_path='v1/projects/{projectsId}/serviceAccounts/{serviceAccountsId}',
+        http_method='PUT',
+        method_id='iam.projects.serviceAccounts.update',
+        ordered_params=['name'],
+        path_params=['name'],
         query_params=[],
-        relative_path=u'v1/{+name}',
+        relative_path='v1/{+name}',
         request_field='<request>',
-        request_type_name=u'ServiceAccount',
-        response_type_name=u'ServiceAccount',
+        request_type_name='ServiceAccount',
+        response_type_name='ServiceAccount',
         supports_download=False,
     )
 
   class ProjectsService(base_api.BaseApiService):
     """Service class for the projects resource."""
 
-    _NAME = u'projects'
+    _NAME = 'projects'
 
     def __init__(self, client):
       super(IamV1.ProjectsService, self).__init__(client)
@@ -506,7 +506,7 @@ The `etag` is mandatory.
   class RolesService(base_api.BaseApiService):
     """Service class for the roles resource."""
 
-    _NAME = u'roles'
+    _NAME = 'roles'
 
     def __init__(self, client):
       super(IamV1.RolesService, self).__init__(client)
@@ -527,14 +527,14 @@ The `etag` is mandatory.
           config, request, global_params=global_params)
 
     QueryGrantableRoles.method_config = lambda: base_api.ApiMethodInfo(
-        http_method=u'POST',
-        method_id=u'iam.roles.queryGrantableRoles',
+        http_method='POST',
+        method_id='iam.roles.queryGrantableRoles',
         ordered_params=[],
         path_params=[],
         query_params=[],
-        relative_path=u'v1/roles:queryGrantableRoles',
+        relative_path='v1/roles:queryGrantableRoles',
         request_field='<request>',
-        request_type_name=u'QueryGrantableRolesRequest',
-        response_type_name=u'QueryGrantableRolesResponse',
+        request_type_name='QueryGrantableRolesRequest',
+        response_type_name='QueryGrantableRolesResponse',
         supports_download=False,
     )
