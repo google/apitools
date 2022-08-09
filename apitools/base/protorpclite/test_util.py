@@ -604,8 +604,6 @@ class ProtoConformanceTestBase(object):
                                                self.encoded_invalid_repeated_enum)
         message = RepeatedMessage()
         message.enum_value = [RepeatedMessage.SimpleEnum.VAL1]
-        print(message)
-        print(decoded)
         self.assertEqual(message, decoded)
         encoded = self.PROTOLIB.encode_message(decoded)
         self.assertEqual(self.encoded_invalid_repeated_enum, encoded)

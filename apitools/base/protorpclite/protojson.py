@@ -280,32 +280,6 @@ class ProtoJson(object):
                 continue
 
             is_enum_field = isinstance(field, messages.EnumField)
-            # if field.repeated:
-            #     # This should be unnecessary? Or in fact become an error.
-            #     if not isinstance(value, list):
-            #         value = [value]
-            #     valid_value = []
-            #     for item in value:
-            #         v = self.decode_field(field, item)
-            #         if is_enum_field and v is None:
-            #           continue
-            #         valid_value.append(v)
-                
-            #     setattr(message, field.name, valid_value)
-            #     continue
-            # # This is just for consistency with the old behavior.
-            # if value == []:
-            #     continue
-            # try:
-            #     setattr(message, field.name, self.decode_field(field, value))
-            # except messages.DecodeError:
-            #     # Save unknown enum values.
-            #     if not is_enum_field:
-            #         raise
-            #     variant = self.__find_variant(value)
-            #     if variant:
-            #         message.set_unrecognized_field(key, value, variant)
-            
             is_unrecognized_field = False
             if field.repeated:
                 # This should be unnecessary? Or in fact become an error.
@@ -318,7 +292,6 @@ class ProtoJson(object):
                         if is_enum_field and v is None:
                             continue
                     except messages.DecodeError:
-                        print('ew decoding: {} val: {} valid: {}'.format(field, value, valid_value))
                         if not is_enum_field:
                             raise
 
@@ -345,7 +318,7 @@ class ProtoJson(object):
                 variant = self.__find_variant(value)
                 if variant:
                     message.set_unrecognized_field(key, value, variant)
-            
+
         return message
 
     def decode_field(self, field, value):
@@ -358,7 +331,6 @@ class ProtoJson(object):
         Return:
           A Python value compatible with field.
         """
-        print('decode_field: %s: %s' % (field, value))
         if isinstance(field, messages.EnumField):
             try:
                 return field.type(value)

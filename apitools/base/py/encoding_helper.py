@@ -533,7 +533,8 @@ def _ProcessUnknownEnums(message, encoded_message):
         if (isinstance(field, messages.EnumField) and
                 field.name in decoded_message):
             value = message.get_assigned_value(field.name)
-            if (field.repeated and len(value) != len(decoded_message[field.name])) or value is None:
+            if ((field.repeated and len(value) != len(decoded_message[field.name])) or
+                    value is None):
                 message.set_unrecognized_field(
                     field.name, decoded_message[field.name], messages.Variant.ENUM)
     return message
