@@ -91,7 +91,8 @@ class MessageWithEnum(messages.Message):
 
     field_one = messages.EnumField(ThisEnum, 1)
     field_two = messages.EnumField(ThisEnum, 2, default=ThisEnum.VALUE_TWO)
-    ignored_field = messages.EnumField(ThisEnum, 3)
+    field_three = messages.EnumField(ThisEnum, 3, repeated=True)
+    ignored_field = messages.EnumField(ThisEnum, 4)
 
 
 @encoding.MapUnrecognizedFields('additionalProperties')
@@ -257,6 +258,17 @@ class EncodingTest(unittest.TestCase):
                                                 value_default=None),
                 ('BAD_VALUE', messages.Variant.ENUM))
 
+    def testCopyProtoMessageInvalidRepeatedEnum(self):
+        json_msg = '{"field_three": ["VALUE_ONE", "BAD_VALUE"]}'
+        orig_msg = encoding.JsonToMessage(MessageWithEnum, json_msg)
+        new_msg = encoding.CopyProtoMessage(orig_msg)
+        for msg in (orig_msg, new_msg):
+            self.assertEqual(msg.all_unrecognized_fields(), ['field_three'])
+            self.assertEqual(
+                msg.get_unrecognized_field_info('field_three',
+                                                value_default=None),
+                (['VALUE_ONE', 'BAD_VALUE'], messages.Variant.ENUM))
+
     def testCopyProtoMessageAdditionalProperties(self):
         msg = AdditionalPropertiesMessage(additionalProperties=[
             AdditionalPropertiesMessage.AdditionalProperty(
@@ -278,6 +290,19 @@ class EncodingTest(unittest.TestCase):
                 msg.additionalProperties[0].value.get_unrecognized_field_info(
                     'field_one', value_default=None),
                 ('BAD_VALUE', messages.Variant.ENUM))
+
+    def testCopyProtoMessageMappingInvalidRepeatedEnum(self):
+        json_msg = '{"key_one": {"field_three": ["VALUE_ONE", "BAD_VALUE"]}}'
+        orig_msg = encoding.JsonToMessage(MapToMessageWithEnum, json_msg)
+        new_msg = encoding.CopyProtoMessage(orig_msg)
+        for msg in (orig_msg, new_msg):
+            self.assertEqual(
+                msg.additionalProperties[0].value.all_unrecognized_fields(),
+                ['field_three'])
+            self.assertEqual(
+                msg.additionalProperties[0].value.get_unrecognized_field_info(
+                    'field_three', value_default=None),
+                (['VALUE_ONE', 'BAD_VALUE'], messages.Variant.ENUM))
 
     def testBytesEncoding(self):
         b64_str = 'AAc+'
@@ -362,6 +387,13 @@ class EncodingTest(unittest.TestCase):
         msg = encoding.JsonToMessage(MapToMessageWithEnum, json_msg)
         new_msg = encoding.MessageToJson(msg)
         self.assertEqual('{"key_one": {"field_one": "BAD_VALUE"}}', new_msg)
+
+    def testInvalidRepeatedEnumEncodingInAMap(self):
+        json_msg = '{"key_one": {"field_three": ["VALUE_ONE", "BAD_VALUE"]}}'
+        msg = encoding.JsonToMessage(MapToMessageWithEnum, json_msg)
+        new_msg = encoding.MessageToJson(msg)
+        self.assertEqual(
+            '{"key_one": {"field_three": ["VALUE_ONE", "BAD_VALUE"]}}', new_msg)
 
     def testIncludeFields(self):
         msg = SimpleMessage()
@@ -513,7 +545,8 @@ class EncodingTest(unittest.TestCase):
 
     def testUnknownEnumNestedRoundtrip(self):
         json_with_typo = ('{"outer_key": {"key_one": {"field_one": '
-                          '"VALUE_OEN", "field_two": "VALUE_OEN"}}}')
+                          '"VALUE_OEN", "field_two": "VALUE_OEN", '
+                          '"field_three": ["VALUE_ONE", "BAD_VALUE"]}}}')
         msg = encoding.JsonToMessage(NestedAdditionalPropertiesWithEnumMessage,
                                      json_with_typo)
         self.assertEqual(json.loads(json_with_typo),

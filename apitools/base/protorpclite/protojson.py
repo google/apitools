@@ -279,14 +279,33 @@ class ProtoJson(object):
                     message.set_unrecognized_field(key, value, variant)
                 continue
 
+            is_enum_field = isinstance(field, messages.EnumField)
+            is_unrecognized_field = False
             if field.repeated:
                 # This should be unnecessary? Or in fact become an error.
                 if not isinstance(value, list):
                     value = [value]
-                valid_value = [self.decode_field(field, item)
-                               for item in value]
+                valid_value = []
+                for item in value:
+                    try:
+                        v = self.decode_field(field, item)
+                        if is_enum_field and v is None:
+                            continue
+                    except messages.DecodeError:
+                        if not is_enum_field:
+                            raise
+
+                        is_unrecognized_field = True
+                        continue
+                    valid_value.append(v)
+
                 setattr(message, field.name, valid_value)
+                if is_unrecognized_field:
+                    variant = self.__find_variant(value)
+                    if variant:
+                        message.set_unrecognized_field(key, value, variant)
                 continue
+            
             # This is just for consistency with the old behavior.
             if value == []:
                 continue
@@ -294,7 +313,7 @@ class ProtoJson(object):
                 setattr(message, field.name, self.decode_field(field, value))
             except messages.DecodeError:
                 # Save unknown enum values.
-                if not isinstance(field, messages.EnumField):
+                if not is_enum_field:
                     raise
                 variant = self.__find_variant(value)
                 if variant:

@@ -428,6 +428,11 @@ class ProtoConformanceTestBase(object):
         <OptionalMessage
           enum_value: (invalid value for serialization type)
           >
+
+      encoded_invalid_repeated_enum:
+        <RepeatedMessage
+          enum_value: (invalid value for serialization type)
+          >
     """
 
     encoded_empty_message = ''
@@ -589,6 +594,19 @@ class ProtoConformanceTestBase(object):
         self.assertEqual(message, decoded)
         encoded = self.PROTOLIB.encode_message(decoded)
         self.assertEqual(self.encoded_invalid_enum, encoded)
+    
+    def testDecodeInvalidRepeatedEnumType(self):
+        # Since protos need to be able to add new enums, a message should be
+        # successfully decoded even if the enum value is invalid. Encoding the
+        # decoded message should result in equivalence with the original
+        # encoded message containing an invalid enum.
+        decoded = self.PROTOLIB.decode_message(RepeatedMessage,
+                                               self.encoded_invalid_repeated_enum)
+        message = RepeatedMessage()
+        message.enum_value = [RepeatedMessage.SimpleEnum.VAL1]
+        self.assertEqual(message, decoded)
+        encoded = self.PROTOLIB.encode_message(decoded)
+        self.assertEqual(self.encoded_invalid_repeated_enum, encoded)
 
     def testDateTimeNoTimeZone(self):
         """Test that DateTimeFields are encoded/decoded correctly."""
