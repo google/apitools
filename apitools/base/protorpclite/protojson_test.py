@@ -152,6 +152,8 @@ class ProtojsonTest(test_util.TestCase,
     encoded_string_types = '{"string_value": "Latin"}'
 
     encoded_invalid_enum = '{"enum_value": "undefined"}'
+    
+    encoded_invalid_repeated_enum = '{"enum_value": ["VAL1", "undefined"]}'
 
     def testConvertIntegerToFloat(self):
         """Test that integers passed in to float fields are converted.
