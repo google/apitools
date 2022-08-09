@@ -258,12 +258,12 @@ def main(argv=None):
 
     parser.add_argument(
         '--client_id',
-        default='1042881264118.apps.googleusercontent.com',
+        default='CLIENT_ID',
         help='Client ID to use for the generated client.')
 
     parser.add_argument(
         '--client_secret',
-        default='x_Tw5K8nnjoRAqULM9PFAC2b',
+        default='CLIENT_SECRET',
         help='Client secret for the generated client.')
 
     parser.add_argument(

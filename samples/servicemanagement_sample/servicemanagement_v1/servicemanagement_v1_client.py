@@ -11,17 +11,17 @@ class ServicemanagementV1(base_api.BaseApiClient):
   """Generated client library for service servicemanagement version v1."""
 
   MESSAGES_MODULE = messages
-  BASE_URL = u'https://servicemanagement.googleapis.com/'
-  MTLS_BASE_URL = u''
+  BASE_URL = 'https://servicemanagement.googleapis.com/'
+  MTLS_BASE_URL = ''
 
-  _PACKAGE = u'servicemanagement'
-  _SCOPES = [u'https://www.googleapis.com/auth/cloud-platform', u'https://www.googleapis.com/auth/service.management']
-  _VERSION = u'v1'
-  _CLIENT_ID = '1042881264118.apps.googleusercontent.com'
-  _CLIENT_SECRET = 'x_Tw5K8nnjoRAqULM9PFAC2b'
+  _PACKAGE = 'servicemanagement'
+  _SCOPES = ['https://www.googleapis.com/auth/cloud-platform', 'https://www.googleapis.com/auth/service.management']
+  _VERSION = 'v1'
+  _CLIENT_ID = 'CLIENT_ID'
+  _CLIENT_SECRET = 'CLIENT_SECRET'
   _USER_AGENT = 'x_Tw5K8nnjoRAqULM9PFAC2b'
-  _CLIENT_CLASS_NAME = u'ServicemanagementV1'
-  _URL_VERSION = u'v1'
+  _CLIENT_CLASS_NAME = 'ServicemanagementV1'
+  _URL_VERSION = 'v1'
   _API_KEY = None
 
   def __init__(self, url='', credentials=None,
@@ -50,7 +50,7 @@ class ServicemanagementV1(base_api.BaseApiClient):
   class OperationsService(base_api.BaseApiService):
     """Service class for the operations resource."""
 
-    _NAME = u'operations'
+    _NAME = 'operations'
 
     def __init__(self, client):
       super(ServicemanagementV1.OperationsService, self).__init__(client)
@@ -73,22 +73,22 @@ service.
           config, request, global_params=global_params)
 
     Get.method_config = lambda: base_api.ApiMethodInfo(
-        http_method=u'GET',
-        method_id=u'servicemanagement.operations.get',
-        ordered_params=[u'operationsId'],
-        path_params=[u'operationsId'],
+        http_method='GET',
+        method_id='servicemanagement.operations.get',
+        ordered_params=['operationsId'],
+        path_params=['operationsId'],
         query_params=[],
-        relative_path=u'v1/operations/{operationsId}',
+        relative_path='v1/operations/{operationsId}',
         request_field='',
-        request_type_name=u'ServicemanagementOperationsGetRequest',
-        response_type_name=u'Operation',
+        request_type_name='ServicemanagementOperationsGetRequest',
+        response_type_name='Operation',
         supports_download=False,
     )
 
   class ServicesAccessPolicyService(base_api.BaseApiService):
     """Service class for the services_accessPolicy resource."""
 
-    _NAME = u'services_accessPolicy'
+    _NAME = 'services_accessPolicy'
 
     def __init__(self, client):
       super(ServicemanagementV1.ServicesAccessPolicyService, self).__init__(client)
@@ -116,22 +116,22 @@ the service.
           config, request, global_params=global_params)
 
     Query.method_config = lambda: base_api.ApiMethodInfo(
-        http_method=u'POST',
-        method_id=u'servicemanagement.services.accessPolicy.query',
-        ordered_params=[u'serviceName'],
-        path_params=[u'serviceName'],
-        query_params=[u'userEmail'],
-        relative_path=u'v1/services/{serviceName}/accessPolicy:query',
+        http_method='POST',
+        method_id='servicemanagement.services.accessPolicy.query',
+        ordered_params=['serviceName'],
+        path_params=['serviceName'],
+        query_params=['userEmail'],
+        relative_path='v1/services/{serviceName}/accessPolicy:query',
         request_field='',
-        request_type_name=u'ServicemanagementServicesAccessPolicyQueryRequest',
-        response_type_name=u'QueryUserAccessResponse',
+        request_type_name='ServicemanagementServicesAccessPolicyQueryRequest',
+        response_type_name='QueryUserAccessResponse',
         supports_download=False,
     )
 
   class ServicesConfigsService(base_api.BaseApiService):
     """Service class for the services_configs resource."""
 
-    _NAME = u'services_configs'
+    _NAME = 'services_configs'
 
     def __init__(self, client):
       super(ServicemanagementV1.ServicesConfigsService, self).__init__(client)
@@ -154,15 +154,15 @@ any backend services.
           config, request, global_params=global_params)
 
     Create.method_config = lambda: base_api.ApiMethodInfo(
-        http_method=u'POST',
-        method_id=u'servicemanagement.services.configs.create',
-        ordered_params=[u'serviceName'],
-        path_params=[u'serviceName'],
+        http_method='POST',
+        method_id='servicemanagement.services.configs.create',
+        ordered_params=['serviceName'],
+        path_params=['serviceName'],
         query_params=[],
-        relative_path=u'v1/services/{serviceName}/configs',
-        request_field=u'service',
-        request_type_name=u'ServicemanagementServicesConfigsCreateRequest',
-        response_type_name=u'Service',
+        relative_path='v1/services/{serviceName}/configs',
+        request_field='service',
+        request_type_name='ServicemanagementServicesConfigsCreateRequest',
+        response_type_name='Service',
         supports_download=False,
     )
 
@@ -181,15 +181,15 @@ not specified, the latest service config will be returned.
           config, request, global_params=global_params)
 
     Get.method_config = lambda: base_api.ApiMethodInfo(
-        http_method=u'GET',
-        method_id=u'servicemanagement.services.configs.get',
-        ordered_params=[u'serviceName', u'configId'],
-        path_params=[u'configId', u'serviceName'],
+        http_method='GET',
+        method_id='servicemanagement.services.configs.get',
+        ordered_params=['serviceName', 'configId'],
+        path_params=['configId', 'serviceName'],
         query_params=[],
-        relative_path=u'v1/services/{serviceName}/configs/{configId}',
+        relative_path='v1/services/{serviceName}/configs/{configId}',
         request_field='',
-        request_type_name=u'ServicemanagementServicesConfigsGetRequest',
-        response_type_name=u'Service',
+        request_type_name='ServicemanagementServicesConfigsGetRequest',
+        response_type_name='Service',
         supports_download=False,
     )
 
@@ -208,15 +208,15 @@ from the newest to the oldest.
           config, request, global_params=global_params)
 
     List.method_config = lambda: base_api.ApiMethodInfo(
-        http_method=u'GET',
-        method_id=u'servicemanagement.services.configs.list',
-        ordered_params=[u'serviceName'],
-        path_params=[u'serviceName'],
-        query_params=[u'pageSize', u'pageToken'],
-        relative_path=u'v1/services/{serviceName}/configs',
+        http_method='GET',
+        method_id='servicemanagement.services.configs.list',
+        ordered_params=['serviceName'],
+        path_params=['serviceName'],
+        query_params=['pageSize', 'pageToken'],
+        relative_path='v1/services/{serviceName}/configs',
         request_field='',
-        request_type_name=u'ServicemanagementServicesConfigsListRequest',
-        response_type_name=u'ListServiceConfigsResponse',
+        request_type_name='ServicemanagementServicesConfigsListRequest',
+        response_type_name='ListServiceConfigsResponse',
         supports_download=False,
     )
 
@@ -240,22 +240,22 @@ Operation<response: SubmitConfigSourceResponse>
           config, request, global_params=global_params)
 
     Submit.method_config = lambda: base_api.ApiMethodInfo(
-        http_method=u'POST',
-        method_id=u'servicemanagement.services.configs.submit',
-        ordered_params=[u'serviceName'],
-        path_params=[u'serviceName'],
+        http_method='POST',
+        method_id='servicemanagement.services.configs.submit',
+        ordered_params=['serviceName'],
+        path_params=['serviceName'],
         query_params=[],
-        relative_path=u'v1/services/{serviceName}/configs:submit',
-        request_field=u'submitConfigSourceRequest',
-        request_type_name=u'ServicemanagementServicesConfigsSubmitRequest',
-        response_type_name=u'Operation',
+        relative_path='v1/services/{serviceName}/configs:submit',
+        request_field='submitConfigSourceRequest',
+        request_type_name='ServicemanagementServicesConfigsSubmitRequest',
+        response_type_name='Operation',
         supports_download=False,
     )
 
   class ServicesCustomerSettingsService(base_api.BaseApiService):
     """Service class for the services_customerSettings resource."""
 
-    _NAME = u'services_customerSettings'
+    _NAME = 'services_customerSettings'
 
     def __init__(self, client):
       super(ServicemanagementV1.ServicesCustomerSettingsService, self).__init__(client)
@@ -277,15 +277,15 @@ service.
           config, request, global_params=global_params)
 
     Get.method_config = lambda: base_api.ApiMethodInfo(
-        http_method=u'GET',
-        method_id=u'servicemanagement.services.customerSettings.get',
-        ordered_params=[u'serviceName', u'customerId'],
-        path_params=[u'customerId', u'serviceName'],
-        query_params=[u'expand', u'view'],
-        relative_path=u'v1/services/{serviceName}/customerSettings/{customerId}',
+        http_method='GET',
+        method_id='servicemanagement.services.customerSettings.get',
+        ordered_params=['serviceName', 'customerId'],
+        path_params=['customerId', 'serviceName'],
+        query_params=['expand', 'view'],
+        relative_path='v1/services/{serviceName}/customerSettings/{customerId}',
         request_field='',
-        request_type_name=u'ServicemanagementServicesCustomerSettingsGetRequest',
-        response_type_name=u'CustomerSettings',
+        request_type_name='ServicemanagementServicesCustomerSettingsGetRequest',
+        response_type_name='CustomerSettings',
         supports_download=False,
     )
 
@@ -307,22 +307,22 @@ Operation<response: CustomerSettings>
           config, request, global_params=global_params)
 
     Patch.method_config = lambda: base_api.ApiMethodInfo(
-        http_method=u'PATCH',
-        method_id=u'servicemanagement.services.customerSettings.patch',
-        ordered_params=[u'serviceName', u'customerId'],
-        path_params=[u'customerId', u'serviceName'],
-        query_params=[u'updateMask'],
-        relative_path=u'v1/services/{serviceName}/customerSettings/{customerId}',
-        request_field=u'customerSettings',
-        request_type_name=u'ServicemanagementServicesCustomerSettingsPatchRequest',
-        response_type_name=u'Operation',
+        http_method='PATCH',
+        method_id='servicemanagement.services.customerSettings.patch',
+        ordered_params=['serviceName', 'customerId'],
+        path_params=['customerId', 'serviceName'],
+        query_params=['updateMask'],
+        relative_path='v1/services/{serviceName}/customerSettings/{customerId}',
+        request_field='customerSettings',
+        request_type_name='ServicemanagementServicesCustomerSettingsPatchRequest',
+        response_type_name='Operation',
         supports_download=False,
     )
 
   class ServicesProjectSettingsService(base_api.BaseApiService):
     """Service class for the services_projectSettings resource."""
 
-    _NAME = u'services_projectSettings'
+    _NAME = 'services_projectSettings'
 
     def __init__(self, client):
       super(ServicemanagementV1.ServicesProjectSettingsService, self).__init__(client)
@@ -344,15 +344,15 @@ of the service.
           config, request, global_params=global_params)
 
     Get.method_config = lambda: base_api.ApiMethodInfo(
-        http_method=u'GET',
-        method_id=u'servicemanagement.services.projectSettings.get',
-        ordered_params=[u'serviceName', u'consumerProjectId'],
-        path_params=[u'consumerProjectId', u'serviceName'],
-        query_params=[u'expand', u'view'],
-        relative_path=u'v1/services/{serviceName}/projectSettings/{consumerProjectId}',
+        http_method='GET',
+        method_id='servicemanagement.services.projectSettings.get',
+        ordered_params=['serviceName', 'consumerProjectId'],
+        path_params=['consumerProjectId', 'serviceName'],
+        query_params=['expand', 'view'],
+        relative_path='v1/services/{serviceName}/projectSettings/{consumerProjectId}',
         request_field='',
-        request_type_name=u'ServicemanagementServicesProjectSettingsGetRequest',
-        response_type_name=u'ProjectSettings',
+        request_type_name='ServicemanagementServicesProjectSettingsGetRequest',
+        response_type_name='ProjectSettings',
         supports_download=False,
     )
 
@@ -374,15 +374,15 @@ Operation<response: ProjectSettings>
           config, request, global_params=global_params)
 
     Patch.method_config = lambda: base_api.ApiMethodInfo(
-        http_method=u'PATCH',
-        method_id=u'servicemanagement.services.projectSettings.patch',
-        ordered_params=[u'serviceName', u'consumerProjectId'],
-        path_params=[u'consumerProjectId', u'serviceName'],
-        query_params=[u'updateMask'],
-        relative_path=u'v1/services/{serviceName}/projectSettings/{consumerProjectId}',
-        request_field=u'projectSettings',
-        request_type_name=u'ServicemanagementServicesProjectSettingsPatchRequest',
-        response_type_name=u'Operation',
+        http_method='PATCH',
+        method_id='servicemanagement.services.projectSettings.patch',
+        ordered_params=['serviceName', 'consumerProjectId'],
+        path_params=['consumerProjectId', 'serviceName'],
+        query_params=['updateMask'],
+        relative_path='v1/services/{serviceName}/projectSettings/{consumerProjectId}',
+        request_field='projectSettings',
+        request_type_name='ServicemanagementServicesProjectSettingsPatchRequest',
+        response_type_name='Operation',
         supports_download=False,
     )
 
@@ -406,22 +406,22 @@ Operation<response: ProjectSettings>
           config, request, global_params=global_params)
 
     Update.method_config = lambda: base_api.ApiMethodInfo(
-        http_method=u'PUT',
-        method_id=u'servicemanagement.services.projectSettings.update',
-        ordered_params=[u'serviceName', u'consumerProjectId'],
-        path_params=[u'consumerProjectId', u'serviceName'],
+        http_method='PUT',
+        method_id='servicemanagement.services.projectSettings.update',
+        ordered_params=['serviceName', 'consumerProjectId'],
+        path_params=['consumerProjectId', 'serviceName'],
         query_params=[],
-        relative_path=u'v1/services/{serviceName}/projectSettings/{consumerProjectId}',
+        relative_path='v1/services/{serviceName}/projectSettings/{consumerProjectId}',
         request_field='<request>',
-        request_type_name=u'ProjectSettings',
-        response_type_name=u'Operation',
+        request_type_name='ProjectSettings',
+        response_type_name='Operation',
         supports_download=False,
     )
 
   class ServicesService(base_api.BaseApiService):
     """Service class for the services resource."""
 
-    _NAME = u'services'
+    _NAME = 'services'
 
     def __init__(self, client):
       super(ServicemanagementV1.ServicesService, self).__init__(client)
@@ -446,15 +446,15 @@ equivalent `google.api.Service`.
           config, request, global_params=global_params)
 
     ConvertConfig.method_config = lambda: base_api.ApiMethodInfo(
-        http_method=u'POST',
-        method_id=u'servicemanagement.services.convertConfig',
+        http_method='POST',
+        method_id='servicemanagement.services.convertConfig',
         ordered_params=[],
         path_params=[],
         query_params=[],
-        relative_path=u'v1/services:convertConfig',
+        relative_path='v1/services:convertConfig',
         request_field='<request>',
-        request_type_name=u'ConvertConfigRequest',
-        response_type_name=u'ConvertConfigResponse',
+        request_type_name='ConvertConfigRequest',
+        response_type_name='ConvertConfigResponse',
         supports_download=False,
     )
 
@@ -474,15 +474,15 @@ Operation<response: ManagedService>
           config, request, global_params=global_params)
 
     Create.method_config = lambda: base_api.ApiMethodInfo(
-        http_method=u'POST',
-        method_id=u'servicemanagement.services.create',
+        http_method='POST',
+        method_id='servicemanagement.services.create',
         ordered_params=[],
         path_params=[],
         query_params=[],
-        relative_path=u'v1/services',
+        relative_path='v1/services',
         request_field='<request>',
-        request_type_name=u'ManagedService',
-        response_type_name=u'Operation',
+        request_type_name='ManagedService',
+        response_type_name='Operation',
         supports_download=False,
     )
 
@@ -502,15 +502,15 @@ Operation<response: google.protobuf.Empty>
           config, request, global_params=global_params)
 
     Delete.method_config = lambda: base_api.ApiMethodInfo(
-        http_method=u'DELETE',
-        method_id=u'servicemanagement.services.delete',
-        ordered_params=[u'serviceName'],
-        path_params=[u'serviceName'],
+        http_method='DELETE',
+        method_id='servicemanagement.services.delete',
+        ordered_params=['serviceName'],
+        path_params=['serviceName'],
         query_params=[],
-        relative_path=u'v1/services/{serviceName}',
+        relative_path='v1/services/{serviceName}',
         request_field='',
-        request_type_name=u'ServicemanagementServicesDeleteRequest',
-        response_type_name=u'Operation',
+        request_type_name='ServicemanagementServicesDeleteRequest',
+        response_type_name='Operation',
         supports_download=False,
     )
 
@@ -532,15 +532,15 @@ Operation<response: DisableServiceResponse>
           config, request, global_params=global_params)
 
     Disable.method_config = lambda: base_api.ApiMethodInfo(
-        http_method=u'POST',
-        method_id=u'servicemanagement.services.disable',
-        ordered_params=[u'serviceName'],
-        path_params=[u'serviceName'],
+        http_method='POST',
+        method_id='servicemanagement.services.disable',
+        ordered_params=['serviceName'],
+        path_params=['serviceName'],
         query_params=[],
-        relative_path=u'v1/services/{serviceName}:disable',
-        request_field=u'disableServiceRequest',
-        request_type_name=u'ServicemanagementServicesDisableRequest',
-        response_type_name=u'Operation',
+        relative_path='v1/services/{serviceName}:disable',
+        request_field='disableServiceRequest',
+        request_type_name='ServicemanagementServicesDisableRequest',
+        response_type_name='Operation',
         supports_download=False,
     )
 
@@ -561,15 +561,15 @@ Operation<response: EnableServiceResponse>
           config, request, global_params=global_params)
 
     Enable.method_config = lambda: base_api.ApiMethodInfo(
-        http_method=u'POST',
-        method_id=u'servicemanagement.services.enable',
-        ordered_params=[u'serviceName'],
-        path_params=[u'serviceName'],
+        http_method='POST',
+        method_id='servicemanagement.services.enable',
+        ordered_params=['serviceName'],
+        path_params=['serviceName'],
         query_params=[],
-        relative_path=u'v1/services/{serviceName}:enable',
-        request_field=u'enableServiceRequest',
-        request_type_name=u'ServicemanagementServicesEnableRequest',
-        response_type_name=u'Operation',
+        relative_path='v1/services/{serviceName}:enable',
+        request_field='enableServiceRequest',
+        request_type_name='ServicemanagementServicesEnableRequest',
+        response_type_name='Operation',
         supports_download=False,
     )
 
@@ -588,15 +588,15 @@ the project's settings for the specified service are also returned.
           config, request, global_params=global_params)
 
     Get.method_config = lambda: base_api.ApiMethodInfo(
-        http_method=u'GET',
-        method_id=u'servicemanagement.services.get',
-        ordered_params=[u'serviceName'],
-        path_params=[u'serviceName'],
-        query_params=[u'consumerProjectId', u'expand', u'view'],
-        relative_path=u'v1/services/{serviceName}',
+        http_method='GET',
+        method_id='servicemanagement.services.get',
+        ordered_params=['serviceName'],
+        path_params=['serviceName'],
+        query_params=['consumerProjectId', 'expand', 'view'],
+        relative_path='v1/services/{serviceName}',
         request_field='',
-        request_type_name=u'ServicemanagementServicesGetRequest',
-        response_type_name=u'ManagedService',
+        request_type_name='ServicemanagementServicesGetRequest',
+        response_type_name='ManagedService',
         supports_download=False,
     )
 
@@ -614,15 +614,15 @@ the project's settings for the specified service are also returned.
           config, request, global_params=global_params)
 
     GetAccessPolicy.method_config = lambda: base_api.ApiMethodInfo(
-        http_method=u'GET',
-        method_id=u'servicemanagement.services.getAccessPolicy',
-        ordered_params=[u'serviceName'],
-        path_params=[u'serviceName'],
+        http_method='GET',
+        method_id='servicemanagement.services.getAccessPolicy',
+        ordered_params=['serviceName'],
+        path_params=['serviceName'],
         query_params=[],
-        relative_path=u'v1/services/{serviceName}/accessPolicy',
+        relative_path='v1/services/{serviceName}/accessPolicy',
         request_field='',
-        request_type_name=u'ServicemanagementServicesGetAccessPolicyRequest',
-        response_type_name=u'ServiceAccessPolicy',
+        request_type_name='ServicemanagementServicesGetAccessPolicyRequest',
+        response_type_name='ServiceAccessPolicy',
         supports_download=False,
     )
 
@@ -641,15 +641,15 @@ not specified, the latest service config will be returned.
           config, request, global_params=global_params)
 
     GetConfig.method_config = lambda: base_api.ApiMethodInfo(
-        http_method=u'GET',
-        method_id=u'servicemanagement.services.getConfig',
-        ordered_params=[u'serviceName'],
-        path_params=[u'serviceName'],
-        query_params=[u'configId'],
-        relative_path=u'v1/services/{serviceName}/config',
+        http_method='GET',
+        method_id='servicemanagement.services.getConfig',
+        ordered_params=['serviceName'],
+        path_params=['serviceName'],
+        query_params=['configId'],
+        relative_path='v1/services/{serviceName}/config',
         request_field='',
-        request_type_name=u'ServicemanagementServicesGetConfigRequest',
-        response_type_name=u'Service',
+        request_type_name='ServicemanagementServicesGetConfigRequest',
+        response_type_name='Service',
         supports_download=False,
     )
 
@@ -668,15 +668,15 @@ the project's settings for the specified service are also returned.
           config, request, global_params=global_params)
 
     List.method_config = lambda: base_api.ApiMethodInfo(
-        http_method=u'GET',
-        method_id=u'servicemanagement.services.list',
+        http_method='GET',
+        method_id='servicemanagement.services.list',
         ordered_params=[],
         path_params=[],
-        query_params=[u'category', u'consumerProjectId', u'expand', u'pageSize', u'pageToken', u'producerProjectId'],
-        relative_path=u'v1/services',
+        query_params=['category', 'consumerProjectId', 'expand', 'pageSize', 'pageToken', 'producerProjectId'],
+        relative_path='v1/services',
         request_field='',
-        request_type_name=u'ServicemanagementServicesListRequest',
-        response_type_name=u'ListServicesResponse',
+        request_type_name='ServicemanagementServicesListRequest',
+        response_type_name='ListServicesResponse',
         supports_download=False,
     )
 
@@ -697,15 +697,15 @@ Operation<response: ManagedService>
           config, request, global_params=global_params)
 
     Patch.method_config = lambda: base_api.ApiMethodInfo(
-        http_method=u'PATCH',
-        method_id=u'servicemanagement.services.patch',
-        ordered_params=[u'serviceName'],
-        path_params=[u'serviceName'],
-        query_params=[u'updateMask'],
-        relative_path=u'v1/services/{serviceName}',
-        request_field=u'managedService',
-        request_type_name=u'ServicemanagementServicesPatchRequest',
-        response_type_name=u'Operation',
+        http_method='PATCH',
+        method_id='servicemanagement.services.patch',
+        ordered_params=['serviceName'],
+        path_params=['serviceName'],
+        query_params=['updateMask'],
+        relative_path='v1/services/{serviceName}',
+        request_field='managedService',
+        request_type_name='ServicemanagementServicesPatchRequest',
+        response_type_name='Operation',
         supports_download=False,
     )
 
@@ -726,15 +726,15 @@ Operation<response: google.api.Service>
           config, request, global_params=global_params)
 
     PatchConfig.method_config = lambda: base_api.ApiMethodInfo(
-        http_method=u'PATCH',
-        method_id=u'servicemanagement.services.patchConfig',
-        ordered_params=[u'serviceName'],
-        path_params=[u'serviceName'],
-        query_params=[u'updateMask'],
-        relative_path=u'v1/services/{serviceName}/config',
-        request_field=u'service',
-        request_type_name=u'ServicemanagementServicesPatchConfigRequest',
-        response_type_name=u'Operation',
+        http_method='PATCH',
+        method_id='servicemanagement.services.patchConfig',
+        ordered_params=['serviceName'],
+        path_params=['serviceName'],
+        query_params=['updateMask'],
+        relative_path='v1/services/{serviceName}/config',
+        request_field='service',
+        request_type_name='ServicemanagementServicesPatchConfigRequest',
+        response_type_name='Operation',
         supports_download=False,
     )
 
@@ -755,15 +755,15 @@ Operation<response: ManagedService>
           config, request, global_params=global_params)
 
     Update.method_config = lambda: base_api.ApiMethodInfo(
-        http_method=u'PUT',
-        method_id=u'servicemanagement.services.update',
-        ordered_params=[u'serviceName'],
-        path_params=[u'serviceName'],
-        query_params=[u'updateMask'],
-        relative_path=u'v1/services/{serviceName}',
-        request_field=u'managedService',
-        request_type_name=u'ServicemanagementServicesUpdateRequest',
-        response_type_name=u'Operation',
+        http_method='PUT',
+        method_id='servicemanagement.services.update',
+        ordered_params=['serviceName'],
+        path_params=['serviceName'],
+        query_params=['updateMask'],
+        relative_path='v1/services/{serviceName}',
+        request_field='managedService',
+        request_type_name='ServicemanagementServicesUpdateRequest',
+        response_type_name='Operation',
         supports_download=False,
     )
 
@@ -782,15 +782,15 @@ error if the policy is too large (more than 50 entries across all lists).
           config, request, global_params=global_params)
 
     UpdateAccessPolicy.method_config = lambda: base_api.ApiMethodInfo(
-        http_method=u'PUT',
-        method_id=u'servicemanagement.services.updateAccessPolicy',
-        ordered_params=[u'serviceName'],
-        path_params=[u'serviceName'],
+        http_method='PUT',
+        method_id='servicemanagement.services.updateAccessPolicy',
+        ordered_params=['serviceName'],
+        path_params=['serviceName'],
         query_params=[],
-        relative_path=u'v1/services/{serviceName}/accessPolicy',
+        relative_path='v1/services/{serviceName}/accessPolicy',
         request_field='<request>',
-        request_type_name=u'ServiceAccessPolicy',
-        response_type_name=u'ServiceAccessPolicy',
+        request_type_name='ServiceAccessPolicy',
+        response_type_name='ServiceAccessPolicy',
         supports_download=False,
     )
 
@@ -811,22 +811,22 @@ Operation<response: google.api.Service>
           config, request, global_params=global_params)
 
     UpdateConfig.method_config = lambda: base_api.ApiMethodInfo(
-        http_method=u'PUT',
-        method_id=u'servicemanagement.services.updateConfig',
-        ordered_params=[u'serviceName'],
-        path_params=[u'serviceName'],
-        query_params=[u'updateMask'],
-        relative_path=u'v1/services/{serviceName}/config',
-        request_field=u'service',
-        request_type_name=u'ServicemanagementServicesUpdateConfigRequest',
-        response_type_name=u'Operation',
+        http_method='PUT',
+        method_id='servicemanagement.services.updateConfig',
+        ordered_params=['serviceName'],
+        path_params=['serviceName'],
+        query_params=['updateMask'],
+        relative_path='v1/services/{serviceName}/config',
+        request_field='service',
+        request_type_name='ServicemanagementServicesUpdateConfigRequest',
+        response_type_name='Operation',
         supports_download=False,
     )
 
   class V1Service(base_api.BaseApiService):
     """Service class for the v1 resource."""
 
-    _NAME = u'v1'
+    _NAME = 'v1'
 
     def __init__(self, client):
       super(ServicemanagementV1.V1Service, self).__init__(client)
@@ -851,14 +851,14 @@ equivalent `google.api.Service`.
           config, request, global_params=global_params)
 
     ConvertConfig.method_config = lambda: base_api.ApiMethodInfo(
-        http_method=u'POST',
-        method_id=u'servicemanagement.convertConfig',
+        http_method='POST',
+        method_id='servicemanagement.convertConfig',
         ordered_params=[],
         path_params=[],
         query_params=[],
-        relative_path=u'v1:convertConfig',
+        relative_path='v1:convertConfig',
         request_field='<request>',
-        request_type_name=u'ConvertConfigRequest',
-        response_type_name=u'ConvertConfigResponse',
+        request_type_name='ConvertConfigRequest',
+        response_type_name='ConvertConfigResponse',
         supports_download=False,
     )

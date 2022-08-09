@@ -107,10 +107,11 @@ class AuthProvider(_messages.Message):
     jwksUri: URL of the provider's public key set to validate signature of the
       JWT. See [OpenID Discovery](https://openid.net/specs/openid-connect-
       discovery-1_0.html#ProviderMetadata). Optional if the key set document:
-      - can be retrieved from    [OpenID Discovery](https://openid.net/specs
-      /openid-connect-discovery-1_0.html    of the issuer.  - can be inferred
-      from the email domain of the issuer (e.g. a Google service account).
-      Example: https://www.googleapis.com/oauth2/v1/certs
+      - can be retrieved from    [OpenID
+      Discovery](https://openid.net/specs/openid-connect-discovery-1_0.html
+      of the issuer.  - can be inferred from the email domain of the issuer
+      (e.g. a Google service account).  Example:
+      https://www.googleapis.com/oauth2/v1/certs
   """
 
   id = _messages.StringField(1)
@@ -3025,7 +3026,7 @@ class StandardQueryParameters(_messages.Message):
 
   f__xgafv = _messages.EnumField('FXgafvValueValuesEnum', 1)
   access_token = _messages.StringField(2)
-  alt = _messages.EnumField('AltValueValuesEnum', 3, default=u'json')
+  alt = _messages.EnumField('AltValueValuesEnum', 3, default='json')
   bearer_token = _messages.StringField(4)
   callback = _messages.StringField(5)
   fields = _messages.StringField(6)

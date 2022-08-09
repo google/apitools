@@ -74,7 +74,7 @@ class Column(_messages.Message):
   columnId = _messages.IntegerField(2, variant=_messages.Variant.INT32)
   description = _messages.StringField(3)
   graph_predicate = _messages.StringField(4)
-  kind = _messages.StringField(5, default=u'fusiontables#column')
+  kind = _messages.StringField(5, default='fusiontables#column')
   name = _messages.StringField(6)
   type = _messages.StringField(7)
 
@@ -91,7 +91,7 @@ class ColumnList(_messages.Message):
   """
 
   items = _messages.MessageField('Column', 1, repeated=True)
-  kind = _messages.StringField(2, default=u'fusiontables#columnList')
+  kind = _messages.StringField(2, default='fusiontables#columnList')
   nextPageToken = _messages.StringField(3)
   totalItems = _messages.IntegerField(4, variant=_messages.Variant.INT32)
 
@@ -484,7 +484,7 @@ class Geometry(_messages.Message):
 
   geometries = _messages.MessageField('extra_types.JsonValue', 1, repeated=True)
   geometry = _messages.MessageField('extra_types.JsonValue', 2)
-  type = _messages.StringField(3, default=u'GeometryCollection')
+  type = _messages.StringField(3, default='GeometryCollection')
 
 
 class Import(_messages.Message):
@@ -495,7 +495,7 @@ class Import(_messages.Message):
     numRowsReceived: The number of rows received from the import request.
   """
 
-  kind = _messages.StringField(1, default=u'fusiontables#import')
+  kind = _messages.StringField(1, default='fusiontables#import')
   numRowsReceived = _messages.IntegerField(2)
 
 
@@ -520,7 +520,7 @@ class Line(_messages.Message):
     entry = _messages.FloatField(1, repeated=True)
 
   coordinates = _messages.MessageField('CoordinatesValueListEntry', 1, repeated=True)
-  type = _messages.StringField(2, default=u'LineString')
+  type = _messages.StringField(2, default='LineString')
 
 
 class LineStyle(_messages.Message):
@@ -552,7 +552,7 @@ class Point(_messages.Message):
   """
 
   coordinates = _messages.FloatField(1, repeated=True)
-  type = _messages.StringField(2, default=u'Point')
+  type = _messages.StringField(2, default='Point')
 
 
 class PointStyle(_messages.Message):
@@ -602,7 +602,7 @@ class Polygon(_messages.Message):
     entry = _messages.MessageField('EntryValueListEntry', 1, repeated=True)
 
   coordinates = _messages.MessageField('CoordinatesValueListEntry', 1, repeated=True)
-  type = _messages.StringField(2, default=u'Polygon')
+  type = _messages.StringField(2, default='Polygon')
 
 
 class PolygonStyle(_messages.Message):
@@ -658,7 +658,7 @@ class Sqlresponse(_messages.Message):
     entry = _messages.MessageField('extra_types.JsonValue', 1, repeated=True)
 
   columns = _messages.StringField(1, repeated=True)
-  kind = _messages.StringField(2, default=u'fusiontables#sqlresponse')
+  kind = _messages.StringField(2, default='fusiontables#sqlresponse')
   rows = _messages.MessageField('RowsValueListEntry', 3, repeated=True)
 
 
@@ -695,7 +695,7 @@ class StandardQueryParameters(_messages.Message):
     csv = 0
     json = 1
 
-  alt = _messages.EnumField('AltValueValuesEnum', 1, default=u'json')
+  alt = _messages.EnumField('AltValueValuesEnum', 1, default='json')
   fields = _messages.StringField(2)
   key = _messages.StringField(3)
   oauth_token = _messages.StringField(4)
@@ -780,7 +780,7 @@ class StyleSetting(_messages.Message):
     tableId: Identifier for the table.
   """
 
-  kind = _messages.StringField(1, default=u'fusiontables#styleSetting')
+  kind = _messages.StringField(1, default='fusiontables#styleSetting')
   markerOptions = _messages.MessageField('PointStyle', 2)
   name = _messages.StringField(3)
   polygonOptions = _messages.MessageField('PolygonStyle', 4)
@@ -801,7 +801,7 @@ class StyleSettingList(_messages.Message):
   """
 
   items = _messages.MessageField('StyleSetting', 1, repeated=True)
-  kind = _messages.StringField(2, default=u'fusiontables#styleSettingList')
+  kind = _messages.StringField(2, default='fusiontables#styleSettingList')
   nextPageToken = _messages.StringField(3)
   totalItems = _messages.IntegerField(4, variant=_messages.Variant.INT32)
 
@@ -830,7 +830,7 @@ class Table(_messages.Message):
   columns = _messages.MessageField('Column', 4, repeated=True)
   description = _messages.StringField(5)
   isExportable = _messages.BooleanField(6)
-  kind = _messages.StringField(7, default=u'fusiontables#table')
+  kind = _messages.StringField(7, default='fusiontables#table')
   name = _messages.StringField(8)
   sql = _messages.StringField(9)
   tableId = _messages.StringField(10)
@@ -847,7 +847,7 @@ class TableList(_messages.Message):
   """
 
   items = _messages.MessageField('Table', 1, repeated=True)
-  kind = _messages.StringField(2, default=u'fusiontables#tableList')
+  kind = _messages.StringField(2, default='fusiontables#tableList')
   nextPageToken = _messages.StringField(3)
 
 
@@ -867,7 +867,7 @@ class Task(_messages.Message):
       Changes the type of a column.
   """
 
-  kind = _messages.StringField(1, default=u'fusiontables#task')
+  kind = _messages.StringField(1, default='fusiontables#task')
   progress = _messages.StringField(2)
   started = _messages.BooleanField(3)
   taskId = _messages.IntegerField(4)
@@ -886,7 +886,7 @@ class TaskList(_messages.Message):
   """
 
   items = _messages.MessageField('Task', 1, repeated=True)
-  kind = _messages.StringField(2, default=u'fusiontables#taskList')
+  kind = _messages.StringField(2, default='fusiontables#taskList')
   nextPageToken = _messages.StringField(3)
   totalItems = _messages.IntegerField(4, variant=_messages.Variant.INT32)
 
@@ -913,7 +913,7 @@ class Template(_messages.Message):
 
   automaticColumnNames = _messages.StringField(1, repeated=True)
   body = _messages.StringField(2)
-  kind = _messages.StringField(3, default=u'fusiontables#template')
+  kind = _messages.StringField(3, default='fusiontables#template')
   name = _messages.StringField(4)
   tableId = _messages.StringField(5)
   templateId = _messages.IntegerField(6, variant=_messages.Variant.INT32)
@@ -931,7 +931,7 @@ class TemplateList(_messages.Message):
   """
 
   items = _messages.MessageField('Template', 1, repeated=True)
-  kind = _messages.StringField(2, default=u'fusiontables#templateList')
+  kind = _messages.StringField(2, default='fusiontables#templateList')
   nextPageToken = _messages.StringField(3)
   totalItems = _messages.IntegerField(4, variant=_messages.Variant.INT32)
 

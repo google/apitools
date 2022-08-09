@@ -45,7 +45,7 @@ class Change(_messages.Message):
   additions = _messages.MessageField('ResourceRecordSet', 1, repeated=True)
   deletions = _messages.MessageField('ResourceRecordSet', 2, repeated=True)
   id = _messages.StringField(3)
-  kind = _messages.StringField(4, default=u'dns#change')
+  kind = _messages.StringField(4, default='dns#change')
   startTime = _messages.StringField(5)
   status = _messages.EnumField('StatusValueValuesEnum', 6)
 
@@ -69,7 +69,7 @@ class ChangesListResponse(_messages.Message):
   """
 
   changes = _messages.MessageField('Change', 1, repeated=True)
-  kind = _messages.StringField(2, default=u'dns#changesListResponse')
+  kind = _messages.StringField(2, default='dns#changesListResponse')
   nextPageToken = _messages.StringField(3)
 
 
@@ -135,7 +135,7 @@ class DnsChangesListRequest(_messages.Message):
   maxResults = _messages.IntegerField(2, variant=_messages.Variant.INT32)
   pageToken = _messages.StringField(3)
   project = _messages.StringField(4, required=True)
-  sortBy = _messages.EnumField('SortByValueValuesEnum', 5, default=u'changeSequence')
+  sortBy = _messages.EnumField('SortByValueValuesEnum', 5, default='changeSequence')
   sortOrder = _messages.StringField(6)
 
 
@@ -265,7 +265,7 @@ class ManagedZone(_messages.Message):
   description = _messages.StringField(2)
   dnsName = _messages.StringField(3)
   id = _messages.IntegerField(4, variant=_messages.Variant.UINT64)
-  kind = _messages.StringField(5, default=u'dns#managedZone')
+  kind = _messages.StringField(5, default='dns#managedZone')
   name = _messages.StringField(6)
   nameServerSet = _messages.StringField(7)
   nameServers = _messages.StringField(8, repeated=True)
@@ -288,7 +288,7 @@ class ManagedZonesListResponse(_messages.Message):
       collection larger than the maximum page size.
   """
 
-  kind = _messages.StringField(1, default=u'dns#managedZonesListResponse')
+  kind = _messages.StringField(1, default='dns#managedZonesListResponse')
   managedZones = _messages.MessageField('ManagedZone', 2, repeated=True)
   nextPageToken = _messages.StringField(3)
 
@@ -308,7 +308,7 @@ class Project(_messages.Message):
   """
 
   id = _messages.StringField(1)
-  kind = _messages.StringField(2, default=u'dns#project')
+  kind = _messages.StringField(2, default='dns#project')
   number = _messages.IntegerField(3, variant=_messages.Variant.UINT64)
   quota = _messages.MessageField('Quota', 4)
 
@@ -332,7 +332,7 @@ class Quota(_messages.Message):
       ChangesCreateRequest in bytes.
   """
 
-  kind = _messages.StringField(1, default=u'dns#quota')
+  kind = _messages.StringField(1, default='dns#quota')
   managedZones = _messages.IntegerField(2, variant=_messages.Variant.INT32)
   resourceRecordsPerRrset = _messages.IntegerField(3, variant=_messages.Variant.INT32)
   rrsetAdditionsPerChange = _messages.IntegerField(4, variant=_messages.Variant.INT32)
@@ -355,7 +355,7 @@ class ResourceRecordSet(_messages.Message):
       TXT, and so on.
   """
 
-  kind = _messages.StringField(1, default=u'dns#resourceRecordSet')
+  kind = _messages.StringField(1, default='dns#resourceRecordSet')
   name = _messages.StringField(2)
   rrdatas = _messages.StringField(3, repeated=True)
   ttl = _messages.IntegerField(4, variant=_messages.Variant.INT32)
@@ -379,7 +379,7 @@ class ResourceRecordSetsListResponse(_messages.Message):
     rrsets: The resource record set resources.
   """
 
-  kind = _messages.StringField(1, default=u'dns#resourceRecordSetsListResponse')
+  kind = _messages.StringField(1, default='dns#resourceRecordSetsListResponse')
   nextPageToken = _messages.StringField(2)
   rrsets = _messages.MessageField('ResourceRecordSet', 3, repeated=True)
 
@@ -415,7 +415,7 @@ class StandardQueryParameters(_messages.Message):
     """
     json = 0
 
-  alt = _messages.EnumField('AltValueValuesEnum', 1, default=u'json')
+  alt = _messages.EnumField('AltValueValuesEnum', 1, default='json')
   fields = _messages.StringField(2)
   key = _messages.StringField(3)
   oauth_token = _messages.StringField(4)
