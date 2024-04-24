@@ -313,7 +313,7 @@ and returns it.
         method_id='iam.projects.serviceAccounts.getIamPolicy',
         ordered_params=['resource'],
         path_params=['resource'],
-        query_params=[],
+        query_params=['options_requestedPolicyVersion'],
         relative_path='v1/{+resource}:getIamPolicy',
         request_field='',
         request_type_name='IamProjectsServiceAccountsGetIamPolicyRequest',
