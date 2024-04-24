@@ -285,11 +285,10 @@ class ServiceRegistry(object):
                 if k not in ordered_parameters:
                     ordered_parameters.append(k)
         for parameter_name in ordered_parameters:
-            field_name = self.__names.CleanName(parameter_name)
             field = dict(method_description['parameters'][parameter_name])
             if 'type' not in field:
                 raise ValueError('No type found in parameter %s' % field)
-            schema['properties'][field_name] = field
+            schema['properties'][parameter_name] = field
         if body_type is not None:
             body_field_name = self.__GetRequestField(
                 method_description, body_type)
