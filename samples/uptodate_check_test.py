@@ -59,10 +59,6 @@ class ClientGenCliTest(unittest.TestCase):
                      prefix + '_messages.py',
                      '__init__.py']))
             self.assertEquals(expected_files, set(os.listdir(tmp_dir_path)))
-            if six.PY3:
-                # The source files won't be identical under python3,
-                # so we exit early.
-                return
             for expected_file in expected_files:
                 self.AssertDiffEqual(
                     _GetContent(GetSampleClientPath(
