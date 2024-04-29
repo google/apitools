@@ -964,6 +964,12 @@
                   "required": true,
                   "pattern": "^projects\/[^\/]*\/serviceAccounts\/[^\/]*$",
                   "type": "string"
+                },
+                "options.requestedPolicyVersion": {
+                  "description": "Optional. The policy format version to be returned.\nAcceptable values are 0 and 1.\nIf the value is 0, or the field is omitted, policy format version 1 will be\nreturned.",
+                  "location": "query",
+                  "type": "integer",
+                  "format": "int32"
                 }
               },
               "parameterOrder": [
