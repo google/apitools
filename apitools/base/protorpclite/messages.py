@@ -143,7 +143,7 @@ class ValidationError(Error):
 # Attributes that are reserved by a class definition that
 # may not be used by either Enum or Message class definitions.
 _RESERVED_ATTRIBUTE_NAMES = frozenset(
-    ['__module__', '__doc__', '__qualname__'])
+    ['__module__', '__doc__', '__qualname__', '__static_attributes__'])
 
 _POST_INIT_FIELD_ATTRIBUTE_NAMES = frozenset(
     ['name',
