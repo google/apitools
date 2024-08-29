@@ -100,6 +100,8 @@ class ApiMethodInfo(messages.Message):
       supports_download: (boolean) If True, this method supports
           downloading the request via the `alt=media` query
           parameter.
+      api_version_param: API version system parameter for this
+          method.
     """
 
     relative_path = messages.StringField(1)
@@ -115,6 +117,7 @@ class ApiMethodInfo(messages.Message):
     request_field = messages.StringField(11, default='')
     upload_config = messages.MessageField(ApiUploadInfo, 12)
     supports_download = messages.BooleanField(13, default=False)
+    api_version_param = messages.StringField(14)
 
 
 REQUEST_IS_BODY = '<request>'
@@ -634,6 +637,12 @@ class BaseApiService(object):
         http_request.headers['accept'] = 'application/json'
         http_request.headers['accept-encoding'] = 'gzip, deflate'
 
+    def __SetBaseSystemParams(self, http_request, method_config):
+      """Fill in the system parameters to always set for the method."""
+      if method_config.api_version_param:
+          http_request.headers['X-Goog-Api-Version'] = (
+              method_config.api_version_param)
+
     def __SetBody(self, http_request, method_config, request, upload):
         """Fill in the body on http_request."""
         if not method_config.request_field:
@@ -672,6 +681,7 @@ class BaseApiService(object):
         http_request = http_wrapper.Request(
             http_method=method_config.http_method)
         self.__SetBaseHeaders(http_request, self.__client)
+        self.__SetBaseSystemParams(http_request, method_config)
         self.__SetBody(http_request, method_config, request, upload)
 
         url_builder = _UrlBuilder(

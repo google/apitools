@@ -220,10 +220,10 @@ class BaseApiTest(unittest.TestCase):
             with self.assertRaises(exceptions.HttpBadRequestError) as err:
                 service._RunMethod(method_config, request)
         http_error = err.exception
-        self.assertEquals('http://www.google.com', http_error.url)
-        self.assertEquals('{"field": "abc"}', http_error.content)
-        self.assertEquals(method_config, http_error.method_config)
-        self.assertEquals(request, http_error.request)
+        self.assertEqual('http://www.google.com', http_error.url)
+        self.assertEqual('{"field": "abc"}', http_error.content)
+        self.assertEqual(method_config, http_error.method_config)
+        self.assertEqual(request, http_error.request)
 
     def testQueryEncoding(self):
         method_config = base_api.ApiMethodInfo(
@@ -337,6 +337,16 @@ class BaseApiTest(unittest.TestCase):
             'http://normal.googleapis.com/path')
         expected = 'http://custom.p.googleapis.com/path'
         self.assertEqual(observed, expected)
+
+    def testApiVersionSystemParameter(self):
+        method_config = base_api.ApiMethodInfo(
+            request_type_name='SimpleMessage', api_version_param='2024-01-01')
+        service = FakeService()
+        request = SimpleMessage()
+        http_request = service.PrepareHttpRequest(method_config, request)
+        self.assertIn('X-Goog-Api-Version', http_request.headers)
+        self.assertEqual(
+            '2024-01-01', http_request.headers['X-Goog-Api-Version'])
 
 
 if __name__ == '__main__':
