@@ -407,6 +407,8 @@ class ServiceRegistry(object):
                 method_description.get('mediaUpload'), method_id)
         method_info.supports_download = method_description.get(
             'supportsMediaDownload', False)
+        if method_description.get('apiVersion'):
+            method_info.api_version_param = method_description.get('apiVersion')
         self.__all_scopes.update(method_description.get('scopes', ()))
         for param, desc in method_description.get('parameters', {}).items():
             param = self.__names.CleanName(param)
