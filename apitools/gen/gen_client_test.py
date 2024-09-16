@@ -54,7 +54,7 @@ class ClientGenCliTest(unittest.TestCase):
             ])
             expected_files = (
                 set(['dns_v1_client.py', 'dns_v1_messages.py']))
-            self.assertEquals(expected_files, set(os.listdir(tmp_dir_path)))
+            self.assertEqual(expected_files, set(os.listdir(tmp_dir_path)))
 
     def testGenClient_SimpleDocEmptyInit(self):
         with test_utils.TempDir() as tmp_dir_path:
@@ -69,7 +69,7 @@ class ClientGenCliTest(unittest.TestCase):
             ])
             expected_files = (
                 set(['dns_v1_client.py', 'dns_v1_messages.py', '__init__.py']))
-            self.assertEquals(expected_files, set(os.listdir(tmp_dir_path)))
+            self.assertEqual(expected_files, set(os.listdir(tmp_dir_path)))
             init_file = _GetContent(os.path.join(tmp_dir_path, '__init__.py'))
             self.assertEqual("""\"""Package marker file.\"""
 
@@ -91,7 +91,7 @@ __path__ = pkgutil.extend_path(__path__, __name__)
                 '--root_package', 'google.apis',
                 'client'
             ])
-            self.assertEquals(
+            self.assertEqual(
                 set(['dns_v1_client.py', 'dns_v1_messages.py', '__init__.py']),
                 set(os.listdir(tmp_dir_path)))
 
@@ -106,9 +106,35 @@ __path__ = pkgutil.extend_path(__path__, __name__)
                 '--root_package', 'google.apis',
                 'client'
             ])
-            self.assertEquals(
+            self.assertEqual(
                 set(['dns_v1_client.py', 'dns_v1_messages.py', '__init__.py']),
                 set(os.listdir(tmp_dir_path)))
+
+    def testGenClient_ApiVersioning(self):
+        with test_utils.TempDir() as tmp_dir_path:
+            gen_client.main([
+                gen_client.__file__,
+                '--infile', GetTestDataPath(
+                    'dns', 'dns_2015-08-07-preview.json'),
+                '--outdir', tmp_dir_path,
+                '--overwrite',
+                '--version-identifier', 'v2015_08_07_preview',
+                '--root_package', 'google.apis',
+                'client'
+            ])
+            self.assertEqual(
+                set([
+                    'dns_v2015_08_07_preview_client.py',
+                    'dns_v2015_08_07_preview_messages.py',
+                    '__init__.py']),
+                set(os.listdir(tmp_dir_path)))
+            client_file = _GetContent(
+                os.path.join(tmp_dir_path, 'dns_v2015_08_07_preview_client.py'))
+            # Check that "apiVersion" system parameter values from discovery doc
+            # appear in generated client.
+            self.assertIn('2015-01-01-preview', client_file)
+            self.assertIn('2015-02-02-preview', client_file)
+            self.assertIn('2015-03-03-preview', client_file)
 
     def testGenPipPackage_SimpleDoc(self):
         with test_utils.TempDir() as tmp_dir_path:
@@ -120,7 +146,7 @@ __path__ = pkgutil.extend_path(__path__, __name__)
                 '--root_package', 'google.apis',
                 'pip_package'
             ])
-            self.assertEquals(
+            self.assertEqual(
                 set(['apitools', 'setup.py']),
                 set(os.listdir(tmp_dir_path)))
 
@@ -134,6 +160,6 @@ __path__ = pkgutil.extend_path(__path__, __name__)
                 '--root_package', 'google.apis',
                 'proto'
             ])
-            self.assertEquals(
+            self.assertEqual(
                 set(['dns_v1_messages.proto', 'dns_v1_services.proto']),
                 set(os.listdir(tmp_dir_path)))

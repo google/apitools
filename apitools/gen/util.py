@@ -205,12 +205,15 @@ class ClientInfo(collections.namedtuple('ClientInfo', (
 
     @classmethod
     def Create(cls, discovery_doc,
-               scope_ls, client_id, client_secret, user_agent, names, api_key):
+               scope_ls, client_id, client_secret, user_agent, names, api_key,
+               version_identifier):
         """Create a new ClientInfo object from a discovery document."""
         scopes = set(
             discovery_doc.get('auth', {}).get('oauth2', {}).get('scopes', {}))
         scopes.update(scope_ls)
         package = discovery_doc['name']
+        version = (
+            version_identifier or NormalizeVersion(discovery_doc['version']))
         url_version = discovery_doc['version']
         base_url, base_path = _ComputePaths(package, url_version,
                                             discovery_doc['rootUrl'],
@@ -225,7 +228,7 @@ class ClientInfo(collections.namedtuple('ClientInfo', (
 
         client_info = {
             'package': package,
-            'version': NormalizeVersion(discovery_doc['version']),
+            'version': version,
             'url_version': url_version,
             'scopes': sorted(list(scopes)),
             'client_id': client_id,
