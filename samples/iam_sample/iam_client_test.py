@@ -28,18 +28,18 @@ from samples.iam_sample.iam_v1 import iam_v1_messages  # nopep8
 class DnsGenClientSanityTest(unittest.TestCase):
 
     def testBaseUrl(self):
-        self.assertEquals(u'https://iam.googleapis.com/',
+        self.assertEqual(u'https://iam.googleapis.com/',
                           iam_v1_client.IamV1.BASE_URL)
 
     def testMessagesModule(self):
-        self.assertEquals(iam_v1_messages, iam_v1_client.IamV1.MESSAGES_MODULE)
+        self.assertEqual(iam_v1_messages, iam_v1_client.IamV1.MESSAGES_MODULE)
 
     def testAttributes(self):
         inner_classes = set([])
         for key, value in iam_v1_client.IamV1.__dict__.items():
             if isinstance(value, six.class_types):
                 inner_classes.add(key)
-        self.assertEquals(set([
+        self.assertEqual(set([
             'IamPoliciesService',
             'ProjectsService',
             'ProjectsServiceAccountsKeysService',
@@ -57,10 +57,10 @@ class IamGenClientTest(unittest.TestCase):
     def testFlatPath(self):
         get_method_config = (self.mocked_iam_v1.projects_serviceAccounts_keys
                              .GetMethodConfig('Get'))
-        self.assertEquals('v1/projects/{projectsId}/serviceAccounts'
+        self.assertEqual('v1/projects/{projectsId}/serviceAccounts'
                           '/{serviceAccountsId}/keys/{keysId}',
                           get_method_config.flat_path)
-        self.assertEquals('v1/{+name}', get_method_config.relative_path)
+        self.assertEqual('v1/{+name}', get_method_config.relative_path)
 
     def testServiceAccountsKeysList(self):
         response_key = iam_v1_messages.ServiceAccountKey(
@@ -75,4 +75,4 @@ class IamGenClientTest(unittest.TestCase):
             iam_v1_messages.IamProjectsServiceAccountsKeysListRequest(
                 name=u'test-service-account.'))
 
-        self.assertEquals([response_key], result.keys)
+        self.assertEqual([response_key], result.keys)

@@ -49,7 +49,7 @@ class DescribeEnumValueTest(test_util.TestCase):
 
         described = descriptor.describe_enum_value(MyEnum.MY_NAME)
         described.check_initialized()
-        self.assertEquals(expected, described)
+        self.assertEqual(expected, described)
 
 
 class DescribeEnumTest(test_util.TestCase):
@@ -63,7 +63,7 @@ class DescribeEnumTest(test_util.TestCase):
 
         described = descriptor.describe_enum(EmptyEnum)
         described.check_initialized()
-        self.assertEquals(expected, described)
+        self.assertEqual(expected, described)
 
     def testNestedEnum(self):
         class MyScope(messages.Message):
@@ -76,7 +76,7 @@ class DescribeEnumTest(test_util.TestCase):
 
         described = descriptor.describe_enum(MyScope.NestedEnum)
         described.check_initialized()
-        self.assertEquals(expected, described)
+        self.assertEqual(expected, described)
 
     @unittest.skipIf('PyPy' in platform.python_implementation(),
                      'todo: reenable this')
@@ -105,7 +105,7 @@ class DescribeEnumTest(test_util.TestCase):
 
         described = descriptor.describe_enum(EnumWithItems)
         described.check_initialized()
-        self.assertEquals(expected, described)
+        self.assertEqual(expected, described)
 
 
 class DescribeFieldTest(test_util.TestCase):
@@ -127,7 +127,7 @@ class DescribeFieldTest(test_util.TestCase):
 
             described = descriptor.describe_field(field)
             described.check_initialized()
-            self.assertEquals(expected, described)
+            self.assertEqual(expected, described)
 
     def testDefault(self):
         test_cases = (
@@ -154,7 +154,7 @@ class DescribeFieldTest(test_util.TestCase):
 
             described = descriptor.describe_field(field)
             described.check_initialized()
-            self.assertEquals(expected, described)
+            self.assertEqual(expected, described)
 
     def testDefault_EnumField(self):
         class MyEnum(messages.Enum):
@@ -174,7 +174,7 @@ class DescribeFieldTest(test_util.TestCase):
         expected.default_value = '1'
 
         described = descriptor.describe_field(field)
-        self.assertEquals(expected, described)
+        self.assertEqual(expected, described)
 
     def testMessageField(self):
         field = messages.MessageField(descriptor.FieldDescriptor, 10)
@@ -190,7 +190,7 @@ class DescribeFieldTest(test_util.TestCase):
 
         described = descriptor.describe_field(field)
         described.check_initialized()
-        self.assertEquals(expected, described)
+        self.assertEqual(expected, described)
 
     def testDateTimeField(self):
         field = message_types.DateTimeField(20)
@@ -206,7 +206,7 @@ class DescribeFieldTest(test_util.TestCase):
 
         described = descriptor.describe_field(field)
         described.check_initialized()
-        self.assertEquals(expected, described)
+        self.assertEqual(expected, described)
 
 
 class DescribeMessageTest(test_util.TestCase):
@@ -220,7 +220,7 @@ class DescribeMessageTest(test_util.TestCase):
 
         described = descriptor.describe_message(MyMessage)
         described.check_initialized()
-        self.assertEquals(expected, described)
+        self.assertEqual(expected, described)
 
     def testDefinitionWithFields(self):
         class MessageWithFields(messages.Message):
@@ -242,7 +242,7 @@ class DescribeMessageTest(test_util.TestCase):
 
         described = descriptor.describe_message(MessageWithFields)
         described.check_initialized()
-        self.assertEquals(expected, described)
+        self.assertEqual(expected, described)
 
     def testNestedEnum(self):
         class MessageWithEnum(messages.Message):
@@ -265,7 +265,7 @@ class DescribeMessageTest(test_util.TestCase):
 
         described = descriptor.describe_message(MessageWithEnum)
         described.check_initialized()
-        self.assertEquals(expected, described)
+        self.assertEqual(expected, described)
 
     def testNestedMessage(self):
         class MessageWithMessage(messages.Message):
@@ -281,7 +281,7 @@ class DescribeMessageTest(test_util.TestCase):
 
         described = descriptor.describe_message(MessageWithMessage)
         described.check_initialized()
-        self.assertEquals(expected, described)
+        self.assertEqual(expected, described)
 
 
 class DescribeFileTest(test_util.TestCase):
@@ -309,7 +309,7 @@ class DescribeFileTest(test_util.TestCase):
 
         described = descriptor.describe_file(module)
         described.check_initialized()
-        self.assertEquals(expected, described)
+        self.assertEqual(expected, described)
 
     def testNoPackageName(self):
         """Test describing a module with no module name."""
@@ -319,7 +319,7 @@ class DescribeFileTest(test_util.TestCase):
 
         described = descriptor.describe_file(module)
         described.check_initialized()
-        self.assertEquals(expected, described)
+        self.assertEqual(expected, described)
 
     def testPackageName(self):
         """Test using the 'package' module attribute."""
@@ -331,7 +331,7 @@ class DescribeFileTest(test_util.TestCase):
 
         described = descriptor.describe_file(module)
         described.check_initialized()
-        self.assertEquals(expected, described)
+        self.assertEqual(expected, described)
 
     def testMain(self):
         """Test using the 'package' module attribute."""
@@ -343,7 +343,7 @@ class DescribeFileTest(test_util.TestCase):
 
         described = descriptor.describe_file(module)
         described.check_initialized()
-        self.assertEquals(expected, described)
+        self.assertEqual(expected, described)
 
     def testMessages(self):
         """Test that messages are described."""
@@ -363,7 +363,7 @@ class DescribeFileTest(test_util.TestCase):
 
         described = descriptor.describe_file(module)
         described.check_initialized()
-        self.assertEquals(expected, described)
+        self.assertEqual(expected, described)
 
     def testEnums(self):
         """Test that enums are described."""
@@ -383,7 +383,7 @@ class DescribeFileTest(test_util.TestCase):
 
         described = descriptor.describe_file(module)
         described.check_initialized()
-        self.assertEquals(expected, described)
+        self.assertEqual(expected, described)
 
 
 class DescribeFileSetTest(test_util.TestCase):
@@ -394,7 +394,7 @@ class DescribeFileSetTest(test_util.TestCase):
         described = descriptor.describe_file_set([])
         described.check_initialized()
         # The described FileSet.files will be None.
-        self.assertEquals(descriptor.FileSet(), described)
+        self.assertEqual(descriptor.FileSet(), described)
 
     def testWithModules(self):
         """Test what happens when no modules provided."""
@@ -410,32 +410,32 @@ class DescribeFileSetTest(test_util.TestCase):
 
         described = descriptor.describe_file_set(modules)
         described.check_initialized()
-        self.assertEquals(expected, described)
+        self.assertEqual(expected, described)
 
 
 class DescribeTest(test_util.TestCase):
 
     def testModule(self):
-        self.assertEquals(descriptor.describe_file(test_util),
+        self.assertEqual(descriptor.describe_file(test_util),
                           descriptor.describe(test_util))
 
     def testField(self):
-        self.assertEquals(
+        self.assertEqual(
             descriptor.describe_field(test_util.NestedMessage.a_value),
             descriptor.describe(test_util.NestedMessage.a_value))
 
     def testEnumValue(self):
-        self.assertEquals(
+        self.assertEqual(
             descriptor.describe_enum_value(
                 test_util.OptionalMessage.SimpleEnum.VAL1),
             descriptor.describe(test_util.OptionalMessage.SimpleEnum.VAL1))
 
     def testMessage(self):
-        self.assertEquals(descriptor.describe_message(test_util.NestedMessage),
+        self.assertEqual(descriptor.describe_message(test_util.NestedMessage),
                           descriptor.describe(test_util.NestedMessage))
 
     def testEnum(self):
-        self.assertEquals(
+        self.assertEqual(
             descriptor.describe_enum(test_util.OptionalMessage.SimpleEnum),
             descriptor.describe(test_util.OptionalMessage.SimpleEnum))
 
@@ -451,25 +451,25 @@ class DescribeTest(test_util.TestCase):
                       'string',
                       1.2,
                       None):
-            self.assertEquals(None, descriptor.describe(value))
+            self.assertEqual(None, descriptor.describe(value))
 
 
 class ModuleFinderTest(test_util.TestCase):
 
     def testFindMessage(self):
-        self.assertEquals(
+        self.assertEqual(
             descriptor.describe_message(descriptor.FileSet),
             descriptor.import_descriptor_loader(
                 'apitools.base.protorpclite.descriptor.FileSet'))
 
     def testFindField(self):
-        self.assertEquals(
+        self.assertEqual(
             descriptor.describe_field(descriptor.FileSet.files),
             descriptor.import_descriptor_loader(
                 'apitools.base.protorpclite.descriptor.FileSet.files'))
 
     def testFindEnumValue(self):
-        self.assertEquals(
+        self.assertEqual(
             descriptor.describe_enum_value(
                 test_util.OptionalMessage.SimpleEnum.VAL1),
             descriptor.import_descriptor_loader(
@@ -489,8 +489,8 @@ class DescriptorLibraryTest(test_util.TestCase):
             })
 
     def testLookupPackage(self):
-        self.assertEquals('csv', self.library.lookup_package('csv'))
-        self.assertEquals(
+        self.assertEqual('csv', self.library.lookup_package('csv'))
+        self.assertEqual(
             'apitools.base.protorpclite',
             self.library.lookup_package('apitools.base.protorpclite'))
 
@@ -508,7 +508,7 @@ class DescriptorLibraryTest(test_util.TestCase):
             'Could not find definition for not.real',
             self.library.lookup_package, 'not.real.Packageless')
 
-        self.assertEquals(None, self.library.lookup_package('Packageless'))
+        self.assertEqual(None, self.library.lookup_package('Packageless'))
 
 
 if __name__ == '__main__':

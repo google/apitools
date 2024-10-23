@@ -39,8 +39,8 @@ class UtilTest(test_util.TestCase):
         @util.positional(0)
         def fn(kwonly=1):
             return [kwonly]
-        self.assertEquals([1], fn())
-        self.assertEquals([2], fn(kwonly=2))
+        self.assertEqual([1], fn())
+        self.assertEqual([2], fn(kwonly=2))
         self.assertRaisesWithRegexpMatch(TypeError,
                                          r'fn\(\) takes at most 0 positional '
                                          r'arguments \(1 given\)',
@@ -50,8 +50,8 @@ class UtilTest(test_util.TestCase):
         @util.positional(1)
         def fn(pos, kwonly=1):
             return [pos, kwonly]
-        self.assertEquals([1, 1], fn(1))
-        self.assertEquals([2, 2], fn(2, kwonly=2))
+        self.assertEqual([1, 1], fn(1))
+        self.assertEqual([2, 2], fn(2, kwonly=2))
         self.assertRaisesWithRegexpMatch(TypeError,
                                          r'fn\(\) takes at most 1 positional '
                                          r'argument \(2 given\)',
@@ -61,9 +61,9 @@ class UtilTest(test_util.TestCase):
         @util.positional(2)
         def fn(pos1, pos2=1, kwonly=1):
             return [pos1, pos2, kwonly]
-        self.assertEquals([1, 1, 1], fn(1))
-        self.assertEquals([2, 2, 1], fn(2, 2))
-        self.assertEquals([2, 3, 4], fn(2, 3, kwonly=4))
+        self.assertEqual([1, 1, 1], fn(1))
+        self.assertEqual([2, 2, 1], fn(2, 2))
+        self.assertEqual([2, 3, 4], fn(2, 3, kwonly=4))
         self.assertRaisesWithRegexpMatch(TypeError,
                                          r'fn\(\) takes at most 2 positional '
                                          r'arguments \(3 given\)',
@@ -75,8 +75,8 @@ class UtilTest(test_util.TestCase):
             @util.positional(2)
             def meth(self, pos1, kwonly=1):
                 return [pos1, kwonly]
-        self.assertEquals([1, 1], MyClass().meth(1))
-        self.assertEquals([2, 2], MyClass().meth(2, kwonly=2))
+        self.assertEqual([1, 1], MyClass().meth(1))
+        self.assertEqual([2, 2], MyClass().meth(2, kwonly=2))
         self.assertRaisesWithRegexpMatch(
             TypeError,
             r'meth\(\) takes at most 2 positional arguments \(3 given\)',
@@ -86,8 +86,8 @@ class UtilTest(test_util.TestCase):
         @util.positional
         def fn(a, b, c=None):
             return a, b, c
-        self.assertEquals((1, 2, 3), fn(1, 2, c=3))
-        self.assertEquals((3, 4, None), fn(3, b=4))
+        self.assertEqual((1, 2, 3), fn(1, 2, c=3))
+        self.assertEqual((3, 4, None), fn(3, b=4))
         self.assertRaisesWithRegexpMatch(TypeError,
                                          r'fn\(\) takes at most 2 positional '
                                          r'arguments \(3 given\)',
@@ -96,7 +96,7 @@ class UtilTest(test_util.TestCase):
     def testDefaultDecorationNoKwdsFails(self):
         def fn(a):
             return a
-        self.assertRaisesRegexp(
+        self.assertRaisesRegex(
             ValueError,
             ('Functions with no keyword arguments must specify '
              'max_positional_args'),
@@ -107,7 +107,7 @@ class UtilTest(test_util.TestCase):
         def fn(kwonly=1):
             """fn docstring."""
             return [kwonly]
-        self.assertEquals('fn docstring.', fn.__doc__)
+        self.assertEqual('fn docstring.', fn.__doc__)
 
 
 class GetPackageForModuleTest(test_util.TestCase):
@@ -127,7 +127,7 @@ class GetPackageForModuleTest(test_util.TestCase):
         return module
 
     def assertPackageEquals(self, expected, actual):
-        self.assertEquals(expected, actual)
+        self.assertEqual(expected, actual)
         if actual is not None:
             self.assertTrue(isinstance(actual, six.text_type))
 
@@ -185,14 +185,14 @@ class DateTimeTests(test_util.TestCase):
                 ('2012-09-30T15:31:50', (2012, 9, 30, 15, 31, 50, 0))):
             decoded = util.decode_datetime(datetime_string)
             expected = datetime.datetime(*datetime_vals)
-            self.assertEquals(expected, decoded)
+            self.assertEqual(expected, decoded)
 
     def testDecodeDateTimeWithTruncateTime(self):
        """Test that nanosec time is truncated with truncate_time flag."""
        decoded = util.decode_datetime('2012-09-30T15:31:50.262343123',
                                       truncate_time=True)
        expected = datetime.datetime(2012, 9, 30, 15, 31, 50, 262343)
-       self.assertEquals(expected, decoded)
+       self.assertEqual(expected, decoded)
 
     def testDateTimeTimeZones(self):
         """Test that a datetime string with a timezone is decoded correctly."""
@@ -214,7 +214,7 @@ class DateTimeTests(test_util.TestCase):
         for datetime_string, datetime_vals in tests:
             decoded = util.decode_datetime(datetime_string)
             expected = datetime.datetime(*datetime_vals)
-            self.assertEquals(expected, decoded)
+            self.assertEqual(expected, decoded)
 
     def testDecodeDateTimeInvalid(self):
         """Test that decoding malformed datetime strings raises execptions."""
@@ -233,7 +233,7 @@ class DateTimeTests(test_util.TestCase):
     def testTimeZoneOffsetDelta(self):
         """Test that delta works with TimeZoneOffset."""
         time_zone = util.TimeZoneOffset(datetime.timedelta(minutes=3))
-        epoch = time_zone.utcoffset(datetime.datetime.utcfromtimestamp(0))
+        epoch = time_zone.utcoffset(datetime.datetime.fromtimestamp(0, tz=datetime.timezone.utc).replace(tzinfo=None))
         self.assertEqual(180, util.total_seconds(epoch))
 
 

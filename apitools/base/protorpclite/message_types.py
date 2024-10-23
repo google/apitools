@@ -78,8 +78,8 @@ class DateTimeField(messages.MessageField):
         """
         message = super(DateTimeField, self).value_from_message(message)
         if message.time_zone_offset is None:
-            return datetime.datetime.utcfromtimestamp(
-                message.milliseconds / 1000.0)
+            return datetime.datetime.fromtimestamp(
+                message.milliseconds / 1000.0, tz=datetime.timezone.utc).replace(tzinfo=None)
 
         # Need to subtract the time zone offset, because when we call
         # datetime.fromtimestamp, it will add the time zone offset to the
@@ -97,7 +97,7 @@ class DateTimeField(messages.MessageField):
         # DateTimeMessage's milliseconds field.
         if value.tzinfo is None:
             time_zone_offset = 0
-            local_epoch = datetime.datetime.utcfromtimestamp(0)
+            local_epoch = datetime.datetime.fromtimestamp(0, tz=datetime.timezone.utc).replace(tzinfo=None)
         else:
             time_zone_offset = util.total_seconds(
                 value.tzinfo.utcoffset(value))

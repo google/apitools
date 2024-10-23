@@ -409,7 +409,7 @@ class GceAssertionCredentials(gce.AppAssertionCredentials):
             expires_in = int(credential_info['expires_in'])
             self.token_expiry = (
                 datetime.timedelta(seconds=expires_in) +
-                datetime.datetime.utcnow())
+                datetime.datetime.now(tz=datetime.timezone.utc).replace(tzinfo=None))
         else:
             self.token_expiry = None
         self.invalid = False

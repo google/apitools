@@ -29,18 +29,18 @@ from samples.dns_sample.dns_v1 import dns_v1_messages
 class DnsGenClientSanityTest(unittest.TestCase):
 
     def testBaseUrl(self):
-        self.assertEquals(u'https://www.googleapis.com/dns/v1/',
+        self.assertEqual(u'https://www.googleapis.com/dns/v1/',
                           dns_v1_client.DnsV1.BASE_URL)
 
     def testMessagesModule(self):
-        self.assertEquals(dns_v1_messages, dns_v1_client.DnsV1.MESSAGES_MODULE)
+        self.assertEqual(dns_v1_messages, dns_v1_client.DnsV1.MESSAGES_MODULE)
 
     def testAttributes(self):
         inner_classes = set([])
         for key, value in dns_v1_client.DnsV1.__dict__.items():
             if isinstance(value, six.class_types):
                 inner_classes.add(key)
-        self.assertEquals(set([
+        self.assertEqual(set([
             'ChangesService',
             'ProjectsService',
             'ManagedZonesService',
@@ -57,7 +57,7 @@ class DnsGenClientTest(unittest.TestCase):
     def testFlatPath(self):
         get_method_config = self.mocked_dns_v1.projects.GetMethodConfig('Get')
         self.assertIsNone(get_method_config.flat_path)
-        self.assertEquals('projects/{project}',
+        self.assertEqual('projects/{project}',
                           get_method_config.relative_path)
 
     def testRecordSetList(self):
@@ -84,4 +84,4 @@ class DnsGenClientTest(unittest.TestCase):
                 type='green'),
             limit=100, field='rrsets'))
 
-        self.assertEquals([response_record_set], results)
+        self.assertEqual([response_record_set], results)

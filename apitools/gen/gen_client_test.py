@@ -34,7 +34,7 @@ def _GetContent(file_path):
 class ClientGenCliTest(unittest.TestCase):
 
     def testHelp_NotEnoughArguments(self):
-        with self.assertRaisesRegexp(SystemExit, '0'):
+        with self.assertRaisesRegex(SystemExit, '0'):
             with test_utils.CaptureOutput() as (_, err):
                 gen_client.main([gen_client.__file__, '-h'])
                 err_output = err.getvalue()

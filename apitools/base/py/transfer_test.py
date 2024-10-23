@@ -551,7 +551,7 @@ class UploadTest(unittest.TestCase):
             upload.StreamInChunks()
 
             # Ensure the mock was called the correct number of times.
-            self.assertEquals(make_request.call_count, len(responses))
+            self.assertEqual(make_request.call_count, len(responses))
 
     def testStreamInChunks(self):
         """Test StreamInChunks."""
@@ -589,7 +589,7 @@ class UploadTest(unittest.TestCase):
             upload.StreamInChunks()
 
             # Ensure the mock was called the correct number of times.
-            self.assertEquals(make_request.call_count, len(responses))
+            self.assertEqual(make_request.call_count, len(responses))
 
     @mock.patch.object(transfer.Upload, 'RefreshResumableUploadState',
                        new=mock.Mock())
