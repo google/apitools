@@ -292,7 +292,7 @@ class ListPagerTest(unittest.TestCase):
             client.column, request, get_field_func=Custom_Getter)
 
         self._AssertInstanceSequence(results, 1)
-        self.assertEquals(1, len(custom_getter_called))
+        self.assertEqual(1, len(custom_getter_called))
 
 
 class ListPagerAttributeTest(unittest.TestCase):
@@ -338,8 +338,8 @@ class ListPagerAttributeTest(unittest.TestCase):
 
         i = 0
         for i, instance in enumerate(results):
-            self.assertEquals('c{0}'.format(i), instance.fullResourcePath)
-        self.assertEquals(2, i)
+            self.assertEqual('c{0}'.format(i), instance.fullResourcePath)
+        self.assertEqual(2, i)
 
     def testYieldFromListWithNoBatchSizeAttribute(self):
         self.mocked_client.iamPolicies.GetPolicyDetails.Expect(
@@ -364,5 +364,5 @@ class ListPagerAttributeTest(unittest.TestCase):
 
         i = 0
         for i, instance in enumerate(results):
-            self.assertEquals('c{0}'.format(i), instance.fullResourcePath)
-        self.assertEquals(1, i)
+            self.assertEqual('c{0}'.format(i), instance.fullResourcePath)
+        self.assertEqual(1, i)

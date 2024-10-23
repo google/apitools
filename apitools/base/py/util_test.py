@@ -53,10 +53,10 @@ class UtilTest(unittest.TestCase):
     def testExpand(self):
         method_config_xy = MockedMethodConfig(relative_path='{x}/y/{z}',
                                               path_params=['x', 'z'])
-        self.assertEquals(
+        self.assertEqual(
             util.ExpandRelativePath(method_config_xy, {'x': '1', 'z': '2'}),
             '1/y/2')
-        self.assertEquals(
+        self.assertEqual(
             util.ExpandRelativePath(
                 method_config_xy,
                 {'x': '1', 'z': '2'},
@@ -66,11 +66,11 @@ class UtilTest(unittest.TestCase):
     def testReservedExpansion(self):
         method_config_reserved = MockedMethodConfig(relative_path='{+x}/baz',
                                                     path_params=['x'])
-        self.assertEquals('foo/:bar:/baz', util.ExpandRelativePath(
+        self.assertEqual('foo/:bar:/baz', util.ExpandRelativePath(
             method_config_reserved, {'x': 'foo/:bar:'}))
         method_config_no_reserved = MockedMethodConfig(relative_path='{x}/baz',
                                                        path_params=['x'])
-        self.assertEquals('foo%2F%3Abar%3A/baz', util.ExpandRelativePath(
+        self.assertEqual('foo%2F%3Abar%3A/baz', util.ExpandRelativePath(
             method_config_no_reserved, {'x': 'foo/:bar:'}))
 
     def testCalculateWaitForRetry(self):
@@ -105,27 +105,27 @@ class UtilTest(unittest.TestCase):
 
         instance_of_class1 = Class1()
 
-        self.assertEquals(
+        self.assertEqual(
             instance_of_class1, util.Typecheck(instance_of_class1, Class1))
 
-        self.assertEquals(
+        self.assertEqual(
             instance_of_class1,
             util.Typecheck(instance_of_class1, ((Class1, Class2), Class3)))
 
-        self.assertEquals(
+        self.assertEqual(
             instance_of_class1,
             util.Typecheck(instance_of_class1, (Class1, (Class2, Class3))))
 
-        self.assertEquals(
+        self.assertEqual(
             instance_of_class1,
             util.Typecheck(instance_of_class1, Class1, 'message'))
 
-        self.assertEquals(
+        self.assertEqual(
             instance_of_class1,
             util.Typecheck(
                 instance_of_class1, ((Class1, Class2), Class3), 'message'))
 
-        self.assertEquals(
+        self.assertEqual(
             instance_of_class1,
             util.Typecheck(
                 instance_of_class1, (Class1, (Class2, Class3)), 'message'))

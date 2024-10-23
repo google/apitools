@@ -58,7 +58,7 @@ class ClientGenCliTest(unittest.TestCase):
                 set([prefix + '_client.py',
                      prefix + '_messages.py',
                      '__init__.py']))
-            self.assertEquals(expected_files, set(os.listdir(tmp_dir_path)))
+            self.assertEqual(expected_files, set(os.listdir(tmp_dir_path)))
             for expected_file in expected_files:
                 self.AssertDiffEqual(
                     _GetContent(GetSampleClientPath(

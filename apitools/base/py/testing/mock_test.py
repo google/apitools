@@ -197,12 +197,12 @@ class MockTest(unittest.TestCase):
 
     def testMockHasMessagesModule(self):
         with mock.Client(fusiontables.FusiontablesV1) as mock_client:
-            self.assertEquals(fusiontables_messages,
+            self.assertEqual(fusiontables_messages,
                               mock_client.MESSAGES_MODULE)
 
     def testMockHasUrlProperty(self):
         with mock.Client(fusiontables.FusiontablesV1) as mock_client:
-            self.assertEquals(fusiontables.FusiontablesV1.BASE_URL,
+            self.assertEqual(fusiontables.FusiontablesV1.BASE_URL,
                               mock_client.url)
         self.assertFalse(hasattr(mock_client, 'url'))
 
@@ -211,7 +211,7 @@ class MockTest(unittest.TestCase):
                                                   get_credentials=False)
         with mock.Client(fusiontables.FusiontablesV1,
                          real_client) as mock_client:
-            self.assertEquals('http://localhost:8080/', mock_client.url)
+            self.assertEqual('http://localhost:8080/', mock_client.url)
 
     def testMockHasHttpProperty(self):
         with mock.Client(fusiontables.FusiontablesV1) as mock_client:
@@ -224,13 +224,13 @@ class MockTest(unittest.TestCase):
                                                   get_credentials=False)
         with mock.Client(fusiontables.FusiontablesV1,
                          real_client) as mock_client:
-            self.assertEquals('SomeHttpObject', mock_client.http)
+            self.assertEqual('SomeHttpObject', mock_client.http)
 
     def testMockPreservesServiceMethods(self):
         services = _GetApiServices(fusiontables.FusiontablesV1)
         with mock.Client(fusiontables.FusiontablesV1):
             mocked_services = _GetApiServices(fusiontables.FusiontablesV1)
-            self.assertEquals(services.keys(), mocked_services.keys())
+            self.assertEqual(services.keys(), mocked_services.keys())
             for name, service in six.iteritems(services):
                 mocked_service = mocked_services[name]
                 methods = service.GetMethodsList()
@@ -238,7 +238,7 @@ class MockTest(unittest.TestCase):
                     mocked_method = getattr(mocked_service, method)
                     mocked_method_config = mocked_method.method_config()
                     method_config = getattr(service, method).method_config()
-                    self.assertEquals(method_config, mocked_method_config)
+                    self.assertEqual(method_config, mocked_method_config)
 
 
 class _NestedMessage(messages.Message):

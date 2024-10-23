@@ -206,7 +206,7 @@ class BatchTest(unittest.TestCase):
             self.assertEqual({'status': '200'}, response.info)
             self.assertEqual('content', response.content)
             self.assertEqual(desired_url, response.request_url)
-        self.assertEquals(1, len(callback_was_called))
+        self.assertEqual(1, len(callback_was_called))
 
     def _MakeResponse(self, number_of_parts):
         return http_wrapper.Response(
