@@ -402,23 +402,19 @@ class MessageRegistry(object):
 
         if 'format' in attrs:
             type_info = self.PRIMITIVE_FORMAT_MAP.get(attrs['format'])
-            if type_info is None:
-                # If we don't recognize the format, the spec says we fall back
-                # to just using the type name.
-                if type_name in self.PRIMITIVE_TYPE_INFO_MAP:
-                    return self.PRIMITIVE_TYPE_INFO_MAP[type_name]
-                raise ValueError('Unknown type/format "%s"/"%s"' % (
-                    attrs['format'], type_name))
-            if type_info.type_name.startswith((
-                    'apitools.base.protorpclite.message_types.',
-                    'message_types.')):
-                self.__AddImport(
-                    'from %s import message_types as _message_types' %
-                    self.__protorpc_package)
-            if type_info.type_name.startswith('extra_types.'):
-                self.__AddImport(
-                    'from %s import extra_types' % self.__base_files_package)
-            return type_info
+            # NOTE: If we don't recognize the format, the spec says we fall back
+            # to just using the type name.
+            if type_info is not None:
+                if type_info.type_name.startswith((
+                        'apitools.base.protorpclite.message_types.',
+                        'message_types.')):
+                    self.__AddImport(
+                        'from %s import message_types as _message_types' %
+                        self.__protorpc_package)
+                if type_info.type_name.startswith('extra_types.'):
+                    self.__AddImport(
+                        'from %s import extra_types' % self.__base_files_package)
+                return type_info
 
         if type_name in self.PRIMITIVE_TYPE_INFO_MAP:
             type_info = self.PRIMITIVE_TYPE_INFO_MAP[type_name]
