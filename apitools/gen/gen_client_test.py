@@ -136,6 +136,25 @@ __path__ = pkgutil.extend_path(__path__, __name__)
             self.assertIn('2015-02-02-preview', client_file)
             self.assertIn('2015-03-03-preview', client_file)
 
+    def testGenClient_AnyObjectCustomFormat(self):
+        with test_utils.TempDir() as tmp_dir_path:
+            gen_client.main([
+                gen_client.__file__,
+                '--infile', GetTestDataPath(
+                    'compute', 'compute_2025-01-01-preview.json'),
+                '--outdir', tmp_dir_path,
+                '--overwrite',
+                '--version-identifier', 'v2025_01_01_preview',
+                '--root_package', 'google.apis',
+                'client'
+            ])
+            self.assertEqual(
+                set([
+                    'compute_v2025_01_01_preview_client.py',
+                    'compute_v2025_01_01_preview_messages.py',
+                    '__init__.py']),
+                set(os.listdir(tmp_dir_path)))
+
     def testGenPipPackage_SimpleDoc(self):
         with test_utils.TempDir() as tmp_dir_path:
             gen_client.main([
