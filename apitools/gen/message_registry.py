@@ -308,24 +308,6 @@ class MessageRegistry(object):
         self.AddDescriptorFromSchema(new_type_name, schema)
         return new_type_name
 
-    def __AddEntryType(self, entry_type_name, entry_schema, parent_name):
-        """Add a type for a list entry."""
-        entry_schema.pop('description', None)
-        description = 'Single entry in a %s.' % parent_name
-        schema = {
-            'id': entry_type_name,
-            'type': 'object',
-            'description': description,
-            'properties': {
-                'entry': {
-                    'type': 'array',
-                    'items': entry_schema,
-                },
-            },
-        }
-        self.AddDescriptorFromSchema(entry_type_name, schema)
-        return entry_type_name
-
     def __FieldDescriptorFromProperties(self, name, index, attrs):
         """Create a field descriptor for these attrs."""
         field = descriptor.FieldDescriptor()
@@ -430,14 +412,12 @@ class MessageRegistry(object):
             entry_name_hint = self.__names.ClassName(
                 items.get('title') or '%sListEntry' % name_hint)
             entry_label = self.__ComputeLabel(items)
+            # Check if nested list ie "repeated ListValue"
             if entry_label == descriptor.FieldDescriptor.Label.REPEATED:
-                parent_name = self.__names.ClassName(
-                    items.get('title') or name_hint)
-                entry_type_name = self.__AddEntryType(
-                    entry_name_hint, items.get('items'), parent_name)
-                return TypeInfo(type_name=entry_type_name,
+                return TypeInfo(type_name='extra_types.JsonArray',
                                 variant=messages.Variant.MESSAGE)
-            return self.__GetTypeInfo(items, entry_name_hint)
+            else:
+                return self.__GetTypeInfo(items, entry_name_hint)
         elif type_name == 'any':
             self.__AddImport('from %s import extra_types' %
                              self.__base_files_package)

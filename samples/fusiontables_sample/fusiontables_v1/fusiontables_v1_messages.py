@@ -502,24 +502,12 @@ class Import(_messages.Message):
 class Line(_messages.Message):
   r"""Represents a line geometry.
 
-  Messages:
-    CoordinatesValueListEntry: Single entry in a CoordinatesValue.
-
   Fields:
     coordinates: The coordinates that define the line.
     type: Type: A line geometry.
   """
 
-  class CoordinatesValueListEntry(_messages.Message):
-    r"""Single entry in a CoordinatesValue.
-
-    Fields:
-      entry: A number attribute.
-    """
-
-    entry = _messages.FloatField(1, repeated=True)
-
-  coordinates = _messages.MessageField('CoordinatesValueListEntry', 1, repeated=True)
+  coordinates = _messages.MessageField('extra_types.JsonArray', 1, repeated=True)
   type = _messages.StringField(2, default='LineString')
 
 
@@ -572,36 +560,12 @@ class PointStyle(_messages.Message):
 class Polygon(_messages.Message):
   r"""Represents a polygon object.
 
-  Messages:
-    CoordinatesValueListEntry: Single entry in a CoordinatesValue.
-
   Fields:
     coordinates: The coordinates that define the polygon.
     type: Type: A polygon geometry.
   """
 
-  class CoordinatesValueListEntry(_messages.Message):
-    r"""Single entry in a CoordinatesValue.
-
-    Messages:
-      EntryValueListEntry: Single entry in a EntryValue.
-
-    Fields:
-      entry: A EntryValueListEntry attribute.
-    """
-
-    class EntryValueListEntry(_messages.Message):
-      r"""Single entry in a EntryValue.
-
-      Fields:
-        entry: A number attribute.
-      """
-
-      entry = _messages.FloatField(1, repeated=True)
-
-    entry = _messages.MessageField('EntryValueListEntry', 1, repeated=True)
-
-  coordinates = _messages.MessageField('CoordinatesValueListEntry', 1, repeated=True)
+  coordinates = _messages.MessageField('extra_types.JsonArray', 1, repeated=True)
   type = _messages.StringField(2, default='Polygon')
 
 
@@ -637,9 +601,6 @@ class PolygonStyle(_messages.Message):
 class Sqlresponse(_messages.Message):
   r"""Represents a response to an sql statement.
 
-  Messages:
-    RowsValueListEntry: Single entry in a RowsValue.
-
   Fields:
     columns: Columns in the table.
     kind: Type name: a template for an individual table.
@@ -648,18 +609,9 @@ class Sqlresponse(_messages.Message):
       cell contains only one value.
   """
 
-  class RowsValueListEntry(_messages.Message):
-    r"""Single entry in a RowsValue.
-
-    Fields:
-      entry: A extra_types.JsonValue attribute.
-    """
-
-    entry = _messages.MessageField('extra_types.JsonValue', 1, repeated=True)
-
   columns = _messages.StringField(1, repeated=True)
   kind = _messages.StringField(2, default='fusiontables#sqlresponse')
-  rows = _messages.MessageField('RowsValueListEntry', 3, repeated=True)
+  rows = _messages.MessageField('extra_types.JsonArray', 3, repeated=True)
 
 
 class StandardQueryParameters(_messages.Message):
