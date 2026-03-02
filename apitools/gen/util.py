@@ -15,8 +15,6 @@
 # limitations under the License.
 
 """Assorted utilities shared between parts of apitools."""
-from __future__ import print_function
-from __future__ import unicode_literals
 
 import collections
 import contextlib

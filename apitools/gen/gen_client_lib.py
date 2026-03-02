@@ -168,8 +168,6 @@ class DescriptorGenerator(object):
         else:
             printer('"""Package marker file."""')
         printer()
-        printer('from __future__ import absolute_import')
-        printer()
         printer('import pkgutil')
         printer()
         if self.__init_wildcards_file:
