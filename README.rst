@@ -3,7 +3,7 @@
 google-apitools
 ===============
 
-|pypi| |build| |coverage|
+|pypi| |build| |coverage| |compat_check_pypi| |compat_check_github|
 
 ``google-apitools`` is a collection of utilities to make it easier to build
 client-side tools, especially those that talk to Google APIs.
@@ -52,3 +52,7 @@ Then run the tests::
    :target: https://pypi.python.org/pypi/google-apitools
 .. |coverage| image:: https://coveralls.io/repos/google/apitools/badge.svg?branch=master
    :target: https://coveralls.io/r/google/apitools?branch=master
+.. |compat_check_pypi| image:: https://python-compatibility-tools.appspot.com/one_badge_image?package=google-apitools
+   :target: https://python-compatibility-tools.appspot.com/one_badge_target?package=google-apitools
+.. |compat_check_github| image:: https://python-compatibility-tools.appspot.com/one_badge_image?package=git%2Bgit%3A//github.com/google/apitools.git
+   :target: https://python-compatibility-tools.appspot.com/one_badge_target?package=git%2Bgit%3A//github.com/google/apitools.git
