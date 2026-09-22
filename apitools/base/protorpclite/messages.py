@@ -758,6 +758,8 @@ class Message(six.with_metaclass(_MessageClass, object)):
 
     """
 
+    __hash__ = None
+
     def __init__(self, **kwargs):
         """Initialize internal messages state.
 
