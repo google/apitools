@@ -26,8 +26,8 @@ services_test.proto.
 Includes additional test utilities to make sure encoding/decoding libraries
 conform.
 """
-import cgi
 import datetime
+import email.message
 import inspect
 import os
 import re
@@ -47,6 +47,15 @@ RUSSIAN = u'\u0440\u0443\u0441\u0441\u043a\u0438\u0439'
 
 # All characters binary value interspersed with nulls.
 BINARY = b''.join(six.int2byte(value) + b'\0' for value in range(256))
+
+
+def _parse_header(header):
+    """Parse parameters from a HTTP header string."""
+    msg = email.message.Message()
+    msg['content-type'] = header
+    params = msg.get_params()
+    value = params[0][0] if params else header.strip()
+    return value, dict((key, val) for key, val in params[1:] if key)
 
 
 class TestCase(unittest.TestCase):
@@ -82,8 +91,8 @@ class TestCase(unittest.TestCase):
           header1: Header value string 1.
           header2: header value string 2.
         """
-        value1, params1 = cgi.parse_header(header1)
-        value2, params2 = cgi.parse_header(header2)
+        value1, params1 = _parse_header(header1)
+        value2, params2 = _parse_header(header2)
         self.assertEqual(value1, value2)
         self.assertEqual(params1, params2)
 
