@@ -55,7 +55,7 @@ def _parse_header(header):
     msg['content-type'] = header
     params = msg.get_params()
     value = params[0][0] if params else header.strip()
-    return value, dict(params[1:])
+    return value, dict((key, val) for key, val in params[1:] if key)
 
 
 class TestCase(unittest.TestCase):
