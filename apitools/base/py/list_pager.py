@@ -80,7 +80,7 @@ def YieldFromList(
       global_params: protorpc.messages.Message, The global query parameters to
            provide when calling the given method.
       limit: int, The maximum number of records to yield. None if all available
-          records should be yielded.
+          records should be yielded. Nonpositive limits yield no records.
       batch_size: int, The number of items to retrieve per request.
       method: str, The name of the method used to fetch resources.
       field: str, The field in the response that will be a list of items.
@@ -104,7 +104,7 @@ def YieldFromList(
     """
     request = encoding.CopyProtoMessage(request)
     _SetattrNested(request, current_token_attribute, None)
-    while limit is None or limit:
+    while limit is None or limit > 0:
         if batch_size_attribute:
             # On Py3, None is not comparable so min() below will fail.
             # On Py2, None is always less than any number so if batch_size
