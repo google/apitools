@@ -352,7 +352,10 @@ class ProtoJson(object):
 
         elif (isinstance(field, messages.MessageField) and
               issubclass(field.type, messages.Message)):
-            return self.__decode_dictionary(field.type, value)
+            try:
+                return self.__decode_dictionary(field.type, value)
+            except AttributeError as err:
+                raise messages.DecodeError(err)
 
         elif (isinstance(field, messages.FloatField) and
               isinstance(value, (six.integer_types, six.string_types))):
