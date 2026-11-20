@@ -15,12 +15,12 @@
 # limitations under the License.
 
 """Tests for transfer.py."""
+import json
 import string
 import unittest
+from unittest import mock
 
 import httplib2
-import json
-import mock
 import six
 from six.moves import http_client
 

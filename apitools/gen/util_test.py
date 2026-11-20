@@ -19,12 +19,13 @@
 import codecs
 import gzip
 import os
-import six.moves.urllib.request as urllib_request
 import tempfile
 import unittest
+from unittest import mock
+
+import six.moves.urllib.request as urllib_request
 
 from apitools.gen import util
-from mock import patch
 
 
 class NormalizeVersionTest(unittest.TestCase):
@@ -85,15 +86,15 @@ class GetURLContentTest(unittest.TestCase):
 
     def testUnspecifiedContentEncoding(self):
         data = 'regular non-gzipped content'
-        with patch.object(urllib_request, 'urlopen',
-                          return_value=MockRequestResponse(data, '')):
+        with mock.patch.object(urllib_request, 'urlopen',
+                               return_value=MockRequestResponse(data, '')):
             self.assertEqual(data, util._GetURLContent('unused_url_parameter'))
 
     def testGZippedContent(self):
         data = u'¿Hola qué tal?'
         compressed_data = _Gzip(data.encode('utf-8'))
-        with patch.object(urllib_request, 'urlopen',
-                          return_value=MockRequestResponse(
-                              compressed_data, 'gzip')):
+        with mock.patch.object(urllib_request, 'urlopen',
+                               return_value=MockRequestResponse(
+                                   compressed_data, 'gzip')):
             self.assertEqual(data, util._GetURLContent(
                 'unused_url_parameter').decode('utf-8'))

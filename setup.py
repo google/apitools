@@ -38,9 +38,7 @@ CLI_PACKAGES = [
     'python-gflags>=3.0.6',
 ]
 
-TESTING_PACKAGES = [
-    'mock>=1.0.1',
-]
+TESTING_PACKAGES = []
 
 CONSOLE_SCRIPTS = [
     'gen_client = apitools.gen.gen_client:main',
