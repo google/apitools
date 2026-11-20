@@ -16,11 +16,10 @@
 """Tests for http_wrapper."""
 import socket
 import unittest
+from unittest import mock
 
 import httplib2
 from six.moves import http_client
-
-from mock import patch
 
 from apitools.base.py import exceptions
 from apitools.base.py import http_wrapper
@@ -76,7 +75,7 @@ class HttpWrapperTest(unittest.TestCase):
 
         # Disable time.sleep for this handler as it is called with
         # a minimum value of 1 second.
-        with patch('time.sleep', return_value=None):
+        with mock.patch('time.sleep', return_value=None):
             http_wrapper.HandleExceptionsAndRebuildHttpConnections(
                 retry_args)
 
@@ -92,7 +91,7 @@ class HttpWrapperTest(unittest.TestCase):
         # Disable time.sleep for this handler as it is called with
         # a minimum value of 1 second.
         with self.assertRaises(HttpAccessTokenRefreshError):
-            with patch('time.sleep', return_value=None):
+            with mock.patch('time.sleep', return_value=None):
                 http_wrapper.HandleExceptionsAndRebuildHttpConnections(
                     retry_args)
 
@@ -106,7 +105,7 @@ class HttpWrapperTest(unittest.TestCase):
         # Disable time.sleep for this handler as it is called with
         # a minimum value of 1 second.
         with self.assertRaises(AccessTokenRefreshError):
-            with patch('time.sleep', return_value=None):
+            with mock.patch('time.sleep', return_value=None):
                 http_wrapper.HandleExceptionsAndRebuildHttpConnections(
                     retry_args)
 
@@ -134,6 +133,6 @@ class HttpWrapperTest(unittest.TestCase):
 
             # Disable time.sleep for this handler as it is called with
             # a minimum value of 1 second.
-            with patch('time.sleep', return_value=None):
+            with mock.patch('time.sleep', return_value=None):
                 http_wrapper.HandleExceptionsAndRebuildHttpConnections(
                     retry_args)
