@@ -480,9 +480,9 @@ class Download(_Transfer):
             end_byte = end
         while (not progress_end_normalized or end_byte is None or
                progress <= end_byte):
-            end_byte = self.__ComputeEndByte(progress, end=end_byte,
-                                             use_chunks=use_chunks)
-            response = self.__GetChunk(progress, end_byte,
+            chunk_end = self.__ComputeEndByte(progress, end=end_byte,
+                                              use_chunks=use_chunks)
+            response = self.__GetChunk(progress, chunk_end,
                                        additional_headers=additional_headers)
             if not progress_end_normalized:
                 self.__SetTotal(response.info)

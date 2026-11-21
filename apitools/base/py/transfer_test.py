@@ -166,6 +166,51 @@ class TransferTest(unittest.TestCase):
                 self.assertRangeAndContentRangeCompatible(
                     received_request, make_request.return_value)
 
+    def testGetRangeChunked(self):
+        data = string.ascii_letters
+
+        def _ReturnRange(unused_http, http_request,
+                         *unused_args, **unused_kwds):
+            range_spec = http_request.headers['range'][len('bytes='):]
+            first, _, last = range_spec.partition('-')
+            first, last = int(first), min(int(last), len(data) - 1)
+            return http_wrapper.Response(
+                info={
+                    'content-range': 'bytes %d-%d/%d' % (
+                        first, last, len(data)),
+                    'status': http_client.PARTIAL_CONTENT,
+                },
+                content=data[first:last + 1],
+                request_url=http_request.url,
+            )
+
+        for (total_size, start_byte, end_byte, expected_ranges) in [
+                (52, 5, 34, ['bytes=5-14', 'bytes=15-24', 'bytes=25-34']),
+                (None, 5, 34, ['bytes=5-14', 'bytes=15-24', 'bytes=25-34']),
+                (52, -30, None, ['bytes=22-31', 'bytes=32-41',
+                                 'bytes=42-51'])]:
+            download_stream = six.StringIO()
+            download = transfer.Download.FromStream(download_stream,
+                                                    chunksize=10,
+                                                    total_size=total_size,
+                                                    auto_transfer=False)
+            download.bytes_http = object()
+            with mock.patch.object(http_wrapper, 'MakeRequest',
+                                   autospec=True) as make_request:
+                make_request.side_effect = _ReturnRange
+                request = http_wrapper.Request(url='https://part.one/')
+                download.InitializeDownload(request, http=object())
+                download.GetRange(start_byte, end_byte)
+                self.assertEqual(
+                    expected_ranges,
+                    [call[0][1].headers['range']
+                     for call in make_request.call_args_list])
+            if end_byte is None:
+                expected = data[start_byte:]
+            else:
+                expected = data[start_byte:end_byte + 1]
+            self.assertEqual(expected, download_stream.getvalue())
+
     def testNonChunkedDownload(self):
         bytes_http = object()
         http = object()
